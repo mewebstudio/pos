@@ -22,7 +22,7 @@ class PosNetV1PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return PosNetV1Pos::class === $gatewayClass;
     }
@@ -30,9 +30,14 @@ class PosNetV1PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): string
+    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_JSON): EncodedData
     {
-        return $this->serializer->encode($data, JsonEncoder::FORMAT);
+        $format ??= self::FORMAT_JSON;
+
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format,
+        );
     }
 
     /**

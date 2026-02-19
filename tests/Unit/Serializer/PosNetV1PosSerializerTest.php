@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Serializer;
 use Generator;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\Serializer\PosNetV1PosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -35,11 +36,12 @@ class PosNetV1PosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, $expected): void
     {
-        $result = $this->serializer->encode($data);
+        $result = $this->serializer->encode($data, null, $format);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -55,39 +57,51 @@ class PosNetV1PosSerializerTest extends TestCase
     public static function encodeDataProvider(): Generator
     {
         yield 'test1' => [
-            'input' => [
-                'ApiType' => 'JSON',
-                'ApiVersion' => 'V100',
-                'MACParams' => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
-                'MerchantNo' => '6700950031',
-                'TerminalNo' => '67540050',
-                'CipheredData' => null,
-                'DealerData' => null,
-                'IsEncrypted' => null,
+            'input'           => [
+                'ApiType'                => 'JSON',
+                'ApiVersion'             => 'V100',
+                'MACParams'              => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
+                'MerchantNo'             => '6700950031',
+                'TerminalNo'             => '67540050',
+                'CipheredData'           => null,
+                'DealerData'             => null,
+                'IsEncrypted'            => null,
                 'PaymentFacilitatorData' => null,
-                'AdditionalInfoData' => null,
-                'CardInformationData' => [
-                    'CardNo' => '5555444433332222',
-                    'ExpireDate' => '2112',
-                    'Cvc2' => '122',
+                'AdditionalInfoData'     => null,
+                'CardInformationData'    => [
+                    'CardNo'         => '5555444433332222',
+                    'ExpireDate'     => '2112',
+                    'Cvc2'           => '122',
                     'CardHolderName' => 'ahmet',
                 ],
-                'IsMailOrder' => 'N',
-                'IsRecurring' => null,
-                'IsTDSecureMerchant' => null,
-                'PaymentInstrumentType' => 'CARD',
-                'ThreeDSecureData' => null,
-                'Amount' => 175,
-                'CurrencyCode' => 'TL',
-                'OrderId' => '0000000620093100_024',
-                'InstallmentCount' => '0',
-                'InstallmentType' => 'N',
-                'KOICode' => null,
-                'MerchantMessageData' => null,
-                'PointAmount' => null,
-                'MAC' => 'ACUIQYdc6CDEoGqii4E/9Ec8cnN4++LmtrJvR8cn17A=',
+                'IsMailOrder'            => 'N',
+                'IsRecurring'            => null,
+                'IsTDSecureMerchant'     => null,
+                'PaymentInstrumentType'  => 'CARD',
+                'ThreeDSecureData'       => null,
+                'Amount'                 => 175,
+                'CurrencyCode'           => 'TL',
+                'OrderId'                => '0000000620093100_024',
+                'InstallmentCount'       => '0',
+                'InstallmentType'        => 'N',
+                'KOICode'                => null,
+                'MerchantMessageData'    => null,
+                'PointAmount'            => null,
+                'MAC'                    => 'ACUIQYdc6CDEoGqii4E/9Ec8cnN4++LmtrJvR8cn17A=',
             ],
-            'expected' => '{"ApiType":"JSON","ApiVersion":"V100","MACParams":"MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount","MerchantNo":"6700950031","TerminalNo":"67540050","CipheredData":null,"DealerData":null,"IsEncrypted":null,"PaymentFacilitatorData":null,"AdditionalInfoData":null,"CardInformationData":{"CardNo":"5555444433332222","ExpireDate":"2112","Cvc2":"122","CardHolderName":"ahmet"},"IsMailOrder":"N","IsRecurring":null,"IsTDSecureMerchant":null,"PaymentInstrumentType":"CARD","ThreeDSecureData":null,"Amount":175,"CurrencyCode":"TL","OrderId":"0000000620093100_024","InstallmentCount":"0","InstallmentType":"N","KOICode":null,"MerchantMessageData":null,"PointAmount":null,"MAC":"ACUIQYdc6CDEoGqii4E\/9Ec8cnN4++LmtrJvR8cn17A="}',
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_JSON,
+            'expected'        => '{"ApiType":"JSON","ApiVersion":"V100","MACParams":"MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount","MerchantNo":"6700950031","TerminalNo":"67540050","CipheredData":null,"DealerData":null,"IsEncrypted":null,"PaymentFacilitatorData":null,"AdditionalInfoData":null,"CardInformationData":{"CardNo":"5555444433332222","ExpireDate":"2112","Cvc2":"122","CardHolderName":"ahmet"},"IsMailOrder":"N","IsRecurring":null,"IsTDSecureMerchant":null,"PaymentInstrumentType":"CARD","ThreeDSecureData":null,"Amount":175,"CurrencyCode":"TL","OrderId":"0000000620093100_024","InstallmentCount":"0","InstallmentType":"N","KOICode":null,"MerchantMessageData":null,"PointAmount":null,"MAC":"ACUIQYdc6CDEoGqii4E\/9Ec8cnN4++LmtrJvR8cn17A="}',
+        ];
+
+        yield 'test2' => [
+            'input'           => [
+                'ApiType'                => 'JSON',
+                'ApiVersion'             => 'V100',
+            ],
+            'format'          => SerializerInterface::FORMAT_JSON,
+            'expected_format' => SerializerInterface::FORMAT_JSON,
+            'expected'        => '{"ApiType":"JSON","ApiVersion":"V100"}',
         ];
     }
 

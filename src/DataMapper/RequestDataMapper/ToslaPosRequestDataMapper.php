@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -17,40 +18,33 @@ use Mews\Pos\PosInterface;
  */
 class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
-
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => '1',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => '2',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => '3',
-        PosInterface::TX_TYPE_CANCEL         => '4',
-        PosInterface::TX_TYPE_REFUND         => '5',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => '5',
-    ];
+    public static function supports(string $gatewayClass): bool
+    {
+        return ToslaPos::class === $gatewayClass;
+    }
 
     /**
      * @param ToslaPosAccount                      $posAccount
      * @param array<string, int|string|float|null> $order
      *
-     * @return array<string, string|int>
+     * @return array<string, string|int|float>
      */
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'callbackUrl'      => (string) $order['success_url'],
-                'orderId'          => (string) $order['id'],
-                'amount'           => $this->formatAmount($order['amount']),
-                'currency'         => (int) $this->mapCurrency($order['currency']),
-                'installmentCount' => (int) $this->mapInstallment($order['installment']),
-                'rnd'              => $this->crypt->generateRandomString(),
-                'timeSpan'         => $order['time_span'],
-            ];
+            'callbackUrl'      => (string) $order['success_url'],
+            'orderId'          => (string) $order['id'],
+            'amount'           => $this->valueFormatter->formatAmount($order['amount']),
+            'currency'         => (int) $this->valueMapper->mapCurrency($order['currency']),
+            'installmentCount' => (int) $this->valueFormatter->formatInstallment($order['installment']),
+            'rnd'              => $this->crypt->generateRandomString(),
+            'timeSpan'         => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
@@ -73,17 +67,17 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'orderId'          => (string) $order['id'],
-                'amount'           => $this->formatAmount($order['amount']),
-                'currency'         => (int) $this->mapCurrency($order['currency']),
-                'installmentCount' => (int) $this->mapInstallment($order['installment']),
-                'rnd'              => $this->crypt->generateRandomString(),
-                'timeSpan'         => $order['time_span'],
-                'cardHolderName'   => $creditCard->getHolderName(),
-                'cardNo'           => $creditCard->getNumber(),
-                'expireDate'       => $creditCard->getExpirationDate('my'),
-                'cvv'              => $creditCard->getCvv(),
-            ];
+            'orderId'          => (string) $order['id'],
+            'amount'           => $this->valueFormatter->formatAmount($order['amount']),
+            'currency'         => (int) $this->valueMapper->mapCurrency($order['currency']),
+            'installmentCount' => (int) $this->valueFormatter->formatInstallment($order['installment']),
+            'rnd'              => $this->crypt->generateRandomString(),
+            'timeSpan'         => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
+            'cardHolderName'   => $creditCard->getHolderName(),
+            'cardNo'           => $creditCard->getNumber(),
+            'expireDate'       => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'expireDate'),
+            'cvv'              => $creditCard->getCvv(),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
@@ -98,11 +92,11 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'orderId'  => (string) $order['id'],
-                'amount'   => $this->formatAmount($order['amount']),
-                'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $order['time_span'],
-            ];
+            'orderId'  => (string) $order['id'],
+            'amount'   => $this->valueFormatter->formatAmount($order['amount']),
+            'rnd'      => $this->crypt->generateRandomString(),
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
@@ -117,10 +111,10 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareStatusOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'orderId'  => (string) $order['id'],
-                'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $order['time_span'],
-            ];
+            'orderId'  => (string) $order['id'],
+            'rnd'      => $this->crypt->generateRandomString(),
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
@@ -135,10 +129,10 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareCancelOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'orderId'  => (string) $order['id'],
-                'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $order['time_span'],
-            ];
+            'orderId'  => (string) $order['id'],
+            'rnd'      => $this->crypt->generateRandomString(),
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
@@ -153,11 +147,11 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareRefundOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'orderId'  => (string) $order['id'],
-                'rnd'      => $this->crypt->generateRandomString(),
-                'amount'   => $this->formatAmount($order['amount']),
-                'timeSpan' => $order['time_span'],
-            ];
+            'orderId'  => (string) $order['id'],
+            'rnd'      => $this->crypt->generateRandomString(),
+            'amount'   => $this->valueFormatter->formatAmount($order['amount']),
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
@@ -171,13 +165,13 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order       = $this->prepareOrderHistoryOrder($order);
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'orderId'         => (string) $order['id'],
-                'transactionDate' => $order['transaction_date']->format('Ymd'),
-                'page'            => $order['page'],
-                'pageSize'        => $order['page_size'],
-                'rnd'             => $this->crypt->generateRandomString(),
-                'timeSpan'        => $order['time_span'],
-            ];
+            'orderId'         => (string) $order['id'],
+            'transactionDate' => $this->valueFormatter->formatDateTime($order['transaction_date'], 'transactionDate'),
+            'page'            => $order['page'],
+            'pageSize'        => $order['page_size'],
+            'rnd'             => $this->crypt->generateRandomString(),
+            'timeSpan'        => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
@@ -191,7 +185,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $requestData += $this->getRequestAccountData($posAccount) + [
                 'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $this->newTimeSpan(),
+                'timeSpan' => $this->valueFormatter->formatDateTime($this->newTimeSpan(), 'timeSpan'),
             ];
 
         if (!isset($requestData['hash'])) {
@@ -231,7 +225,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['CardHolderName'] = (string) $creditCard->getHolderName();
             $inputs['CardNo']         = $creditCard->getNumber();
-            $inputs['ExpireDate']     = $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
+            $inputs['ExpireDate']     = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireDate');
             $inputs['Cvv']            = $creditCard->getCvv();
         }
 
@@ -240,30 +234,6 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'method'  => 'POST',
             'inputs'  => $inputs,
         ];
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '0';
-    }
-
-    /**
-     * Get amount
-     * formats 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    protected function formatAmount(float $amount): int
-    {
-        return (int) (\round($amount, 2) * 100);
     }
 
     /**
@@ -352,13 +322,10 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @return string ex: 20231209201121
+     * @return \DateTimeImmutable
      */
-    private function newTimeSpan(): string
+    private function newTimeSpan(): \DateTimeImmutable
     {
-        $turkeyTimeZone = new \DateTimeZone('Europe/Istanbul');
-        $turkeyTime     = new \DateTime('now', $turkeyTimeZone);
-
-        return $turkeyTime->format('YmdHis');
+        return new \DateTimeImmutable('now', new \DateTimeZone('Europe/Istanbul'));
     }
 }

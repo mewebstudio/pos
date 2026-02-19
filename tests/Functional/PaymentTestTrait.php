@@ -107,7 +107,7 @@ trait PaymentTestTrait
             'currency' => $lastResponse['currency'],
             'ip'       => '127.0.0.1',
         ];
-        if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
+        if (\Mews\Pos\Gateways\KuveytSoapApiPos::class === $gatewayClass) {
             $statusOrder['remote_order_id'] = $lastResponse['remote_order_id']; // OrderId
         }
 
@@ -162,7 +162,7 @@ trait PaymentTestTrait
             $cancelOrder['amount'] = $lastResponse['amount'];
             // on otorizasyon islemin iptali icin PosInterface::TX_TYPE_PAY_PRE_AUTH saglanmasi gerekiyor
             $cancelOrder['transaction_type'] = $lastResponse['transaction_type'] ?? PosInterface::TX_TYPE_PAY_AUTH;
-        } elseif (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
+        } elseif (\Mews\Pos\Gateways\KuveytSoapApiPos::class === $gatewayClass) {
             $cancelOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
             $cancelOrder['auth_code']       = $lastResponse['auth_code'];
             $cancelOrder['transaction_id']  = $lastResponse['transaction_id'];
@@ -328,7 +328,7 @@ trait PaymentTestTrait
             'ip'           => '127.0.0.1',
         ];
 
-        if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
+        if (\Mews\Pos\Gateways\KuveytSoapApiPos::class === $gatewayClass) {
             $refundOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
             $refundOrder['auth_code']       = $lastResponse['auth_code'];
             $refundOrder['transaction_id']  = $lastResponse['transaction_id'];

@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Class PayForPos
  */
-class PayForPos extends AbstractGateway
+class PayForPos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'PayForPOS';
@@ -70,23 +70,29 @@ class PayForPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
-        $request = $request->request;
+        $postParameters = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
-        if (!$this->is3DAuthSuccess($request->all())) {
-            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
+        if (!$this->is3DAuthSuccess($postParameters->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($postParameters->all(), null, $txType, $order);
 
             return $this;
         }
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
         ) {
             throw new HashMismatchException();
         }
 
         // valid ProcReturnCode is V033 in case of success 3D Authentication
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $postParameters->all()
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -94,7 +100,7 @@ class PayForPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -108,15 +114,17 @@ class PayForPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        $bankResponse = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPaymentData($postParameters->all(), $bankResponse, $txType, $order);
 
         return $this;
     }
@@ -195,25 +203,5 @@ class PayForPos extends AbstractGateway
             $this->get3DGatewayURL($paymentModel),
             $creditCard
         );
-    }
-
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'text/xml; charset=UTF-8',
-            ],
-            'body'    => $contents,
-        ]);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 }

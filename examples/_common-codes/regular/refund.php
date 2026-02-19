@@ -25,7 +25,7 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
         'ip'           => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
 
-    if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
+    if (\Mews\Pos\Gateways\KuveytSoapApiPos::class === $gatewayClass) {
         $refundOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
         $refundOrder['auth_code']       = $lastResponse['auth_code'];
         $refundOrder['transaction_id']  = $lastResponse['transaction_id'];

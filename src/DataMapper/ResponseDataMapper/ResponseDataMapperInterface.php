@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\PosInterface;
+
 interface ResponseDataMapperInterface extends PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
 {
     /** @var string */
@@ -13,4 +15,11 @@ interface ResponseDataMapperInterface extends PaymentResponseMapperInterface, No
 
     /** @var string */
     public const TX_DECLINED = 'declined';
+
+    /**
+     * @param class-string<PosInterface> $gatewayClass
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass): bool;
 }

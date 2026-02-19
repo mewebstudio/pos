@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\Tests\Unit\Factory;
 
+use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Factory\RequestDataMapperFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -19,29 +21,33 @@ class RequestDataMapperFactoryTest extends TestCase
      */
     public function testCreateGatewayRequestMapper(string $gatewayClass, string $mapperClass): void
     {
+        $valueMapper     = $this->createMock(RequestValueMapperInterface::class);
+        $valueFormatter  = $this->createMock(RequestValueFormatterInterface::class);
         $eventDispatcher = $this->createMock(\Psr\EventDispatcher\EventDispatcherInterface::class);
         $crypt           = $this->createMock(\Mews\Pos\Crypt\CryptInterface::class);
-        $currencies      = [];
         $mapper          = RequestDataMapperFactory::createGatewayRequestMapper(
             $gatewayClass,
+            $valueMapper,
+            $valueFormatter,
             $eventDispatcher,
             $crypt,
-            $currencies
         );
         $this->assertInstanceOf($mapperClass, $mapper);
     }
 
     public function testCreateGatewayRequestMapperUnsupported(): void
     {
+        $valueMapper     = $this->createMock(RequestValueMapperInterface::class);
+        $valueFormatter  = $this->createMock(RequestValueFormatterInterface::class);
         $eventDispatcher = $this->createMock(\Psr\EventDispatcher\EventDispatcherInterface::class);
         $crypt           = $this->createMock(\Mews\Pos\Crypt\CryptInterface::class);
-        $currencies      = [];
         $this->expectException(\DomainException::class);
         RequestDataMapperFactory::createGatewayRequestMapper(
             \stdClass::class,
+            $valueMapper,
+            $valueFormatter,
             $eventDispatcher,
             $crypt,
-            $currencies
         );
     }
 
@@ -54,7 +60,9 @@ class RequestDataMapperFactoryTest extends TestCase
             [\Mews\Pos\Gateways\GarantiPos::class, \Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\InterPos::class, \Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\KuveytPos::class, \Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper::class],
+            [\Mews\Pos\Gateways\KuveytSoapApiPos::class, \Mews\Pos\DataMapper\RequestDataMapper\KuveytSoapApiPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\ParamPos::class, \Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper::class],
+            [\Mews\Pos\Gateways\Param3DHostPos::class, \Mews\Pos\DataMapper\RequestDataMapper\Param3DHostPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\PayFlexCPV4Pos::class, \Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper::class],
             [\Mews\Pos\Gateways\PayForPos::class, \Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\PosNet::class, \Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper::class],

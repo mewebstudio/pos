@@ -1,18 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter \#1 \$body of method Psr\\Http\\Message\\MessageInterface\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface, Psr\\Http\\Message\\StreamInterface\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Client/HttpClient.php
-
-		-
-			message: '#^Parameter \#1 \$content of method Psr\\Http\\Message\\StreamFactoryInterface\:\:createStream\(\) expects string, array\<string, string\>\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Client/HttpClient.php
-
-		-
 			message: '#^Default value of the parameter \#3 \$order \(array\{\}\) of method Mews\\Pos\\Crypt\\PosNetCrypt\:\:createHash\(\) is incompatible with type array\{amount\: int, currency\: string, id\: string\}\.$#'
 			identifier: parameter.defaultValue
 			count: 1
@@ -25,16 +13,16 @@ parameters:
 			path: src/Crypt/PosNetV1PosCrypt.php
 
 		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\AkbankPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
-			identifier: argument.type
-			count: 5
-			path: src/DataMapper/RequestDataMapper/AkbankPosRequestDataMapper.php
-
-		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\EstPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
+			message: '#^Parameter \#1 \$installment of method Mews\\Pos\\DataMapper\\RequestValueFormatter\\ParamPosRequestValueFormatter\:\:formatInstallment\(\) expects int\<0, max\>, int given\.$#'
 			identifier: argument.type
 			count: 1
-			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
+			path: src/DataMapper/RequestDataMapper/Param3DHostPosRequestDataMapper.php
+
+		-
+			message: '#^Parameter \#1 \$installment of method Mews\\Pos\\DataMapper\\RequestValueFormatter\\ParamPosRequestValueFormatter\:\:formatInstallment\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/DataMapper/RequestDataMapper/ParamPosRequestDataMapper.php
 
 		-
 			message: '#^Default value of the parameter \#7 \$extraData \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexCPV4PosRequestDataMapper\:\:create3DFormData\(\) is incompatible with type array\{CommonPaymentUrl\: string, PaymentToken\: string\}\.$#'
@@ -91,12 +79,6 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
 
 		-
-			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PosNetRequestDataMapper\:\:create3DEnrollmentCheckRequestData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
-
-		-
 			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PosNetV1PosRequestDataMapper\:\:create3DFormData\(\) has parameter \$extraData with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
@@ -107,12 +89,6 @@ parameters:
 			identifier: foreach.nonIterable
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/AbstractResponseDataMapper.php
-
-		-
-			message: '#^Possibly invalid array key type string\|null\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/EstPosResponseDataMapper.php
 
 		-
 			message: '#^Offset ''ErrorMsg'' might not exist on array\<string, string\>\|string\.$#'
@@ -137,30 +113,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
-
-		-
-			message: '#^Property Mews\\Pos\\DataMapper\\ResponseDataMapper\\AbstractResponseDataMapper\:\:\$secureTypeMappings \(array\<string, ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\>\) does not accept non\-empty\-array\<1\|2\|3\|string, ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
-
-		-
-			message: '#^Possibly invalid array key type string\|null\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
-
-		-
-			message: '#^Property Mews\\Pos\\DataMapper\\ResponseDataMapper\\AbstractResponseDataMapper\:\:\$currencyMappings \(array\<string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\) does not accept non\-empty\-array\<392\|643\|826\|840\|949\|978\|string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
-
-		-
-			message: '#^Possibly invalid array key type string\|null\.$#'
-			identifier: offsetAccess.invalidOffset
-			count: 2
-			path: src/DataMapper/ResponseDataMapper/VakifKatilimPosResponseDataMapper.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between ''3d_host'' and ''3d_host'' will always evaluate to true\.$#'
@@ -221,3 +173,9 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Gateways/PosNet.php
+
+		-
+			message: '#^Method Mews\\Pos\\Gateways\\VakifKatilimPos\:\:sendEnrollmentRequest\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Gateways/VakifKatilimPos.php

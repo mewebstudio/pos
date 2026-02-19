@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Request;
  * PayFlex Common Payment (Ortak Ödeme) ISD v4.0
  * Dokumanlar: http://sanalpos.innova.com.tr/
  */
-class PayFlexCPV4Pos extends AbstractGateway
+class PayFlexCPV4Pos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'PayFlex-Common-Payment-V4';
@@ -203,33 +203,6 @@ class PayFlexCPV4Pos extends AbstractGateway
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        if (!\is_string($contents)) {
-            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
-        }
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Accept'       => 'text/xml',
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-            'body'    => $contents,
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        $responseContent = $response->getBody()->getContents();
-
-        return $this->data = $this->serializer->decode($responseContent, $txType);
-    }
-
-    /**
      *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
      *
@@ -280,14 +253,16 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
-
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->send(
-            $contents,
+        $response = $this->clientStrategy->getClient(
             $txType,
             $paymentModel,
-            $this->get3DGatewayURL()
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $this->get3DGatewayURL(),
         );
 
         return $response;
@@ -342,16 +317,14 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
-
-        /**
-         * sending request to make sure that payment was successful
-         */
-        return $this->send(
-            $contents,
+        return $this->clientStrategy->getClient(
             $txType,
             $paymentModel,
-            $this->getApiURL()
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
     }
 }

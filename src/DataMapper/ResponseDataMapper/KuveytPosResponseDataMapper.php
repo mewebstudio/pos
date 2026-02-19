@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 
 class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
@@ -24,16 +25,12 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
-     * Order Status Codes
-     *
-     * @var array<int, PosInterface::PAYMENT_STATUS_*>
+     * @inheritDoc
      */
-    protected array $orderStatusMappings = [
-        1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
-        5 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
-        6 => PosInterface::PAYMENT_STATUS_CANCELED,
-    ];
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}
@@ -80,11 +77,11 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $result['batch_num']   = $vPosMessage['BatchID'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['transaction_id']    = $rawPaymentResponseData['Stan'];
-        $result['amount']            = $this->formatAmount($vPosMessage['Amount']);
-        $result['currency']          = $this->mapCurrency($vPosMessage['CurrencyCode']);
-        $result['installment_count'] = $this->mapInstallment($vPosMessage['InstallmentCount']);
+        $result['amount']            = $this->valueFormatter->formatAmount($vPosMessage['Amount'], $txType);
+        $result['currency']          = $this->valueMapper->mapCurrency($vPosMessage['CurrencyCode'], $txType);
+        $result['installment_count'] = $this->valueFormatter->formatInstallment($vPosMessage['InstallmentCount'], $txType);
         $result['masked_number']     = $vPosMessage['CardNumber'];
-        $result['transaction_time']  = new \DateTimeImmutable();
+        $result['transaction_time']  = $this->valueFormatter->formatDateTime('now', $txType);
 
         $this->logger->debug('mapped payment response', $result);
 
@@ -100,7 +97,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
-        $threeDResponse = $this->map3DCommonResponseData($raw3DAuthResponseData);
+        $threeDResponse = $this->map3DCommonResponseData($raw3DAuthResponseData, $txType);
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = $threeDResponse['transaction_type'] ?? $txType;
         if (null === $rawPaymentResponseData || [] === $rawPaymentResponseData) {
@@ -142,59 +139,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $status          = self::TX_DECLINED;
-        $data            = $rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Value'];
-
-        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
-
-        if (!isset($data['OrderContract'])) {
-            if (isset($rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Results']['Result'])) {
-                $rawResult                        = $rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Results']['Result'];
-                $defaultResponse['error_code']    = $rawResult['ErrorCode'];
-                $defaultResponse['error_message'] = $rawResult['ErrorMessage'];
-            }
-
-            return $defaultResponse;
-        }
-
-        $orderContract  = $rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Value']['OrderContract'];
-        $procReturnCode = $this->getProcReturnCode($orderContract);
-
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $status = self::TX_APPROVED;
-        }
-
-        $defaultResponse['status']           = $status;
-        $defaultResponse['proc_return_code'] = $procReturnCode;
-
-        if (self::TX_APPROVED === $status) {
-            $defaultResponse['order_status']    = $this->orderStatusMappings[$orderContract['LastOrderStatus']] ?? null;
-            $defaultResponse['order_id']        = $orderContract['MerchantOrderId'];
-            $defaultResponse['remote_order_id'] = (string) $orderContract['OrderId'];
-
-            $defaultResponse['auth_code']         = $orderContract['ProvNumber'];
-            $defaultResponse['ref_ret_num']       = $orderContract['RRN'];
-            $defaultResponse['transaction_id']    = $orderContract['Stan'];
-            $defaultResponse['currency']          = $this->mapCurrency($orderContract['FEC']);
-            $defaultResponse['first_amount']      = null === $orderContract['FirstAmount'] ? null : (float) $orderContract['FirstAmount'];
-            $defaultResponse['masked_number']     = $orderContract['CardNumber'];
-            $defaultResponse['transaction_time']  = new \DateTimeImmutable($orderContract['OrderDate']);
-            $defaultResponse['installment_count'] = $this->mapInstallment($orderContract['InstallmentCount']);
-            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $defaultResponse['order_status']) {
-                $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
-                $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0;
-                if ($defaultResponse['capture']) {
-                    $defaultResponse['capture_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
-                }
-            } elseif (PosInterface::PAYMENT_STATUS_CANCELED === $defaultResponse['order_status']) {
-                $defaultResponse['cancel_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
-            } elseif (PosInterface::PAYMENT_STATUS_FULLY_REFUNDED === $defaultResponse['order_status']) {
-                $defaultResponse['refund_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
-            }
-        }
-
-        return $defaultResponse;
+        throw new NotImplementedException();
     }
 
     /**
@@ -202,121 +147,12 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapRefundResponse(array $rawResponseData): array
     {
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $status          = self::TX_DECLINED;
-
-        $result = [
-            'order_id'         => null,
-            'auth_code'        => null,
-            'proc_return_code' => null,
-            'transaction_id'   => null,
-            'currency'         => null,
-            'error_message'    => null,
-            'ref_ret_num'      => null,
-            'status'           => $status,
-            'error_code'       => null,
-            'status_detail'    => null,
-            'all'              => $rawResponseData,
-        ];
-
-        $drawbackResult = $rawResponseData['PartialDrawbackResponse']['PartialDrawbackResult']
-            ?? $rawResponseData['DrawBackResponse']['DrawBackResult'];
-        $value          = $drawbackResult['Value'];
-
-        $procReturnCode = $this->getProcReturnCode($value);
-
-        if (null === $procReturnCode) {
-            return $result;
-        }
-
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $status = self::TX_APPROVED;
-        }
-
-        $responseResults = $drawbackResult['Results'];
-        if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
-            $responseResult             = $responseResults['Result'][0] ?? $responseResults['Result'];
-            $result['proc_return_code'] = $procReturnCode;
-            $result['error_code']       = $responseResult['ErrorCode'] ?? $procReturnCode;
-            $result['error_message']    = $responseResult['ErrorMessage'];
-
-            return $result;
-        }
-
-        $result['ref_ret_num']      = $value['RRN'];
-        $result['transaction_id']   = $value['Stan'];
-        $result['proc_return_code'] = $procReturnCode;
-        $result['order_id']         = $value['MerchantOrderId'];
-        $result['remote_order_id']  = (string) $value['OrderId'];
-        $result['status']           = $status;
-
-        if (self::TX_APPROVED === $status) {
-            $result['currency']  = $this->mapCurrency($value['CurrencyCode']);
-            $result['auth_code'] = $value['ProvisionNumber'];
-        } else {
-            $result['error_code']    = $procReturnCode;
-            $result['error_message'] = $value['ResponseMessage'];
-        }
-
-        return $result;
+        throw new NotImplementedException();
     }
 
     public function mapCancelResponse(array $rawResponseData): array
     {
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $status          = self::TX_DECLINED;
-
-        $result = [
-            'order_id'         => null,
-            'auth_code'        => null,
-            'proc_return_code' => null,
-            'transaction_id'   => null,
-            'currency'         => null,
-            'error_message'    => null,
-            'ref_ret_num'      => null,
-            'status'           => $status,
-            'error_code'       => null,
-            'status_detail'    => null,
-            'all'              => $rawResponseData,
-        ];
-
-        $value          = $rawResponseData['SaleReversalResponse']['SaleReversalResult']['Value'];
-        $procReturnCode = $this->getProcReturnCode($value);
-
-        if (null === $procReturnCode) {
-            return $result;
-        }
-
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $status = self::TX_APPROVED;
-        }
-
-        $responseResults = $rawResponseData['SaleReversalResponse']['SaleReversalResult']['Results'];
-        if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
-            $responseResult             = $responseResults['Result'][0] ?? $responseResults['Result'];
-            $result['proc_return_code'] = $procReturnCode;
-            $result['error_code']       = $responseResult['ErrorCode'] ?? $procReturnCode;
-            $result['error_message']    = $responseResult['ErrorMessage'];
-
-            return $result;
-        }
-
-        $result['ref_ret_num']      = $value['RRN'];
-        $result['transaction_id']   = $value['Stan'];
-        $result['proc_return_code'] = $procReturnCode;
-        $result['order_id']         = $value['MerchantOrderId'];
-        $result['remote_order_id']  = (string) $value['OrderId'];
-        $result['status']           = $status;
-        $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
-
-        if (self::TX_APPROVED === $status) {
-            $result['auth_code'] = $value['ProvisionNumber'];
-        } else {
-            $result['error_code']    = $procReturnCode;
-            $result['error_message'] = $value['ResponseMessage'];
-        }
-
-        return $result;
+        throw new NotImplementedException();
     }
 
     /**
@@ -352,17 +188,6 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * "101" => 1.01
-     * @param string $amount
-     *
-     * @return float
-     */
-    protected function formatAmount(string $amount): float
-    {
-        return (float) $amount / 100;
-    }
-
-    /**
      * Get ProcReturnCode
      *
      * @param array<string, string> $response
@@ -373,20 +198,6 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     {
         return $response['ResponseCode'] ?? null;
     }
-
-    /**
-     * @param string $currency currency code that is accepted by bank
-     *
-     * @return PosInterface::CURRENCY_*|string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        // 949 => 0949; for the request gateway wants 0949 code, but in response they send 949 code.
-        $currencyNormalized = str_pad($currency, 4, '0', STR_PAD_LEFT);
-
-        return parent::mapCurrency($currencyNormalized);
-    }
-
 
     /**
      * @param string $mdStatus
@@ -402,11 +213,12 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * returns mapped data of the common response data among all 3d models.
      *
-     * @param array<string, string> $raw3DAuthResponseData
+     * @param array<string, string>       $raw3DAuthResponseData
+     * @param PosInterface::TX_TYPE_PAY_* $txType
      *
      * @return array<string, mixed>
      */
-    protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
+    protected function map3DCommonResponseData(array $raw3DAuthResponseData, string $txType): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
@@ -428,7 +240,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $default = [
             'order_id'             => $orderId,
             'transaction_security' => $this->mapResponseTransactionSecurity('todo'),
-            'transaction_type'     => isset($vPosMessage['TransactionType']) ? $this->mapTxType($vPosMessage['TransactionType']) : null,
+            'transaction_type'     => isset($vPosMessage['TransactionType']) ? $this->valueMapper->mapTxType($vPosMessage['TransactionType']) : null,
             'proc_return_code'     => $procReturnCode,
             'md_status'            => null,
             'payment_model'        => null,
@@ -444,9 +256,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         if (self::TX_APPROVED === $status) {
-            $default['payment_model'] = $this->mapSecurityType($vPosMessage['TransactionSecurity']);
-            $default['amount']        = $this->formatAmount($vPosMessage['Amount']);
-            $default['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
+            $default['payment_model'] = $this->valueMapper->mapSecureType($vPosMessage['TransactionSecurity'], $txType);
+            $default['amount']        = $this->valueFormatter->formatAmount($vPosMessage['Amount'], $txType);
+            $default['currency']      = $this->valueMapper->mapCurrency($vPosMessage['CurrencyCode'], $txType);
             $default['masked_number'] = $vPosMessage['CardNumber'];
             $default['batch_num']     = $vPosMessage['BatchID'] > 0 ? $vPosMessage['BatchID'] : null;
         }

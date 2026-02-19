@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @deprecated use Mews\Pos\Gateways\EstV3Pos.
  * For security reasons this class which uses sha1 hashing algorithm is not recommended to use.
  */
-class EstPos extends AbstractGateway
+class EstPos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'EstPos';
@@ -66,7 +66,8 @@ class EstPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
-        $request = $request->request;
+        $postParameters = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         /**
          * TODO hata durumu ele alinmasi gerekiyor
@@ -74,9 +75,9 @@ class EstPos extends AbstractGateway
          * ["ProcReturnCode" => "99", "mdStatus" => "7", "mdErrorMsg" => "Isyeri kullanim tipi desteklenmiyor.",
          * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
          */
-        if (!$this->is3DAuthSuccess($request->all())) {
+        if (!$this->is3DAuthSuccess($postParameters->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
-                $request->all(),
+                $postParameters->all(),
                 null,
                 $txType,
                 $order
@@ -87,13 +88,13 @@ class EstPos extends AbstractGateway
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
         ) {
             throw new HashMismatchException();
         }
 
         /** @var array{md: string, xid: string, eci: string, cavv: string} $bankPostData */
-        $bankPostData = $request->all();
+        $bankPostData = $postParameters->all();
 
         $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $bankPostData);
 
@@ -103,7 +104,7 @@ class EstPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -117,16 +118,18 @@ class EstPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        $provisionResponse = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
-            $request->all(),
+            $postParameters->all(),
             $provisionResponse,
             $txType,
             $order
@@ -197,20 +200,5 @@ class EstPos extends AbstractGateway
     public function history(array $data): PosInterface
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        $response = $this->client->post($url, ['body' => $contents]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 }

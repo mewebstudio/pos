@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 
 class PosNetResponseDataMapper extends AbstractResponseDataMapper
@@ -44,6 +45,14 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNet::class === $gatewayClass;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
@@ -79,8 +88,8 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['all']              = $rawPaymentResponseData;
 
         if (self::TX_APPROVED === $status) {
-            $defaultResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
-            $defaultResponse['transaction_time']  = new \DateTimeImmutable();
+            $defaultResponse['installment_count'] = $this->valueFormatter->formatInstallment($rawPaymentResponseData['instInfo']['inst1'], $txType);
+            $defaultResponse['transaction_time']  = $this->valueFormatter->formatDateTime('now', $txType);
         }
 
         return $defaultResponse;
@@ -128,8 +137,8 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
             'order_id'             => $order['id'],
             'remote_order_id'      => $oosResolveMerchantDataResponse['xid'] ?? null,
             'transaction_security' => $transactionSecurity,
-            'amount'               => $this->formatAmount((string) $oosResolveMerchantDataResponse['amount']),
-            'currency'             => $this->mapCurrency((string) $oosResolveMerchantDataResponse['currency']),
+            'amount'               => $this->valueFormatter->formatAmount((string) $oosResolveMerchantDataResponse['amount'], $txType),
+            'currency'             => $this->valueMapper->mapCurrency((string) $oosResolveMerchantDataResponse['currency'], $txType),
             'proc_return_code'     => $procReturnCode,
             'status'               => $status,
             'status_detail'        => $this->getStatusDetail($procReturnCode),
@@ -190,7 +199,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $state           = $rawResponseData['state'] ?? null;
         $transactionType = null;
         if (null !== $state) {
-            $transactionType = $this->mapTxType($state);
+            $transactionType = $this->valueMapper->mapTxType($state);
         }
 
         $results = [
@@ -213,10 +222,10 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $txResults          = [];
         if (null !== $transactionDetails) {
             $txResults = [
-                'auth_code'   => $transactionDetails['authCode'] ?? null,
-                'transaction_id'    => null,
-                'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
-                'date'        => $transactionDetails['tranDate'] ?? null,
+                'auth_code'      => $transactionDetails['authCode'] ?? null,
+                'transaction_id' => null,
+                'ref_ret_num'    => $transactionDetails['hostlogkey'] ?? null,
+                'date'           => $transactionDetails['tranDate'] ?? null,
             ];
         }
 
@@ -228,6 +237,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status          = self::TX_DECLINED;
         $errorCode       = $rawResponseData['respCode'] ?? null;
@@ -245,14 +255,14 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
             $transactionDetails = $rawResponseData['transactions']['transaction'];
 
             $txResults = [
-                'currency'         => $this->mapCurrency($transactionDetails['currencyCode']),
-                'first_amount'     => $this->formatStatusAmount($transactionDetails['amount']),
-                'transaction_type' => null === $transactionDetails['state'] ? null : $this->mapTxType($transactionDetails['state']),
+                'currency'         => $this->valueMapper->mapCurrency($transactionDetails['currencyCode'], $txType),
+                'first_amount'     => $this->valueFormatter->formatAmount($transactionDetails['amount'], $txType),
+                'transaction_type' => null === $transactionDetails['state'] ? null : $this->valueMapper->mapTxType($transactionDetails['state']),
                 'order_id'         => $transactionDetails['orderID'],
                 'auth_code'        => $transactionDetails['authCode'] ?? null,
                 'ref_ret_num'      => $transactionDetails['hostlogkey'] ?? null,
                 // tranDate ex: 2019-10-10 11:21:14.281
-                'transaction_time' => isset($transactionDetails['tranDate']) ? new \DateTimeImmutable($transactionDetails['tranDate']) : null,
+                'transaction_time' => isset($transactionDetails['tranDate']) ? $this->valueFormatter->formatDateTime($transactionDetails['tranDate'], $txType) : null,
             ];
         }
 
@@ -271,6 +281,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapOrderHistoryResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_ORDER_HISTORY;
         $status          = self::TX_DECLINED;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $errorCode       = $rawResponseData['respCode'] ?? null;
@@ -298,9 +309,9 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
                 if (count($transactionDetails) > 1) {
                     foreach ($transactionDetails as $key => $_transaction) {
                         if ($key > 0) {
-                            $currency  = $this->mapCurrency($_transaction['currencyCode']);
+                            $currency  = $this->valueMapper->mapCurrency($_transaction['currencyCode'], $txType);
                             $refunds[] = [
-                                'amount'    => (float) $_transaction['amount'],
+                                'amount'    => $this->valueFormatter->formatAmount($_transaction['amount'], $txType),
                                 'currency'  => $currency,
                                 'auth_code' => $_transaction['authCode'],
                                 'date'      => $_transaction['tranDate'],
@@ -311,16 +322,16 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
             }
 
             $txResults = [
-                'auth_code'   => $authCode,
-                'transaction_id'    => null,
-                'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
-                'date'        => $transactionDetails['tranDate'] ?? null,
+                'auth_code'      => $authCode,
+                'transaction_id' => null,
+                'ref_ret_num'    => $transactionDetails['hostlogkey'] ?? null,
+                'date'           => $transactionDetails['tranDate'] ?? null,
             ];
         }
 
         $transactionType = null;
         if (null !== $state) {
-            $transactionType = $this->mapTxType($state);
+            $transactionType = $this->valueMapper->mapTxType($state);
         }
 
         $results = [
@@ -457,8 +468,8 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['error_message']    = $rawPaymentResponseData['respText'] ?? null;
         $defaultResponse['all']              = $rawPaymentResponseData;
         if (self::TX_APPROVED === $status) {
-            $defaultResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
-            $defaultResponse['transaction_time']  = new \DateTimeImmutable();
+            $defaultResponse['installment_count'] = $this->valueFormatter->formatInstallment($rawPaymentResponseData['instInfo']['inst1'], $txType);
+            $defaultResponse['transaction_time']  = $this->valueFormatter->formatDateTime('now', $txType);
         }
 
         return $defaultResponse;

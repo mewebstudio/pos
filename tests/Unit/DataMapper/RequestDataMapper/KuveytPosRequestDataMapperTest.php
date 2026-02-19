@@ -6,14 +6,16 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
-use Generator;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\KuveytPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\TestUtil\TestUtilTrait;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -40,6 +42,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private KuveytPosRequestValueFormatter $valueFormatter;
+
+    private KuveytPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -52,8 +58,6 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'Api123'
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-
         $this->card = CreditCardFactory::create(
             '4155650100416111',
             25,
@@ -63,71 +67,26 @@ class KuveytPosRequestDataMapperTest extends TestCase
             CreditCardInterface::CARD_TYPE_VISA
         );
 
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new KuveytPosRequestValueFormatter();
+        $this->valueMapper    = new KuveytPosRequestValueMapper();
+
+        $this->requestDataMapper = new KuveytPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
     }
 
-    /**
-     * @testWith ["pay", "Sale"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
+    public function testSupports(): void
     {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
+        $result = $this->requestDataMapper::supports(KuveytPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @testWith ["Sale"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0]));
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0.0]));
-        $this->assertSame(1025, $method->invokeArgs($this->requestDataMapper, [10.25]));
-        $this->assertSame(1000, $method->invokeArgs($this->requestDataMapper, [10.00]));
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('0949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('0978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "0"]
-     *           ["1", "0"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**
@@ -156,55 +115,22 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
-    /**
-     * @dataProvider createCancelRequestDataProvider
-     */
-    public function testCreateCancelRequestData(array $order, array $expected): void
+    public function testCreateCancelRequestData(): void
     {
-        $this->crypt->expects(self::once())
-            ->method('createHash')
-            ->willReturn('request-hash');
-
-        $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-
-        self::recursiveKsort($actual);
-        self::recursiveKsort($expected);
-
-        $this->assertSame($expected, $actual);
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createCancelRequestData($this->account, []);
     }
 
-    /**
-     * @dataProvider createRefundRequestDataProvider
-     */
-    public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
+    public function testCreateRefundRequestData(): void
     {
-        $this->crypt->expects(self::once())
-            ->method('createHash')
-            ->willReturn('request-hash');
-
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
-
-        self::recursiveKsort($actual);
-        self::recursiveKsort($expected);
-
-        $this->assertSame($expected, $actual);
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createRefundRequestData($this->account, [], PosInterface::TX_TYPE_REFUND);
     }
 
-    /**
-     * @dataProvider createStatusRequestDataProvider
-     */
-    public function testCreateStatusRequestData(array $order, array $expected): void
+    public function testCreateStatusRequestData(): void
     {
-        $this->crypt->expects(self::once())
-            ->method('createHash')
-            ->willReturn('request-hash');
-
-        $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-
-        self::recursiveKsort($actual);
-        self::recursiveKsort($expected);
-
-        $this->assertSame($expected, $actual);
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createStatusRequestData($this->account, []);
     }
 
     /**
@@ -253,28 +179,18 @@ class KuveytPosRequestDataMapperTest extends TestCase
 
     public function testGet3DFormData(): void
     {
-        $expected = [
-            'gateway' => 'https://bank-gateway.com',
-            'method'  => 'POST',
-            'inputs'  => [
-                'abc' => '123',
-            ],
-        ];
-
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
-        $this->dispatcher->expects(self::never())
-            ->method('dispatch');
 
-        $actual = $this->requestDataMapper->create3DFormData(
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+
+        $this->requestDataMapper->create3DFormData(
             $this->account,
-            ['abc' => '123'],
+            ['id' => '123'],
             $paymentModel,
             $txType,
             'https://bank-gateway.com',
         );
-
-        $this->assertSame($expected, $actual);
     }
 
     public function testCreateNonSecurePostAuthPaymentRequestData(): void
@@ -295,240 +211,56 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createHistoryRequestData($this->account, []);
     }
 
-    public function testCreateCustomQueryRequestData(): void
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
     {
-        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
-        $this->requestDataMapper->createCustomQueryRequestData($this->account, []);
+        if (!isset($requestData['HashData'])) {
+            $this->crypt->expects(self::once())
+                ->method('createHash')
+                ->willReturn($expectedData['HashData']);
+        }
+
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
     }
 
-    public static function createCancelRequestDataProvider(): iterable
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
     {
-        yield [
-            'order'    => [
-                'id'              => '2023070849CD',
-                'remote_order_id' => '114293600',
-                'ref_ret_num'     => '318923298433',
-                'auth_code'       => '241839',
-                'transaction_id'  => '298433',
-                'amount'          => 1.01,
-                'currency'        => PosInterface::CURRENCY_TRY,
+        yield 'without_account_data' => [
+            'request_data' => [
+                'abc' => 'abc',
             ],
-            'expected' => [
-                'SaleReversal' => [
-                    'request' => [
-                        'IsFromExternalNetwork' => true,
-                        'BusinessKey'           => 0,
-                        'ResourceId'            => 0,
-                        'ActionId'              => 0,
-                        'LanguageId'            => 0,
-                        'CustomerId'            => '400235',
-                        'MailOrTelephoneOrder'  => true,
-                        'Amount'                => 101,
-                        'MerchantId'            => '80',
-                        'OrderId'               => '114293600',
-                        'RRN'                   => '318923298433',
-                        'Stan'                  => '298433',
-                        'ProvisionNumber'       => '241839',
-                        'VPosMessage'           => [
-                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                            'InstallmentMaturityCommisionFlag' => 0,
-                            'HashData'                         => 'request-hash',
-                            'MerchantId'                       => '80',
-                            'SubMerchantId'                    => 0,
-                            'CustomerId'                       => '400235',
-                            'UserName'                         => 'apiuser',
-                            'CardType'                         => 'Visa',
-                            'BatchID'                          => 0,
-                            'TransactionType'                  => 'SaleReversal',
-                            'InstallmentCount'                 => 0,
-                            'Amount'                           => 101,
-                            'DisplayAmount'                    => 101,
-                            'CancelAmount'                     => 101,
-                            'MerchantOrderId'                  => '2023070849CD',
-                            'FECAmount'                        => 0,
-                            'CurrencyCode'                     => '0949',
-                            'QeryId'                           => 0,
-                            'DebtId'                           => 0,
-                            'SurchargeAmount'                  => 0,
-                            'SGKDebtAmount'                    => 0,
-                            'TransactionSecurity'              => 1,
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    public static function createRefundRequestDataProvider(): Generator
-    {
-        yield [
-            'full_refund' => [
-                'id'              => '2023070849CD',
-                'remote_order_id' => '114293600',
-                'ref_ret_num'     => '318923298433',
-                'auth_code'       => '241839',
-                'transaction_id'  => '298433',
-                'amount'          => 1.01,
-                'currency'        => PosInterface::CURRENCY_TRY,
-            ],
-            'tx_type'     => PosInterface::TX_TYPE_REFUND,
-            'expected'    => [
-                'DrawBack' => [
-                    'request' => [
-                        'IsFromExternalNetwork' => true,
-                        'BusinessKey'           => 0,
-                        'ResourceId'            => 0,
-                        'ActionId'              => 0,
-                        'LanguageId'            => 0,
-                        'CustomerId'            => '400235',
-                        'MailOrTelephoneOrder'  => true,
-                        'Amount'                => 101,
-                        'MerchantId'            => '80',
-                        'OrderId'               => '114293600',
-                        'RRN'                   => '318923298433',
-                        'Stan'                  => '298433',
-                        'ProvisionNumber'       => '241839',
-                        'VPosMessage'           => [
-                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                            'InstallmentMaturityCommisionFlag' => 0,
-                            'HashData'                         => 'request-hash',
-                            'MerchantId'                       => '80',
-                            'SubMerchantId'                    => 0,
-                            'CustomerId'                       => '400235',
-                            'UserName'                         => 'apiuser',
-                            'CardType'                         => 'Visa',
-                            'BatchID'                          => 0,
-                            'TransactionType'                  => 'DrawBack',
-                            'InstallmentCount'                 => 0,
-                            'Amount'                           => 101,
-                            'DisplayAmount'                    => 0,
-                            'CancelAmount'                     => 101,
-                            'MerchantOrderId'                  => '2023070849CD',
-                            'FECAmount'                        => 0,
-                            'CurrencyCode'                     => '0949',
-                            'QeryId'                           => 0,
-                            'DebtId'                           => 0,
-                            'SurchargeAmount'                  => 0,
-                            'SGKDebtAmount'                    => 0,
-                            'TransactionSecurity'              => 1,
-                        ],
-                    ],
-                ],
+            'expected'     => [
+                'abc'        => 'abc',
+                'MerchantId' => '80',
+                'CustomerId' => '400235',
+                'UserName'   => 'apiuser',
+                'APIVersion' => 'TDV2.0.0',
+                'HashData'   => 'hasshhh',
             ],
         ];
 
-        yield [
-            'partial_refund' => [
-                'id'              => '2023070849CD',
-                'remote_order_id' => '114293600',
-                'ref_ret_num'     => '318923298433',
-                'auth_code'       => '241839',
-                'transaction_id'  => '298433',
-                'amount'          => 9.01,
-                'order_amount'    => 10.01,
-                'currency'        => PosInterface::CURRENCY_TRY,
+        yield 'with_account_data' => [
+            'request_data' => [
+                'abc'         => 'abc',
+                'MerchantId' => '802',
+                'CustomerId' => '4002352',
+                'UserName'   => 'apiuser2',
+                'APIVersion' => 'TDV1.0.0',
+                'HashData'   => 'hasshhh22',
             ],
-            'tx_type'        => PosInterface::TX_TYPE_REFUND_PARTIAL,
-            'expected'       => [
-                'PartialDrawback' => [
-                    'request' => [
-                        'IsFromExternalNetwork' => true,
-                        'BusinessKey'           => 0,
-                        'ResourceId'            => 0,
-                        'ActionId'              => 0,
-                        'LanguageId'            => 0,
-                        'CustomerId'            => '400235',
-                        'MailOrTelephoneOrder'  => true,
-                        'Amount'                => 901,
-                        'MerchantId'            => '80',
-                        'OrderId'               => '114293600',
-                        'RRN'                   => '318923298433',
-                        'Stan'                  => '298433',
-                        'ProvisionNumber'       => '241839',
-                        'VPosMessage'           => [
-                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                            'InstallmentMaturityCommisionFlag' => 0,
-                            'HashData'                         => 'request-hash',
-                            'MerchantId'                       => '80',
-                            'SubMerchantId'                    => 0,
-                            'CustomerId'                       => '400235',
-                            'UserName'                         => 'apiuser',
-                            'CardType'                         => 'Visa',
-                            'BatchID'                          => 0,
-                            'TransactionType'                  => 'PartialDrawback',
-                            'InstallmentCount'                 => 0,
-                            'Amount'                           => 901,
-                            'DisplayAmount'                    => 0,
-                            'CancelAmount'                     => 901,
-                            'MerchantOrderId'                  => '2023070849CD',
-                            'FECAmount'                        => 0,
-                            'CurrencyCode'                     => '0949',
-                            'QeryId'                           => 0,
-                            'DebtId'                           => 0,
-                            'SurchargeAmount'                  => 0,
-                            'SGKDebtAmount'                    => 0,
-                            'TransactionSecurity'              => 1,
-                        ],
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    public static function createStatusRequestDataProvider(): iterable
-    {
-        $startDate = new \DateTime('2022-07-08T22:44:31');
-        $endDate   = new \DateTime('2023-07-08T22:44:31');
-        yield [
-            'order'    => [
-                'id'         => '2023070849CD',
-                'currency'   => PosInterface::CURRENCY_TRY,
-                'start_date' => $startDate,
-                'end_date'   => $endDate,
-            ],
-            'expected' => [
-                'GetMerchantOrderDetail' => [
-                    'request' => [
-                        'IsFromExternalNetwork' => true,
-                        'BusinessKey'           => 0,
-                        'ResourceId'            => 0,
-                        'ActionId'              => 0,
-                        'LanguageId'            => 0,
-                        'CustomerId'            => '400235',
-                        'MailOrTelephoneOrder'  => true,
-                        'Amount'                => 0,
-                        'MerchantId'            => '80',
-                        'OrderId'               => 0,
-                        'TransactionType'       => 0,
-                        'VPosMessage'           => [
-                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                            'InstallmentMaturityCommisionFlag' => 0,
-                            'HashData'                         => 'request-hash',
-                            'MerchantId'                       => '80',
-                            'SubMerchantId'                    => 0,
-                            'CustomerId'                       => '400235',
-                            'UserName'                         => 'apiuser',
-                            'CardType'                         => 'Visa',
-                            'BatchID'                          => 0,
-                            'TransactionType'                  => 'GetMerchantOrderDetail',
-                            'InstallmentCount'                 => 0,
-                            'Amount'                           => 0,
-                            'DisplayAmount'                    => 0,
-                            'CancelAmount'                     => 0,
-                            'MerchantOrderId'                  => '2023070849CD',
-                            'FECAmount'                        => 0,
-                            'CurrencyCode'                     => '0949',
-                            'QeryId'                           => 0,
-                            'DebtId'                           => 0,
-                            'SurchargeAmount'                  => 0,
-                            'SGKDebtAmount'                    => 0,
-                            'TransactionSecurity'              => 1,
-                        ],
-                        'MerchantOrderId'       => '2023070849CD',
-                        'StartDate'             => '2022-07-08T22:44:31',
-                        'EndDate'               => '2023-07-08T22:44:31',
-                    ],
-                ],
+            'expected'     => [
+                'abc'        => 'abc',
+                'MerchantId' => '802',
+                'CustomerId' => '4002352',
+                'UserName'   => 'apiuser2',
+                'APIVersion' => 'TDV1.0.0',
+                'HashData'   => 'hasshhh22',
             ],
         ];
     }

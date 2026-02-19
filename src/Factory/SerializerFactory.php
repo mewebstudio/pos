@@ -13,6 +13,7 @@ use Mews\Pos\Serializer\EstPosSerializer;
 use Mews\Pos\Serializer\GarantiPosSerializer;
 use Mews\Pos\Serializer\InterPosSerializer;
 use Mews\Pos\Serializer\KuveytPosSerializer;
+use Mews\Pos\Serializer\KuveytSoapApiPosSerializer;
 use Mews\Pos\Serializer\ParamPosSerializer;
 use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
 use Mews\Pos\Serializer\PayFlexV4PosSerializer;
@@ -30,17 +31,21 @@ class SerializerFactory
 {
     /**
      * @param class-string<PosInterface> $gatewayClass
+     * @param string $apiName todo sticter type
      *
      * @return SerializerInterface
      */
-    public static function createGatewaySerializer(string $gatewayClass): SerializerInterface
-    {
+    public static function createGatewaySerializer(
+        string $gatewayClass,
+        ?string $apiName = null
+    ): SerializerInterface {
         $serializers = [
             AkbankPosSerializer::class,
             EstPosSerializer::class,
             GarantiPosSerializer::class,
             InterPosSerializer::class,
             KuveytPosSerializer::class,
+            KuveytSoapApiPosSerializer::class,
             ParamPosSerializer::class,
             PayFlexCPV4PosSerializer::class,
             PayFlexV4PosSerializer::class,
@@ -53,7 +58,7 @@ class SerializerFactory
 
         /** @var class-string<SerializerInterface> $serializer */
         foreach ($serializers as $serializer) {
-            if ($serializer::supports($gatewayClass)) {
+            if ($serializer::supports($gatewayClass, $apiName)) {
                 return new $serializer();
             }
         }

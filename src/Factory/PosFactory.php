@@ -6,7 +6,7 @@
 
 namespace Mews\Pos\Factory;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
@@ -21,13 +21,22 @@ use Psr\Log\NullLogger;
 class PosFactory
 {
     /**
-     * @phpstan-param array{banks: array<string, array{name: string, class?: class-string<PosInterface>, gateway_endpoints: array<string, string>}>, currencies?: array<PosInterface::CURRENCY_*, string>} $config
+     * @phpstan-param array{
+     *     banks: array<string, array{
+     *          name: string,
+     *          class?: class-string<PosInterface>,
+     *          gateway_endpoints: array{
+     *              payment_api: non-empty-string,
+     *              payment_api2?: non-empty-string,
+     *              query_api?: non-empty-string}
+     *         }>,
+     *     currencies?: array<PosInterface::CURRENCY_*, string>} $config
      *
-     * @param AbstractPosAccount       $posAccount
-     * @param array                    $config
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param HttpClient|null          $httpClient
-     * @param LoggerInterface|null     $logger
+     * @param AbstractPosAccount                                 $posAccount
+     * @param array                                              $config
+     * @param EventDispatcherInterface                           $eventDispatcher
+     * @param HttpClientStrategyInterface|null                   $httpClientStrategy
+     * @param LoggerInterface|null                               $logger
      *
      * @return PosInterface
      *
@@ -38,55 +47,105 @@ class PosFactory
         AbstractPosAccount       $posAccount,
         array                    $config,
         EventDispatcherInterface $eventDispatcher,
-        ?HttpClient              $httpClient = null,
+        ?HttpClientStrategyInterface                         $httpClientStrategy = null,
         ?LoggerInterface         $logger = null
     ): PosInterface {
         if (!$logger instanceof \Psr\Log\LoggerInterface) {
             $logger = new NullLogger();
         }
 
-        if (!$httpClient instanceof \Mews\Pos\Client\HttpClient) {
-            $httpClient = HttpClientFactory::createDefaultHttpClient();
-        }
-
-        // Bank API Exist
+        // Bank Config Exist
         if (!\array_key_exists($posAccount->getBank(), $config['banks'])) {
             throw new BankNotFoundException();
         }
 
-        $class = $config['banks'][$posAccount->getBank()]['class'] ?? null;
+        $gatewayClass = $config['banks'][$posAccount->getBank()]['class'] ?? null;
 
-        if (null === $class) {
+        if (null === $gatewayClass) {
             throw new BankClassNullException();
         }
 
-        if (!\in_array(PosInterface::class, \class_implements($class), true)) {
+        if (!\in_array(PosInterface::class, \class_implements($gatewayClass), true)) {
             throw new \InvalidArgumentException(
                 \sprintf('gateway class must be implementation of %s', PosInterface::class)
             );
         }
 
-        $currencies = [];
-        if (isset($config['currencies'])) {
-            $currencies = $config['currencies'];
-        }
-
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
-        $crypt              = CryptFactory::createGatewayCrypt($class, $logger);
-        $requestDataMapper  = RequestDataMapperFactory::createGatewayRequestMapper($class, $eventDispatcher, $crypt, $currencies);
-        $responseDataMapper = ResponseDataMapperFactory::createGatewayResponseMapper($class, $requestDataMapper, $logger);
-        $serializer         = SerializerFactory::createGatewaySerializer($class);
+        return self::doCreateHttpPosGateway(
+            $gatewayClass,
+            $posAccount,
+            $config['banks'][$posAccount->getBank()],
+            $eventDispatcher,
+            $logger,
+            $httpClientStrategy
+        );
+    }
+
+    /**
+     * @param class-string<PosInterface> $gatewayClass
+     * @param AbstractPosAccount         $posAccount
+     * @param array{
+     *           name: string,
+     *           class?: class-string,
+     *           gateway_endpoints: array{
+     *               payment_api: non-empty-string,
+     *               payment_api2?: non-empty-string,
+     *               query_api?: non-empty-string}
+     *          }                      $apiConfig
+     * @param EventDispatcherInterface $eventDispatcher
+     * @param LoggerInterface          $logger
+     * @param HttpClientStrategyInterface|null $httpClientStrategy
+     *
+     * @return PosInterface
+     */
+    private static function doCreateHttpPosGateway(
+        string                   $gatewayClass,
+        AbstractPosAccount       $posAccount,
+        array                    $apiConfig,
+        EventDispatcherInterface $eventDispatcher,
+        LoggerInterface          $logger,
+        ?HttpClientStrategyInterface $httpClientStrategy = null
+    ): PosInterface {
+
+
+        $crypt                 = CryptFactory::createGatewayCrypt($gatewayClass, $logger);
+        $requestValueMapper    = RequestValueMapperFactory::createForGateway($gatewayClass);
+        $requestValueFormatter = RequestValueFormatterFactory::createForGateway($gatewayClass);
+        $requestDataMapper     = RequestDataMapperFactory::createGatewayRequestMapper(
+            $gatewayClass,
+            $requestValueMapper,
+            $requestValueFormatter,
+            $eventDispatcher,
+            $crypt,
+        );
+
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway($gatewayClass);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway($gatewayClass, $requestValueMapper);
+        $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($gatewayClass, $responseValueFormatter, $responseValueMapper, $logger);
+        $serializer             = SerializerFactory::createGatewaySerializer($gatewayClass);
+
+        if (!$httpClientStrategy instanceof HttpClientStrategyInterface) {
+            $httpClientStrategy = PosHttpClientStrategyFactory::createForGateway(
+                $gatewayClass,
+                $apiConfig['gateway_endpoints'],
+                $crypt,
+                $requestValueMapper,
+                $logger
+            );
+        }
 
         // Create Bank Class Instance
-        return new $class(
-            $config['banks'][$posAccount->getBank()],
+        return new $gatewayClass(
+            $apiConfig,
             $posAccount,
+            $requestValueMapper,
             $requestDataMapper,
             $responseDataMapper,
             $serializer,
             $eventDispatcher,
-            $httpClient,
+            $httpClientStrategy,
             $logger
         );
     }

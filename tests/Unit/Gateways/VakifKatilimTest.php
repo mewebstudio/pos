@@ -6,22 +6,23 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueMapper\VakifKatilimPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\VakifKatilimPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -30,12 +31,11 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\VakifKatilimPos
+ * @covers \Mews\Pos\Gateways\AbstractHttpGateway
  * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class VakifKatilimTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private KuveytPosAccount $account;
 
     private array $config;
@@ -56,7 +56,10 @@ class VakifKatilimTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
-    /** @var HttpClient & MockObject */
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
+    /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
@@ -65,8 +68,7 @@ class VakifKatilimTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private MockObject $eventDispatcherMock;
 
-    /** @var SerializerInterface & MockObject */
-    private MockObject $serializerMock;
+    private VakifKatilimPosRequestValueMapper $requestValueMapper;
 
     /**
      * @return void
@@ -81,8 +83,7 @@ class VakifKatilimTest extends TestCase
             'name'              => 'Vakıf Katılım',
             'class'             => VakifKatilimPos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home',
-                'gateway_3d'  => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
+                'gateway_3d' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
             ],
         ];
 
@@ -103,11 +104,13 @@ class VakifKatilimTest extends TestCase
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
         ];
 
+        $this->requestValueMapper  = new VakifKatilimPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(VakifKatilimPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $serializerMock            = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClient::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
@@ -118,11 +121,12 @@ class VakifKatilimTest extends TestCase
         $this->pos = new VakifKatilimPos(
             $this->config,
             $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
-            $this->serializerMock,
+            $serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
 
@@ -142,56 +146,31 @@ class VakifKatilimTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '0949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertFalse($this->pos->isTestMode());
     }
 
     /**
-     * @dataProvider getApiUrlDataProvider
-     */
-    public function testGetApiURL(string $txType, ?string $orderTxType, string $paymentModel, string $expected): void
-    {
-        $actual = $this->pos->getApiURL($txType, $paymentModel, $orderTxType);
-
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @dataProvider getApiUrlExceptionDataProvider
-     */
-    public function testGetApiURLException(?string $txType, ?string $paymentModel, ?string $orderTxType, string $exceptionClass): void
-    {
-        $this->expectException($exceptionClass);
-
-        $this->pos->getApiURL($txType, $paymentModel, $orderTxType);
-    }
-
-    /**
      * @return void
      */
-    public function testGetCommon3DFormDataSuccessResponse(): void
+    public function testGet3DFormDataSuccessResponse(): void
     {
+        $response     = 'bank-api-html-response';
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
         $requestData  = ['form-data'];
         $order        = $this->order;
 
-        $decodedResponse = ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'];
         $this->configureClientResponse(
             $txType,
-            'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
             $requestData,
-            'request-body',
-            'bank-api-html-response',
-            $decodedResponse,
+            $response,
             $order,
-            $paymentModel
+            $paymentModel,
+            $this->config['gateway_endpoints']['gateway_3d'],
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -205,20 +184,12 @@ class VakifKatilimTest extends TestCase
             )
             ->willReturn($requestData);
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('create3DFormData')
-            ->with(
-                $this->pos->getAccount(),
-                ['form-inputs'],
-                $paymentModel,
-                $txType,
-                'form-action-url',
-                $card
-            )
-            ->willReturn(['3d-form-data']);
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
         $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
-        $this->assertSame(['3d-form-data'], $result);
+        $this->assertSame($response, $result);
     }
 
     /**
@@ -237,7 +208,7 @@ class VakifKatilimTest extends TestCase
                 $order,
                 $paymentModel,
                 $txType,
-                'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
+                $this->config['gateway_endpoints']['gateway_3d'],
             )
             ->willReturn(['formData']);
 
@@ -300,10 +271,7 @@ class VakifKatilimTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelProvisionGate',
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -320,10 +288,6 @@ class VakifKatilimTest extends TestCase
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
@@ -370,7 +334,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -383,13 +347,12 @@ class VakifKatilimTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -403,7 +366,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -417,13 +380,12 @@ class VakifKatilimTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -438,7 +400,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -452,13 +414,12 @@ class VakifKatilimTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -472,7 +433,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -486,13 +447,12 @@ class VakifKatilimTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -506,7 +466,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $txType, string $apiUrl): void
+    public function testRefundRequest(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $requestData = ['createRefundRequestData'];
@@ -519,13 +479,12 @@ class VakifKatilimTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -540,7 +499,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider historyRequestDataProvider
      */
-    public function testHistoryRequest(array $order, string $apiUrl): void
+    public function testHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_HISTORY;
@@ -554,13 +513,12 @@ class VakifKatilimTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -574,7 +532,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testOrderHistoryRequest(array $order, string $apiUrl): void
+    public function testOrderHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
@@ -588,13 +546,12 @@ class VakifKatilimTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -608,7 +565,7 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
@@ -623,13 +580,12 @@ class VakifKatilimTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -647,11 +603,10 @@ class VakifKatilimTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/MailOrderSale',
-                'expected_api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/MailOrderSale',
+                'api_url'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/MailOrderSale',
             ],
         ];
     }
@@ -688,120 +643,6 @@ class VakifKatilimTest extends TestCase
         ];
     }
 
-    public static function getApiUrlDataProvider(): array
-    {
-        return [
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'orderTxType'  => null,
-                'paymentModel' => PosInterface::MODEL_3D_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelProvisionGate',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'orderTxType'  => null,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizaten',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'orderTxType'  => null,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/Non3DPayGate',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_POST_AUTH,
-                'orderTxType'  => null,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizatenClose',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_STATUS,
-                'orderTxType'  => null,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SelectOrderByMerchantOrderId',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_ORDER_HISTORY,
-                'orderTxType'  => null,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SelectOrder',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_CANCEL,
-                'orderTxType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SaleReversal',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND,
-                'orderTxType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/DrawBack',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'orderTxType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PartialDrawBack',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_CANCEL,
-                'orderTxType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizationReversal',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND,
-                'orderTxType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizationDrawBack',
-            ],
-        ];
-    }
-
-    public static function getApiUrlExceptionDataProvider(): array
-    {
-        return [
-            [
-                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel'    => PosInterface::MODEL_3D_PAY,
-                'orderTxType'     => null,
-                'exception_class' => UnsupportedTransactionTypeException::class,
-            ],
-            [
-                'txType'          => null,
-                'paymentModel'    => null,
-                'orderTxType'     => null,
-                'exception_class' => \InvalidArgumentException::class,
-            ],
-            [
-                'txType'          => PosInterface::TX_TYPE_CUSTOM_QUERY,
-                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
-                'orderTxType'     => null,
-                'exception_class' => UnsupportedTransactionTypeException::class,
-            ],
-            [
-                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel'    => null,
-                'orderTxType'     => null,
-                'exception_class' => \InvalidArgumentException::class,
-            ],
-            [
-                'txType'          => null,
-                'paymentModel'    => PosInterface::MODEL_3D_PAY,
-                'orderTxType'     => null,
-                'exception_class' => \InvalidArgumentException::class,
-            ],
-            [
-                'txType'          => PosInterface::TX_TYPE_CANCEL,
-                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
-                'orderTxType'     => PosInterface::TX_TYPE_PAY_POST_AUTH,
-                'exception_class' => UnsupportedTransactionTypeException::class,
-            ],
-        ];
-    }
-
     public static function makeRegularPaymentDataProvider(): array
     {
         return [
@@ -810,14 +651,12 @@ class VakifKatilimTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/Non3DPayGate',
             ],
             [
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
                 'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizaten',
             ],
         ];
     }
@@ -826,10 +665,9 @@ class VakifKatilimTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizatenClose',
             ],
         ];
     }
@@ -838,10 +676,9 @@ class VakifKatilimTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SelectOrderByMerchantOrderId',
             ],
         ];
     }
@@ -850,18 +687,16 @@ class VakifKatilimTest extends TestCase
     {
         return [
             'pay_order'      => [
-                'order'   => [
+                'order' => [
                     'id'               => '2020110828BC',
                     'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
                 ],
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SaleReversal',
             ],
             'pay_auth_order' => [
-                'order'   => [
+                'order' => [
                     'id'               => '2020110828BC',
                     'transaction_type' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 ],
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizationReversal',
             ],
         ];
     }
@@ -870,30 +705,27 @@ class VakifKatilimTest extends TestCase
     {
         return [
             'pay_order'                => [
-                'order'   => [
+                'order'  => [
                     'id'               => '2020110828BC',
                     'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
                 ],
-                'txType'  => PosInterface::TX_TYPE_REFUND,
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/DrawBack',
+                'txType' => PosInterface::TX_TYPE_REFUND,
             ],
             'pay_auth_order'           => [
-                'order'   => [
+                'order'  => [
                     'id'               => '2020110828BC',
                     'transaction_type' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 ],
-                'txType'  => PosInterface::TX_TYPE_REFUND,
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizationDrawBack',
+                'txType' => PosInterface::TX_TYPE_REFUND,
             ],
             'pay_order_partial_refund' => [
-                'order'   => [
+                'order'  => [
                     'id'               => '2020110828BC',
                     'order_amount'     => 10,
                     'amount'           => 5,
                     'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
                 ],
-                'txType'  => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PartialDrawBack',
+                'txType' => PosInterface::TX_TYPE_REFUND_PARTIAL,
             ],
         ];
     }
@@ -902,10 +734,9 @@ class VakifKatilimTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SelectOrder',
             ],
         ];
     }
@@ -914,10 +745,9 @@ class VakifKatilimTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SelectOrder',
             ],
         ];
     }
@@ -983,38 +813,36 @@ class VakifKatilimTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account,
+                true,
+                !\is_string($decodedResponse)
+            )->willReturn($decodedResponse);
 
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'body'    => $encodedRequestData,
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ],
-        );
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')

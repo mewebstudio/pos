@@ -6,8 +6,10 @@
 
 namespace Mews\Pos\Tests\Unit\Serializer;
 
+use Generator;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Serializer\InterPosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -26,20 +28,20 @@ class InterPosSerializerTest extends TestCase
 
     public function testSupports(): void
     {
-        $supports = $this->serializer::supports(InterPos::class);
-
-        $this->assertTrue($supports);
+        $this->assertTrue(InterPosSerializer::supports(InterPos::class));
+        $this->assertTrue(InterPosSerializer::supports(InterPos::class, 'payment_api'));
+        $this->assertFalse(InterPosSerializer::supports(\Mews\Pos\Gateways\AkbankPos::class));
     }
 
-    public function testEncode(): void
+    /**
+     * @dataProvider encodeDataProvider
+     */
+    public function testEncode(array $data, ?string $format, string $expectedFormat, string $expected): void
     {
-        $data = [
-            'abc' => '1',
-            'sa'  => 'aa',
-        ];
-        $result = $this->serializer->encode($data);
+        $result = $this->serializer->encode($data, null, $format);
 
-        $this->assertSame('abc=1&sa=aa', $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -50,6 +52,29 @@ class InterPosSerializerTest extends TestCase
         $result = $this->serializer->decode($input);
 
         $this->assertSame($expected, $result);
+    }
+
+    public static function encodeDataProvider(): Generator
+    {
+        yield 'test1' => [
+            'input'           => [
+                'abc' => '1',
+                'sa'  => 'aa',
+            ],
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_FORM,
+            'expected'        => 'abc=1&sa=aa',
+        ];
+
+        yield 'test2' => [
+            'input'           => [
+                'abc' => '1',
+                'sa'  => 'aa',
+            ],
+            'format'          => SerializerInterface::FORMAT_FORM,
+            'expected_format' => SerializerInterface::FORMAT_FORM,
+            'expected'        => 'abc=1&sa=aa',
+        ];
     }
 
     public static function decodeDataProvider(): array

@@ -4,6 +4,8 @@
  * @license MIT
  */
 
+namespace Mews\Pos\Tests\Functional;
+
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -26,6 +28,9 @@ class KuveytPosTest extends TestCase
     /** @var \Mews\Pos\Gateways\KuveytPos */
     private PosInterface $pos;
 
+    /** @var \Mews\Pos\Gateways\KuveytSoapApiPos */
+    private PosInterface $soapApiPos;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -40,10 +45,23 @@ class KuveytPosTest extends TestCase
             'api123',
             PosInterface::MODEL_3D_SECURE
         );
+        $soapApiAccount = \Mews\Pos\Factory\AccountFactory::createKuveytPosAccount(
+            'kuveytsoappos',
+            '496',
+            'apitest',
+            '400235',
+            'api123',
+            PosInterface::MODEL_3D_SECURE
+        );
 
         $this->eventDispatcher = new EventDispatcher();
 
-        $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
+        $this->pos        = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
+        $this->soapApiPos = PosFactory::createPosGateway(
+            $soapApiAccount,
+            $config,
+            $this->eventDispatcher
+        );
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
@@ -135,7 +153,7 @@ class KuveytPosTest extends TestCase
             $this->card,
         );
 
-        $this->assertIsArray($formData);
+        $this->assertIsString($formData);
         $this->assertNotEmpty($formData);
         $this->assertTrue($eventIsThrown);
     }
@@ -176,7 +194,7 @@ class KuveytPosTest extends TestCase
      */
     public function testCancelSuccess(array $lastResponse): array
     {
-        $statusOrder = $this->createCancelOrder(\get_class($this->pos), $lastResponse);
+        $statusOrder = $this->createCancelOrder(\get_class($this->soapApiPos), $lastResponse);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -188,10 +206,10 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->cancel($statusOrder);
+        $this->soapApiPos->cancel($statusOrder);
 
-        $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
+        $this->assertTrue($this->soapApiPos->isSuccess());
+        $response = $this->soapApiPos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -204,7 +222,7 @@ class KuveytPosTest extends TestCase
      */
     public function testStatusSuccess(array $lastResponse): array
     {
-        $statusOrder = $this->createStatusOrder(\get_class($this->pos), $lastResponse);
+        $statusOrder = $this->createStatusOrder(\get_class($this->soapApiPos), $lastResponse);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -216,10 +234,10 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->status($statusOrder);
+        $this->soapApiPos->status($statusOrder);
 
-        $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
+        $this->assertTrue($this->soapApiPos->isSuccess());
+        $response = $this->soapApiPos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -248,7 +266,7 @@ class KuveytPosTest extends TestCase
      */
     public function testFullRefundFail(array $lastResponse): array
     {
-        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+        $refundOrder = $this->createRefundOrder(\get_class($this->soapApiPos), $lastResponse);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -260,10 +278,10 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
-        $response = $this->pos->getResponse();
+        $this->soapApiPos->refund($refundOrder);
+        $response = $this->soapApiPos->getResponse();
 
-        $this->assertFalse($this->pos->isSuccess());
+        $this->assertFalse($this->soapApiPos->isSuccess());
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -281,7 +299,7 @@ class KuveytPosTest extends TestCase
     public function testPartialRefundSuccess(array $lastResponse): array
     {
         $refundOrder           = $this->createRefundOrder(
-            \get_class($this->pos),
+            \get_class($this->soapApiPos),
             $lastResponse,
             $lastResponse['amount'] - 3,
         );
@@ -296,10 +314,10 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
-        $response = $this->pos->getResponse();
+        $this->soapApiPos->refund($refundOrder);
+        $response = $this->soapApiPos->getResponse();
 
-        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'error');
+        $this->assertTrue($this->soapApiPos->isSuccess(), $response['error_message'] ?? 'error');
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);

@@ -8,12 +8,14 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\InterPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\InterPosRequestValueMapper;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -38,6 +40,10 @@ class InterPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private InterPosRequestValueFormatter $valueFormatter;
+
+    private InterPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -56,61 +62,28 @@ class InterPosRequestDataMapperTest extends TestCase
             $merchantPass
         );
 
-        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new InterPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new InterPosRequestValueFormatter();
+        $this->valueMapper    = new InterPosRequestValueMapper();
+
+        $this->requestDataMapper = new InterPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
 
         $this->card = CreditCardFactory::create('5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
-    /**
-     * @testWith ["pay", "Auth"]
-     * ["pre", "PreAuth"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
+    public function testSupports(): void
     {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
+        $result = $this->requestDataMapper::supports(InterPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @testWith ["PreAuth"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", ""]
-     *           ["1", ""]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

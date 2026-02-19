@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 
 class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
@@ -22,6 +23,14 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexCPV4Pos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritdoc}
@@ -60,11 +69,11 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
             $paymentResponse['auth_code']         = $raw3DAuthResponseData['AuthCode'];
             $paymentResponse['ref_ret_num']       = $raw3DAuthResponseData['TransactionId'];
             $paymentResponse['order_id']          = $raw3DAuthResponseData['OrderID'];
-            $paymentResponse['currency']          = $this->mapCurrency($raw3DAuthResponseData['AmountCode']);
-            $paymentResponse['amount']            = $this->formatAmount($raw3DAuthResponseData['Amount']);
-            $paymentResponse['transaction_type']  = $this->mapTxType($raw3DAuthResponseData['TransactionType']);
-            $paymentResponse['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
-            $paymentResponse['transaction_time']  = new \DateTimeImmutable($raw3DAuthResponseData['HostDate']);
+            $paymentResponse['currency']          = $this->valueMapper->mapCurrency($raw3DAuthResponseData['AmountCode'], $txType);
+            $paymentResponse['amount']            = $this->valueFormatter->formatAmount($raw3DAuthResponseData['Amount'], $txType);
+            $paymentResponse['transaction_type']  = $this->valueMapper->mapTxType($raw3DAuthResponseData['TransactionType']);
+            $paymentResponse['installment_count'] = $this->valueFormatter->formatInstallment($raw3DAuthResponseData['InstallmentCount'], $txType);
+            $paymentResponse['transaction_time']  = $this->valueFormatter->formatDateTime($raw3DAuthResponseData['HostDate'], $txType);
         }
 
         return $paymentResponse;

@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Serializer;
 use Generator;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Serializer\VakifKatilimPosSerializer;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
@@ -37,22 +38,13 @@ class VakifKatilimPosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $input, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, $expected): void
     {
-        $actual   = $this->serializer->encode($input, PosInterface::TX_TYPE_PAY_AUTH);
+        $result   = $this->serializer->encode($data, PosInterface::TX_TYPE_PAY_AUTH, $format);
         $expected = str_replace(["\r"], '', $expected);
 
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @dataProvider decodeHtmlDataProvider
-     */
-    public function testDecodeHtml(string $input, array $expected): void
-    {
-        $actual = $this->serializer->decode($input, PosInterface::TX_TYPE_PAY_AUTH);
-
-        $this->assertSame($expected, $actual);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -73,67 +65,6 @@ class VakifKatilimPosSerializerTest extends TestCase
         $actual = $this->serializer->decode($input, $txType);
 
         $this->assertSame($expected, $actual);
-    }
-
-    public static function decodeHtmlDataProvider(): array
-    {
-        $vakifKatilimHTML = <<<HTML
-<!DOCTYPE html>
-<html xmlns="http//www.w3.org/1999/xhtml">
-<head>
-<title></title>
-</head>
-<body onload="OnLoadEvent();">
-<form name="downloadForm" action="https://localhost/VirtualPos/ThreeDModel/Fail"
-method="POST">
-<input type="hidden" name="ResponseCode" value="CardNotEnrolled">
-<input type="hidden" name="ResponseMessage" value="Card 3D Secure kayitli degil.">
-<input type="hidden" name="ProvisionNumber">
-<input type="hidden" name="MerchantOrderId">
-<input type="hidden" name="OrderId" value="0">
-<input type="hidden" name="RRN">
-<input type="hidden" name="Stan">
-<input type="hidden" name="HashData">
-<input type="hidden" name="MD">
-<!-- To support javascript unaware/disabled browsers -->
-<noscript>
-<center>
-Please click the submit button below.<br>
-<input type="submit" name="submit" value="Submit">
- </center>
-</noscript>
-</form>
-<script language="Javascript">
-<!--
-function OnLoadEvent() {
- document.downloadForm.submit();
- }
- //
--->
-</script>
-</body>
-</html>
-HTML;
-
-        return [
-            '3d_auth_fail' => [
-                'html'     => $vakifKatilimHTML,
-                'expected' => [
-                    'gateway'     => 'https://localhost/VirtualPos/ThreeDModel/Fail',
-                    'form_inputs' => [
-                        'ResponseCode'    => 'CardNotEnrolled',
-                        'ResponseMessage' => 'Card 3D Secure kayitli degil.',
-                        'ProvisionNumber' => '',
-                        'MerchantOrderId' => '',
-                        'OrderId'         => '0',
-                        'RRN'             => '',
-                        'Stan'            => '',
-                        'HashData'        => '',
-                        'MD'              => '',
-                    ],
-                ],
-            ],
-        ];
     }
 
     public static function decodeXmlDataProvider(): iterable
@@ -276,8 +207,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
  <ResponseCode>00</ResponseCode>
  <ResponseMessage />
 </VPosTransactionResponseContract>
-A_WRAP
-        ;
+A_WRAP;
         yield 'test_utf_16' => [
             'input'    => $testUtf16,
             'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
@@ -433,9 +363,21 @@ A_WRAP
     {
         return [
             [
-                'input'    => VakifKatilimPosRequestDataMapperTest::create3DPaymentRequestDataDataProvider()[0]['expected'],
-                'expected' => '<?xml version="1.0" encoding="ISO-8859-1"?>
+                'input'           => VakifKatilimPosRequestDataMapperTest::create3DPaymentRequestDataDataProvider()[0]['expected'],
+                'format'          => null,
+                'expected_format' => SerializerInterface::FORMAT_XML,
+                'expected'        => '<?xml version="1.0" encoding="ISO-8859-1"?>
 <VPosMessageContract><APIVersion>1.0.0</APIVersion><HashData>sFxxO809/N3Yif4p/js1UKFMRro=</HashData><MerchantId>1</MerchantId><CustomerId>11111</CustomerId><UserName>APIUSER</UserName><InstallmentCount>0</InstallmentCount><Amount>100</Amount><MerchantOrderId>2020110828BC</MerchantOrderId><TransactionSecurity>3</TransactionSecurity><SubMerchantId>0</SubMerchantId><OkUrl>http://localhost/finansbank-payfor/3d/response.php</OkUrl><FailUrl>http://localhost/finansbank-payfor/3d/response.php</FailUrl><AdditionalData><AdditionalDataList><VPosAdditionalData><Key>MD</Key><Data>67YtBfBRTZ0XBKnAHi8c/A==</Data></VPosAdditionalData></AdditionalDataList></AdditionalData></VPosMessageContract>
+',
+            ],
+            [
+                'input'           => [
+                    'ac' => 'ds',
+                ],
+                'format'          => SerializerInterface::FORMAT_XML,
+                'expected_format' => SerializerInterface::FORMAT_XML,
+                'expected'        => '<?xml version="1.0" encoding="ISO-8859-1"?>
+<VPosMessageContract><ac>ds</ac></VPosMessageContract>
 ',
             ],
         ];

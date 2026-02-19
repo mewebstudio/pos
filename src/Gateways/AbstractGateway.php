@@ -7,18 +7,14 @@
 namespace Mews\Pos\Gateways;
 
 use LogicException;
-use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -31,11 +27,8 @@ abstract class AbstractGateway implements PosInterface
      *          disable_3d_hash_check?: bool
      *     },
      *     gateway_endpoints: array{
-     *          payment_api: non-empty-string,
-     *          payment_api_2?: non-empty-string,
      *          gateway_3d: non-empty-string,
-     *          gateway_3d_host?: non-empty-string,
-     *          query_api?: non-empty-string
+     *          gateway_3d_host?: non-empty-string
      *     }
      * }
      */
@@ -57,13 +50,11 @@ abstract class AbstractGateway implements PosInterface
      */
     protected ?array $data;
 
-    protected HttpClient $client;
+    protected RequestValueMapperInterface $valueMapper;
 
     protected RequestDataMapperInterface $requestDataMapper;
 
     protected ResponseDataMapperInterface $responseDataMapper;
-
-    protected SerializerInterface $serializer;
 
     protected EventDispatcherInterface $eventDispatcher;
 
@@ -102,32 +93,27 @@ abstract class AbstractGateway implements PosInterface
      *           disable_3d_hash_check?: bool
      *      },
      *      gateway_endpoints: array{
-     *           payment_api: non-empty-string,
-     *           payment_api_2?: non-empty-string,
      *           gateway_3d: non-empty-string,
-     *           gateway_3d_host?: non-empty-string,
-     *           query_api?: non-empty-string
+     *           gateway_3d_host?: non-empty-string
      *      }
      *  } $config
      */
     public function __construct(
         array                          $config,
         AbstractPosAccount             $posAccount,
+        RequestValueMapperInterface    $valueMapper,
         RequestDataMapperInterface     $requestDataMapper,
         ResponseDataMapperInterface    $responseDataMapper,
-        SerializerInterface            $serializer,
         EventDispatcherInterface       $eventDispatcher,
-        HttpClient                     $httpClient,
         LoggerInterface                $logger
     ) {
+        $this->valueMapper        = $valueMapper;
         $this->requestDataMapper  = $requestDataMapper;
         $this->responseDataMapper = $responseDataMapper;
-        $this->serializer         = $serializer;
         $this->eventDispatcher    = $eventDispatcher;
 
         $this->config  = $config;
         $this->account = $posAccount;
-        $this->client  = $httpClient;
         $this->logger  = $logger;
 
         if (isset($this->config['gateway_configs']['test_mode'])) {
@@ -148,7 +134,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getCurrencies(): array
     {
-        return \array_keys($this->requestDataMapper->getCurrencyMappings());
+        return \array_keys($this->valueMapper->getCurrencyMappings());
     }
 
     /**
@@ -158,11 +144,8 @@ abstract class AbstractGateway implements PosInterface
      *          disable_3d_hash_check?: bool
      *      },
      *      gateway_endpoints: array{
-     *          payment_api: non-empty-string,
-     *          payment_api_2?: non-empty-string,
      *          gateway_3d: non-empty-string,
-     *          gateway_3d_host?: non-empty-string,
-     *          query_api?: non-empty-string
+     *          gateway_3d_host?: non-empty-string
      *      }
      * }
      */
@@ -182,22 +165,6 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @phpstan-param self::TX_TYPE_*     $txType
-     * @phpstan-param self::MODEL_*       $paymentModel
-     * @phpstan-param self::TX_TYPE_PAY_* $orderTxType
-     *
-     * @param string|null $txType
-     * @param string|null $paymentModel
-     * @param string|null $orderTxType
-     *
-     * @return non-empty-string
-     */
-    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        return $this->config['gateway_endpoints']['payment_api'];
-    }
-
-    /**
      * @param PosInterface::MODEL_3D_* $paymentModel
      *
      * @return non-empty-string
@@ -209,42 +176,6 @@ abstract class AbstractGateway implements PosInterface
         }
 
         return $this->config['gateway_endpoints']['gateway_3d'];
-    }
-
-    /**
-     * @return non-empty-string
-     *
-     * @deprecated use get3DGatewayURL() instead
-     */
-    public function get3DHostGatewayURL(): string
-    {
-        return $this->get3DGatewayURL(PosInterface::MODEL_3D_HOST);
-    }
-
-    /**
-     * @phpstan-param self::TX_TYPE_*     $txType
-     * @phpstan-param self::TX_TYPE_PAY_* $orderTxType
-     *
-     * @param string|null $txType
-     * @param string|null $orderTxType transaction type of order when it was made
-     *
-     * @return non-empty-string
-     */
-    public function getQueryAPIUrl(?string $txType = null, ?string $orderTxType = null): string
-    {
-        return $this->config['gateway_endpoints']['query_api'] ?? $this->getApiURL(
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $orderTxType
-        );
-    }
-
-    /**
-     * @return bool
-     */
-    public function isTestMode(): bool
-    {
-        return $this->testMode;
     }
 
     /**
@@ -286,347 +217,11 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @inheritDoc
+     * @return bool
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
+    public function isTestMode(): bool
     {
-        $this->logger->debug('making payment', [
-            'model'   => PosInterface::MODEL_NON_SECURE,
-            'tx_type' => $txType,
-        ]);
-        if (!\in_array($txType, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
-            throw new LogicException(\sprintf('Invalid transaction type "%s" provided', $txType));
-        }
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $creditCard);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $contents       = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $contents,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
-        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function makeRegularPostPayment(array $order): PosInterface
-    {
-        $txType = PosInterface::TX_TYPE_PAY_POST_AUTH;
-        $this->logger->debug('making payment', [
-            'model'   => PosInterface::MODEL_NON_SECURE,
-            'tx_type' => $txType,
-        ]);
-
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $contents       = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $contents,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
-        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function refund(array $order): PosInterface
-    {
-        $txType = PosInterface::TX_TYPE_REFUND;
-        if (isset($order['order_amount']) && $order['amount'] < $order['order_amount']) {
-            $txType = PosInterface::TX_TYPE_REFUND_PARTIAL;
-        }
-
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
-        );
-        $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function cancel(array $order): PosInterface
-    {
-        $txType      = PosInterface::TX_TYPE_CANCEL;
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
-        );
-        $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function status(array $order): PosInterface
-    {
-        $txType      = PosInterface::TX_TYPE_STATUS;
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getQueryAPIUrl($txType)
-        );
-        $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function history(array $data): PosInterface
-    {
-        $txType      = PosInterface::TX_TYPE_HISTORY;
-        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $data,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $encodedRequestData = $this->serializer->encode($requestData, $txType);
-        $bankResponse       = $this->send(
-            $encodedRequestData,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
-        $this->response     = $this->responseDataMapper->mapHistoryResponse($bankResponse);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function orderHistory(array $order): PosInterface
-    {
-        $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
-        $requestData = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
-        $this->response = $this->responseDataMapper->mapOrderHistoryResponse($bankResponse);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
-    {
-        $txType             = PosInterface::TX_TYPE_CUSTOM_QUERY;
-        $updatedRequestData = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
-
-        $event = new RequestDataPreparedEvent(
-            $updatedRequestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $requestData,
-            PosInterface::MODEL_NON_SECURE
-        );
-
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($updatedRequestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $updatedRequestData = $event->getRequestData();
-        }
-
-        $data           = $this->serializer->encode($updatedRequestData, $txType);
-        $apiUrl         ??= $this->getQueryAPIUrl($txType);
-        $this->response = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $apiUrl
-        );
-
-        return $this;
+        return $this->testMode;
     }
 
     /**
@@ -646,7 +241,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getCardTypeMapping(): array
     {
-        return $this->requestDataMapper->getCardTypeMapping();
+        return $this->valueMapper->getCardTypeMappings();
     }
 
     /**
@@ -654,7 +249,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getLanguages(): array
     {
-        return [PosInterface::LANG_TR, PosInterface::LANG_EN];
+        return \array_keys($this->valueMapper->getLangMappings());
     }
 
     /**
@@ -672,24 +267,6 @@ abstract class AbstractGateway implements PosInterface
 
         return \in_array($paymentModel, static::$supportedTransactions[$txType], true);
     }
-
-    /**
-     * Send requests to bank APIs
-     *
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
-     *
-     * @param array<string, mixed>|string $contents data to send
-     * @param string                      $txType
-     * @param string                      $paymentModel
-     * @param non-empty-string            $url      URL address of the API
-     *
-     * @return array<string, mixed>
-     *
-     * @throws ClientExceptionInterface
-     * @throws UnsupportedTransactionTypeException
-     */
-    abstract protected function send($contents, string $txType, string $paymentModel, string $url): array;
 
     /**
      * @param array<string, mixed> $responseData
@@ -721,7 +298,7 @@ abstract class AbstractGateway implements PosInterface
      */
     protected function check3DFormInputs(string $paymentModel, string $txType, ?CreditCardInterface $card = null, bool $createWithoutCard = false): void
     {
-        $paymentModels = self::getSupported3DPaymentModelsForPaymentTransaction($txType);
+        $paymentModels = $this->getSupported3DPaymentModelsForPaymentTransaction($txType);
         if (!self::isSupportedTransaction($txType, $paymentModel)) {
             throw new \LogicException(\sprintf(
                 '%s ödeme altyapıda [%s] işlem tipi [%s] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [%s].',
@@ -736,7 +313,7 @@ abstract class AbstractGateway implements PosInterface
             throw new \LogicException(\sprintf(
                 'Kart bilgileri ile form verisi oluşturmak icin [%s] ödeme modeli kullanmayınız! Yerine [%s] ödeme model(ler)ini kullanınız.',
                 $paymentModel,
-                \implode(', ', self::getSupported3DPaymentModelsForPaymentTransaction($txType, true))
+                \implode(', ', $this->getSupported3DPaymentModelsForPaymentTransaction($txType, true))
             ));
         }
 
@@ -745,7 +322,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         if ((PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel)
-            && null === $card
+            && !$card instanceof \Mews\Pos\Entity\Card\CreditCardInterface
         ) {
             throw new \LogicException('Bu ödeme modeli için kart bilgileri zorunlu!');
         }
@@ -762,7 +339,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return array<int, PosInterface::TX_TYPE_*>
      */
-    private static function getSupport3DTxTypes(): array
+    private function getSupport3DTxTypes(): array
     {
         $threeDSupportedTxTypes = [];
         $txTypes                = [
@@ -785,9 +362,9 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return array<int, PosInterface::MODEL_*>
      */
-    private static function getSupported3DPaymentModelsForPaymentTransaction(string $txType, ?bool $withCard = null): array
+    private function getSupported3DPaymentModelsForPaymentTransaction(string $txType, ?bool $withCard = null): array
     {
-        $supported3DPaymentTxs = self::getSupport3DTxTypes();
+        $supported3DPaymentTxs = $this->getSupport3DTxTypes();
         if (!\in_array($txType, $supported3DPaymentTxs, true)) {
             throw new \LogicException(\sprintf(
                 'Hatalı işlem tipi! Desteklenen işlem tipleri: [%s].',
@@ -806,6 +383,7 @@ abstract class AbstractGateway implements PosInterface
         if (null === $withCard) {
             return $supportedPaymentModels;
         }
+
         if ($withCard) {
             return \array_intersect($supportedPaymentModels, self::$paymentModelsWithCard);
         }

@@ -23,17 +23,26 @@ class AkbankPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
+        if (null !== $apiName && 'payment_api' !== $apiName) {
+            return false;
+        }
+
         return AkbankPos::class === $gatewayClass;
     }
 
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): string
+    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_JSON): EncodedData
     {
-        return $this->serializer->encode($data, JsonEncoder::FORMAT);
+        $format ??= self::FORMAT_JSON;
+
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**

@@ -18,11 +18,11 @@ class CryptFactoryTest extends TestCase
     /**
      * @dataProvider createGatewayCryptDataProvider
      */
-    public function testCreateGatewayCrypt(string $gatewayClass, string $serializerClass): void
+    public function testCreateGatewayCrypt(string $gatewayClass, string $cryptClass): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $crypt  = CryptFactory::createGatewayCrypt($gatewayClass, $logger);
-        $this->assertInstanceOf($serializerClass, $crypt);
+        $this->assertInstanceOf($cryptClass, $crypt);
     }
 
     public static function createGatewayCryptDataProvider(): array
@@ -34,6 +34,7 @@ class CryptFactoryTest extends TestCase
             [\Mews\Pos\Gateways\GarantiPos::class, \Mews\Pos\Crypt\GarantiPosCrypt::class],
             [\Mews\Pos\Gateways\InterPos::class, \Mews\Pos\Crypt\InterPosCrypt::class],
             [\Mews\Pos\Gateways\KuveytPos::class, \Mews\Pos\Crypt\KuveytPosCrypt::class],
+            [\Mews\Pos\Gateways\KuveytSoapApiPos::class, \Mews\Pos\Crypt\KuveytPosCrypt::class],
             [\Mews\Pos\Gateways\ParamPos::class, \Mews\Pos\Crypt\ParamPosCrypt::class],
             [\Mews\Pos\Gateways\PayFlexV4Pos::class, \Mews\Pos\Crypt\NullCrypt::class],
             [\Mews\Pos\Gateways\PayFlexCPV4Pos::class, \Mews\Pos\Crypt\PayFlexCPV4Crypt::class],

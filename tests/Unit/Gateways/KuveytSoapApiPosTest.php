@@ -1,0 +1,466 @@
+<?php
+
+/**
+ * @license MIT
+ */
+
+namespace Mews\Pos\Tests\Unit\Gateways;
+
+use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
+use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\DataMapper\RequestDataMapper\KuveytSoapApiPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Entity\Account\KuveytPosAccount;
+use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
+use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
+use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\KuveytSoapApiPosResponseDataMapperTest;
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * @covers \Mews\Pos\Gateways\KuveytSoapApiPos
+ * @covers \Mews\Pos\Gateways\AbstractHttpGateway
+ * @covers \Mews\Pos\Gateways\AbstractGateway
+ */
+class KuveytSoapApiPosTest extends TestCase
+{
+    private KuveytPosAccount $account;
+
+    private array $config;
+
+    private CreditCardInterface $card;
+
+    private array $order;
+
+    /** @var KuveytSoapApiPos */
+    private PosInterface $pos;
+
+    /** @var KuveytSoapApiPosRequestDataMapper & MockObject */
+    private MockObject $requestMapperMock;
+
+    /** @var ResponseDataMapperInterface & MockObject */
+    private MockObject $responseMapperMock;
+
+    /** @var CryptInterface & MockObject */
+    private MockObject $cryptMock;
+
+
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
+    /** @var HttpClientInterface & MockObject */
+    private MockObject $httpClientMock;
+
+    /** @var LoggerInterface & MockObject */
+    private MockObject $loggerMock;
+
+    /** @var EventDispatcherInterface & MockObject */
+    private MockObject $eventDispatcherMock;
+
+    /** @var SerializerInterface & MockObject */
+    private MockObject $serializerMock;
+
+    private KuveytPosRequestValueMapper $requestValueMapper;
+
+    /**
+     * @return void
+     *
+     * @throws \Exception
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->config = [
+            'name'              => 'kuveyt-pos',
+            'class'             => KuveytSoapApiPos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
+            ],
+        ];
+
+        $this->account = AccountFactory::createKuveytPosAccount(
+            'kuveytpos',
+            '496',
+            'apiuser1',
+            '400235',
+            'Api123'
+        );
+
+        $this->order = [
+            'id'          => '2020110828BC',
+            'amount'      => 10.01,
+            'installment' => '0',
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
+            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
+            'ip'          => '127.0.0.1',
+            'lang'        => PosInterface::LANG_TR,
+        ];
+
+        $this->requestValueMapper  = new KuveytPosRequestValueMapper();
+        $this->requestMapperMock   = $this->createMock(KuveytSoapApiPosRequestDataMapper::class);
+        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
+        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock          = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+
+        $this->requestMapperMock->expects(self::any())
+            ->method('getCrypt')
+            ->willReturn($this->cryptMock);
+
+        $this->pos = new KuveytSoapApiPos(
+            $this->config,
+            $this->account,
+            $this->requestValueMapper,
+            $this->requestMapperMock,
+            $this->responseMapperMock,
+            $this->serializerMock,
+            $this->eventDispatcherMock,
+            $this->httpClientStrategyMock,
+            $this->loggerMock,
+        );
+
+        $this->card = CreditCardFactory::createForGateway(
+            $this->pos,
+            '4155650100416111',
+            25,
+            1,
+            '123',
+            'John Doe',
+            CreditCardInterface::CARD_TYPE_VISA
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function testInit(): void
+    {
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
+        $this->assertSame($this->config, $this->pos->getConfig());
+        $this->assertSame($this->account, $this->pos->getAccount());
+        $this->assertFalse($this->pos->isTestMode());
+    }
+
+    /**
+     * @return void
+     */
+    public function testSetTestMode(): void
+    {
+        $this->pos->setTestMode(false);
+        $this->assertFalse($this->pos->isTestMode());
+        $this->pos->setTestMode(true);
+        $this->assertTrue($this->pos->isTestMode());
+    }
+
+    /**
+     * @return void
+     */
+    public function testGet3DFormData(): void
+    {
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->get3DFormData(
+            [],
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+    }
+
+    public function testMake3DPayment(): void
+    {
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DPayment(
+            Request::create(
+                '',
+                'POST',
+            ),
+            [],
+            PosInterface::TX_TYPE_PAY_AUTH
+        );
+    }
+
+    public function testMakeRegularPayment(): void
+    {
+        $this->expectException(UnsupportedPaymentModelException::class);
+
+        $this->pos->makeRegularPayment(
+            [],
+            $this->card,
+            PosInterface::TX_TYPE_PAY_AUTH
+        );
+    }
+
+    public function testMakeRegularPostAuthPayment(): void
+    {
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->makeRegularPostPayment([]);
+    }
+
+    public function testHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->history([]);
+    }
+
+    public function testOrderHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->orderHistory([]);
+    }
+
+    public function testMake3DHostPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    public function testMake3DPayPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    /**
+     * @dataProvider statusDataProvider
+     */
+    public function testStatus(array $bankResponse, array $expectedData, bool $isSuccess): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_STATUS;
+        $requestData = ['createStatusRequestData'];
+        $order       = $this->order;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createStatusRequestData')
+            ->with($account, $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $bankResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapStatusResponse')
+            ->with($bankResponse)
+            ->willReturn($expectedData);
+
+        $this->pos->status($order);
+
+        $result = $this->pos->getResponse();
+        $this->assertSame($expectedData, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+    /**
+     * @dataProvider cancelDataProvider
+     */
+    public function testCancel(array $bankResponse, array $expectedData, bool $isSuccess): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = ['createCancelRequestData'];
+        $order       = $this->order;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCancelRequestData')
+            ->with($account, $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $bankResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapCancelResponse')
+            ->with($bankResponse)
+            ->willReturn($expectedData);
+
+        $this->pos->cancel($order);
+
+        $result = $this->pos->getResponse();
+        $this->assertSame($expectedData, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    /**
+     * @dataProvider refundDataProvider
+     */
+    public function testRefund(array $bankResponse, array $expectedData, bool $isSuccess): void
+    {
+        $account            = $this->pos->getAccount();
+        $txType             = PosInterface::TX_TYPE_REFUND;
+        $requestData        = ['createRefundRequestData'];
+        $order              = $this->order;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createRefundRequestData')
+            ->with($account, $order, $txType)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $bankResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapRefundResponse')
+            ->with($bankResponse)
+            ->willReturn($expectedData);
+
+        $this->pos->refund($order);
+
+        $result = $this->pos->getResponse();
+        $this->assertSame($expectedData, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testCustomQueryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->customQuery([]);
+    }
+
+    public static function statusDataProvider(): iterable
+    {
+        $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::statusTestDataProvider());
+        yield [
+            'bank_response' => $testData['fail1']['responseData'],
+            'expected_data' => $testData['fail1']['expectedData'],
+            'isSuccess'     => false,
+        ];
+        yield [
+            'bank_response' => $testData['success1']['responseData'],
+            'expected_data' => $testData['success1']['expectedData'],
+            'isSuccess'     => true,
+        ];
+    }
+
+    public static function cancelDataProvider(): array
+    {
+        $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::cancelTestDataProvider());
+
+        return [
+            'fail_1'    => [
+                'bank_response' => $testData['fail1']['responseData'],
+                'expected_data' => $testData['fail1']['expectedData'],
+                'isSuccess'     => false,
+            ],
+            'success_1' => [
+                'bank_response' => $testData['success1']['responseData'],
+                'expected_data' => $testData['success1']['expectedData'],
+                'isSuccess'     => true,
+            ],
+        ];
+    }
+
+    public static function refundDataProvider(): array
+    {
+        $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::refundTestDataProvider());
+        return [
+            'fail_1'    => [
+                'bank_response' => $testData['fail1']['responseData'],
+                'expected_data' => $testData['fail1']['expectedData'],
+                'isSuccess'     => false,
+            ],
+            'success_1' => [
+                'bank_response' => $testData['success1']['responseData'],
+                'expected_data' => $testData['success1']['expectedData'],
+                'isSuccess'     => true,
+            ],
+        ];
+    }
+
+    private function configureClientResponse(
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
+    ): void {
+        $updatedRequestDataPreparedEvent = null;
+
+
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
+
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
+
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(
+                    function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent): bool {
+                        $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                        return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                            && $txType === $dispatchedEvent->getTxType()
+                            && $requestData === $dispatchedEvent->getRequestData()
+                            && $order === $dispatchedEvent->getOrder()
+                            && $paymentModel === $dispatchedEvent->getPaymentModel();
+                    }
+                )
+            ))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
+    }
+}

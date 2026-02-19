@@ -14,6 +14,14 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 class NullCrypt extends AbstractCrypt
 {
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return true;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string

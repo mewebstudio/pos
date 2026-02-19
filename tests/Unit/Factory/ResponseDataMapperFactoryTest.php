@@ -6,7 +6,8 @@
 
 namespace Mews\Pos\Tests\Unit\Factory;
 
-use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Factory\ResponseDataMapperFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -21,11 +22,13 @@ class ResponseDataMapperFactoryTest extends TestCase
      */
     public function testCreateGatewayResponseMapper(string $gatewayClass, string $mapperClass): void
     {
-        $requestDataMapper = $this->createMock(RequestDataMapperInterface::class);
-        $logger            = $this->createMock(LoggerInterface::class);
-        $mapper            = ResponseDataMapperFactory::createGatewayResponseMapper(
+        $responseDataMapper     = $this->createMock(ResponseValueMapperInterface::class);
+        $responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $logger                 = $this->createMock(LoggerInterface::class);
+        $mapper                 = ResponseDataMapperFactory::createGatewayResponseMapper(
             $gatewayClass,
-            $requestDataMapper,
+            $responseValueFormatter,
+            $responseDataMapper,
             $logger
         );
         $this->assertInstanceOf($mapperClass, $mapper);
@@ -33,12 +36,14 @@ class ResponseDataMapperFactoryTest extends TestCase
 
     public function testCreateGatewayResponseMapperUnsupported(): void
     {
-        $requestDataMapper = $this->createMock(RequestDataMapperInterface::class);
-        $logger            = $this->createMock(LoggerInterface::class);
+        $responseDataMapper     = $this->createMock(ResponseValueMapperInterface::class);
+        $responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $logger                 = $this->createMock(LoggerInterface::class);
         $this->expectException(\DomainException::class);
         ResponseDataMapperFactory::createGatewayResponseMapper(
             \stdClass::class,
-            $requestDataMapper,
+            $responseValueFormatter,
+            $responseDataMapper,
             $logger
         );
     }
@@ -52,7 +57,9 @@ class ResponseDataMapperFactoryTest extends TestCase
             [\Mews\Pos\Gateways\GarantiPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper::class],
             [\Mews\Pos\Gateways\InterPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper::class],
             [\Mews\Pos\Gateways\KuveytPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper::class],
+            [\Mews\Pos\Gateways\KuveytSoapApiPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\KuveytSoapApiPosResponseDataMapper::class],
             [\Mews\Pos\Gateways\ParamPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper::class],
+            [\Mews\Pos\Gateways\Param3DHostPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper::class],
             [\Mews\Pos\Gateways\PayFlexCPV4Pos::class, \Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper::class],
             [\Mews\Pos\Gateways\PayFlexV4Pos::class, \Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper::class],
             [\Mews\Pos\Gateways\PayForPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper::class],

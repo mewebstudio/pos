@@ -10,6 +10,8 @@ use Mews\Pos\Crypt\EstV3PosCrypt;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -39,6 +41,15 @@ class EstV3PosCryptTest extends TestCase
 
         $logger      = $this->createMock(LoggerInterface::class);
         $this->crypt = new EstV3PosCrypt($logger);
+    }
+
+    public function testSupports(): void
+    {
+        $supports = $this->crypt::supports(EstV3Pos::class);
+        $this->assertTrue($supports);
+
+        $supports = $this->crypt::supports(EstPos::class);
+        $this->assertFalse($supports);
     }
 
     /**

@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @license MIT
+ */
+
 namespace Mews\Pos\Tests\Unit\Factory;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -24,14 +28,13 @@ class PosFactoryTest extends TestCase
             ->willReturn($configKey);
 
         $eventDispatcher = $this->createMock(\Psr\EventDispatcher\EventDispatcherInterface::class);
-        $httpClient      = $this->createMock(\Mews\Pos\Client\HttpClient::class);
         $logger          = $this->createMock(\Psr\Log\LoggerInterface::class);
 
         $gateway = PosFactory::createPosGateway(
             $account,
             $config,
             $eventDispatcher,
-            $httpClient,
+            null,
             $logger
         );
         $this->assertInstanceOf($expectedGatewayClass, $gateway);
@@ -156,20 +159,21 @@ class PosFactoryTest extends TestCase
     public static function createPosGatewayDataProvider(): \Generator
     {
         $gatewayClasses = [
-            \Mews\Pos\Gateways\AkbankPos::class       => false,
-            \Mews\Pos\Gateways\EstPos::class          => false,
-            \Mews\Pos\Gateways\EstV3Pos::class        => false,
-            \Mews\Pos\Gateways\GarantiPos::class      => false,
-            \Mews\Pos\Gateways\InterPos::class        => true,
-            \Mews\Pos\Gateways\KuveytPos::class       => true,
-            \Mews\Pos\Gateways\ParamPos::class        => false,
-            \Mews\Pos\Gateways\PayFlexCPV4Pos::class  => true,
-            \Mews\Pos\Gateways\PayFlexV4Pos::class    => true,
-            \Mews\Pos\Gateways\PayForPos::class       => false,
-            \Mews\Pos\Gateways\PosNet::class          => false,
-            \Mews\Pos\Gateways\PosNetV1Pos::class     => false,
-            \Mews\Pos\Gateways\ToslaPos::class        => false,
-            \Mews\Pos\Gateways\VakifKatilimPos::class => false,
+            \Mews\Pos\Gateways\AkbankPos::class        => false,
+            \Mews\Pos\Gateways\EstPos::class           => false,
+            \Mews\Pos\Gateways\EstV3Pos::class         => false,
+            \Mews\Pos\Gateways\GarantiPos::class       => false,
+            \Mews\Pos\Gateways\InterPos::class         => true,
+            \Mews\Pos\Gateways\KuveytPos::class        => true,
+            \Mews\Pos\Gateways\KuveytSoapApiPos::class => true,
+            \Mews\Pos\Gateways\ParamPos::class         => false,
+            \Mews\Pos\Gateways\PayFlexCPV4Pos::class   => true,
+            \Mews\Pos\Gateways\PayFlexV4Pos::class     => true,
+            \Mews\Pos\Gateways\PayForPos::class        => false,
+            \Mews\Pos\Gateways\PosNet::class           => false,
+            \Mews\Pos\Gateways\PosNetV1Pos::class      => false,
+            \Mews\Pos\Gateways\ToslaPos::class         => false,
+            \Mews\Pos\Gateways\VakifKatilimPos::class  => false,
         ];
 
         foreach ($gatewayClasses as $gatewayClass => $cardTypeMapping) {

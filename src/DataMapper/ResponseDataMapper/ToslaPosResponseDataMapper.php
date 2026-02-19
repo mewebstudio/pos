@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -30,31 +31,11 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
-     * Order Status Codes
-     *
-     * @var array<int, string>
+     * @inheritDoc
      */
-    protected array $orderStatusMappings = [
-        0 => PosInterface::PAYMENT_STATUS_ERROR,
-        1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        2 => PosInterface::PAYMENT_STATUS_CANCELED,
-        3 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
-        4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
-        5 => PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED,
-    ];
-
-    /**
-     * @param int $txType
-     *
-     * @return string
-     */
-    public function mapTxType($txType): ?string
+    public static function supports(string $gatewayClass): bool
     {
-        if (0 === $txType) {
-            return null;
-        }
-
-        return parent::mapTxType((string) $txType);
+        return ToslaPos::class === $gatewayClass;
     }
 
     /**
@@ -82,7 +63,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
             'transaction_id'   => $rawPaymentResponseData['TransactionId'],
-            'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable() : null,
+            'transaction_time' => self::TX_APPROVED === $status ? $this->valueFormatter->formatDateTime('now', $txType) : null,
             'transaction_type' => null,
             'ref_ret_num'      => $rawPaymentResponseData['HostReferenceNumber'],
             'proc_return_code' => $procReturnCode,
@@ -117,7 +98,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
 
         $procReturnCode    = $raw3DAuthResponseData['BankResponseCode'];
         $mdStatus          = $this->extractMdStatus($raw3DAuthResponseData);
-        $transactionStatus = $this->orderStatusMappings[$raw3DAuthResponseData['RequestStatus']] ?? null;
+        $transactionStatus = $this->valueMapper->mapOrderStatus($raw3DAuthResponseData['RequestStatus']);
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode
             && PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transactionStatus
             && $this->is3dAuthSuccess($mdStatus)
@@ -145,7 +126,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
             $response['error_message'] = $raw3DAuthResponseData['BankResponseMessage'];
             $response['error_code']    = $procReturnCode;
         } else {
-            $response['transaction_time'] = new \DateTimeImmutable();
+            $response['transaction_time'] = $this->valueFormatter->formatDateTime('now', $txType);
         }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
@@ -222,6 +203,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
         $errorCode       = $rawResponseData['Code'];
@@ -237,8 +219,8 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['auth_code']        = $rawResponseData['AuthCode'];
         $defaultResponse['transaction_id']   = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
         $defaultResponse['masked_number']    = $rawResponseData['CardNo'];
-        $defaultResponse['order_status']     = $this->orderStatusMappings[$rawResponseData['RequestStatus']] ?? $rawResponseData['RequestStatus'];
-        $defaultResponse['transaction_type'] = $this->mapTxType($rawResponseData['TransactionType']);
+        $defaultResponse['order_status']     = $this->valueMapper->mapOrderStatus($rawResponseData['RequestStatus']);
+        $defaultResponse['transaction_type'] = $this->valueMapper->mapTxType($rawResponseData['TransactionType']);
         $defaultResponse['status']           = $status;
         $defaultResponse['status_detail']    = $this->getStatusDetail($errorCode);
 
@@ -251,13 +233,13 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $status) {
             $defaultResponse['installment_count'] = $rawResponseData['InstallmentCount'];
             if ($rawResponseData['Currency'] > 0) {
-                $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
+                $defaultResponse['currency'] = $this->valueMapper->mapCurrency($rawResponseData['Currency'], $txType);
                 // ex: 20231209154531
-                $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawResponseData['CreateDate']);
-                $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
+                $defaultResponse['transaction_time'] = $this->valueFormatter->formatDateTime($rawResponseData['CreateDate'], $txType);
+                $defaultResponse['first_amount']     = $this->valueFormatter->formatAmount($rawResponseData['Amount'], $txType);
             }
 
-            $defaultResponse['refund_amount'] = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
+            $defaultResponse['refund_amount'] = $rawResponseData['RefundedAmount'] > 0 ? $this->valueFormatter->formatAmount($rawResponseData['RefundedAmount'], $txType) : null;
 
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {
                 $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
@@ -361,26 +343,16 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * "100001" => 1000.01
-     * @param string $amount
-     *
-     * @return float
-     */
-    protected function formatAmount(string $amount): float
-    {
-        return ((float) $amount) / 100;
-    }
-
-    /**
      * @param array<string, mixed> $rawResponseData
      *
      * @return array<string, mixed>
      */
     public function mapSingleHistoryResponse(array $rawResponseData): array
     {
-        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
-        $errorCode       = $rawResponseData['Code'];
-        $status          = self::TX_DECLINED;
+        $txType          = PosInterface::TX_TYPE_HISTORY;
+        $procReturnCode = $this->getProcReturnCode($rawResponseData);
+        $errorCode      = $rawResponseData['Code'];
+        $status         = self::TX_DECLINED;
         if (0 === $errorCode) {
             $status = self::TX_APPROVED;
         }
@@ -392,8 +364,8 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['auth_code']        = $rawResponseData['AuthCode'];
         $defaultResponse['transaction_id']   = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
         $defaultResponse['masked_number']    = $rawResponseData['CardNo'];
-        $defaultResponse['order_status']     = $this->orderStatusMappings[$rawResponseData['RequestStatus']] ?? $rawResponseData['RequestStatus'];
-        $defaultResponse['transaction_type'] = $this->mapTxType($rawResponseData['TransactionType']);
+        $defaultResponse['order_status']     = $this->valueMapper->mapOrderStatus($rawResponseData['RequestStatus']);
+        $defaultResponse['transaction_type'] = $this->valueMapper->mapTxType($rawResponseData['TransactionType']);
         $defaultResponse['status']           = $status;
         $defaultResponse['status_detail']    = $this->getStatusDetail($errorCode);
 
@@ -405,15 +377,15 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $status) {
             if ($rawResponseData['Currency'] > 0) {
-                $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
+                $defaultResponse['currency'] = $this->valueMapper->mapCurrency($rawResponseData['Currency'], $txType);
                 // ex: 20231209154531
-                $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawResponseData['CreateDate']);
-                $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
+                $defaultResponse['transaction_time'] = $this->valueFormatter->formatDateTime($rawResponseData['CreateDate'], $txType);
+                $defaultResponse['first_amount']     = $this->valueFormatter->formatAmount($rawResponseData['Amount'], $txType);
             }
 
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {
                 $captureAmount                     = (float) $rawResponseData['MerchantCommissionAmount'] + (float) $rawResponseData['NetAmount'];
-                $defaultResponse['capture_amount'] = $this->formatAmount((string) $captureAmount);
+                $defaultResponse['capture_amount'] = $this->valueFormatter->formatAmount((string) $captureAmount, $txType);
                 $defaultResponse['capture']        = $defaultResponse['first_amount'] <= $defaultResponse['capture_amount'];
                 $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
             }

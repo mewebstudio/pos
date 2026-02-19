@@ -11,6 +11,7 @@ use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EstPosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -42,12 +43,13 @@ class EstPosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, string $expected): void
     {
-        $result   = $this->serializer->encode($data);
+        $result   = $this->serializer->encode($data, null, $format);
         $expected = str_replace(["\r"], '', $expected);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
 
@@ -81,6 +83,33 @@ class EstPosSerializerTest extends TestCase
                 'Cvv2Val' => '122',
                 'Mode' => 'P',
             ],
+            'format' => null,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected' => '<?xml version="1.0" encoding="ISO-8859-9"?>
+<CC5Request><Name>ISBANKAPI</Name><Password>ISBANK07</Password><ClientId>700655000200</ClientId><Type>Auth</Type><IPAddress></IPAddress><Email>test@test.com</Email><OrderId>order222</OrderId><UserId></UserId><Total>100.25</Total><Currency>949</Currency><Taksit></Taksit><Number>5555444433332222</Number><Expires>12/21</Expires><Cvv2Val>122</Cvv2Val><Mode>P</Mode></CC5Request>
+',
+        ];
+
+        yield 'test2' => [
+            'input' => [
+                'Name' => 'ISBANKAPI',
+                'Password' => 'ISBANK07',
+                'ClientId' => '700655000200',
+                'Type' => 'Auth',
+                'IPAddress' => '',
+                'Email' => 'test@test.com',
+                'OrderId' => 'order222',
+                'UserId' => '',
+                'Total' => '100.25',
+                'Currency' => '949',
+                'Taksit' => '',
+                'Number' => '5555444433332222',
+                'Expires' => '12/21',
+                'Cvv2Val' => '122',
+                'Mode' => 'P',
+            ],
+            'format' => SerializerInterface::FORMAT_XML,
+            'expected_format' => SerializerInterface::FORMAT_XML,
             'expected' => '<?xml version="1.0" encoding="ISO-8859-9"?>
 <CC5Request><Name>ISBANKAPI</Name><Password>ISBANK07</Password><ClientId>700655000200</ClientId><Type>Auth</Type><IPAddress></IPAddress><Email>test@test.com</Email><OrderId>order222</OrderId><UserId></UserId><Total>100.25</Total><Currency>949</Currency><Taksit></Taksit><Number>5555444433332222</Number><Expires>12/21</Expires><Cvv2Val>122</Cvv2Val><Mode>P</Mode></CC5Request>
 ',

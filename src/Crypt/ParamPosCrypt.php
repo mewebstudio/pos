@@ -8,9 +8,20 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\Param3DHostPos;
+use Mews\Pos\Gateways\ParamPos;
 
 class ParamPosCrypt extends AbstractCrypt
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass
+            || Param3DHostPos::class === $gatewayClass;
+    }
+
     /**
      * {@inheritDoc}
      */

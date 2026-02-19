@@ -7,10 +7,9 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
-use Mews\Pos\PosInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -20,63 +19,30 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
 {
     protected EventDispatcherInterface $eventDispatcher;
 
-    /** @var array<PosInterface::MODEL_*, string> */
-    protected array $secureTypeMappings = [];
+    protected RequestValueMapperInterface $valueMapper;
 
-    /**
-     * Transaction Types
-     *
-     * @var array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>>
-     */
-    protected array $txTypeMappings = [];
-
-    /** @var array<CreditCardInterface::CARD_TYPE_*, string> */
-    protected array $cardTypeMapping = [];
-
-    /** @var array<PosInterface::LANG_*, string> */
-    protected array $langMappings = [
-        PosInterface::LANG_TR => 'tr',
-        PosInterface::LANG_EN => 'en',
-    ];
-
-    /**
-     * default olarak ISO 4217 kodlar tanimliyoruz.
-     * fakat bazi banklar ISO standarti kullanmiyorlar.
-     * Currency mapping
-     *
-     * @var non-empty-array<PosInterface::CURRENCY_*, string|int>
-     */
-    protected array $currencyMappings = [
-        PosInterface::CURRENCY_TRY => '949',
-        PosInterface::CURRENCY_USD => '840',
-        PosInterface::CURRENCY_EUR => '978',
-        PosInterface::CURRENCY_GBP => '826',
-        PosInterface::CURRENCY_JPY => '392',
-        PosInterface::CURRENCY_RUB => '643',
-    ];
-
-    /**
-     * period mapping for recurring orders
-     * @var array<'DAY'|'WEEK'|'MONTH'|'YEAR', string>
-     */
-    protected array $recurringOrderFrequencyMapping = [];
-
-    protected bool $testMode = false;
+    protected RequestValueFormatterInterface $valueFormatter;
 
     protected CryptInterface $crypt;
 
+    protected bool $testMode = false;
+
     /**
-     * @param EventDispatcherInterface                    $eventDispatcher
-     * @param CryptInterface                              $crypt
-     * @param array<PosInterface::CURRENCY_*, string|int> $currencyMappings
+     * @param RequestValueMapperInterface    $valueMapper
+     * @param RequestValueFormatterInterface $valueFormatter
+     * @param EventDispatcherInterface       $eventDispatcher
+     * @param CryptInterface                 $crypt
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencyMappings = [])
-    {
+    public function __construct(
+        RequestValueMapperInterface    $valueMapper,
+        RequestValueFormatterInterface $valueFormatter,
+        EventDispatcherInterface       $eventDispatcher,
+        CryptInterface                 $crypt
+    ) {
+        $this->valueMapper     = $valueMapper;
+        $this->valueFormatter  = $valueFormatter;
         $this->eventDispatcher = $eventDispatcher;
         $this->crypt           = $crypt;
-        if ([] !== $currencyMappings) {
-            $this->currencyMappings = $currencyMappings;
-        }
     }
 
     /**
@@ -96,39 +62,6 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @return array<CreditCardInterface::CARD_TYPE_*, string>
-     */
-    public function getCardTypeMapping(): array
-    {
-        return $this->cardTypeMapping;
-    }
-
-    /**
-     * @return array<PosInterface::MODEL_*, string>
-     */
-    public function getSecureTypeMappings(): array
-    {
-        return $this->secureTypeMappings;
-    }
-
-    /**
-     * @return array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>>
-     */
-    public function getTxTypeMappings(): array
-    {
-        return $this->txTypeMappings;
-    }
-
-    /**
-     * @return non-empty-array<PosInterface::CURRENCY_*, string|int>
-     */
-    public function getCurrencyMappings(): array
-    {
-        return $this->currencyMappings;
-    }
-
-
-    /**
      * @inheritDoc
      */
     public function setTestMode(bool $testMode): void
@@ -137,87 +70,8 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_*    $txType
-     * @phpstan-param PosInterface::MODEL_*|null $paymentModel
-     *
-     * @param string      $txType
-     * @param string|null $paymentModel
-     *
-     * @return string
-     *
-     * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException
-     */
-    public function mapTxType(string $txType, ?string $paymentModel = null): string
-    {
-        if (!$this->isSupportedTxType($txType, $paymentModel)) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (\is_string($this->txTypeMappings[$txType])) {
-            return $this->txTypeMappings[$txType];
-        }
-
-        if (null === $paymentModel) {
-            throw new \InvalidArgumentException(
-                sprintf('$paymentModel must be provided for the transaction type %s', $txType)
-            );
-        }
-
-        return $this->txTypeMappings[$txType][$paymentModel];
-    }
-
-    /**
-     * @return array<'DAY'|'WEEK'|'MONTH'|'YEAR', string>
-     */
-    public function getRecurringOrderFrequencyMapping(): array
-    {
-        return $this->recurringOrderFrequencyMapping;
-    }
-
-    /**
-     * formats installment
-     * @param int $installment
-     *
-     * @return string|int
-     */
-    abstract protected function mapInstallment(int $installment);
-
-    /**
-     * @phpstan-param PosInterface::CURRENCY_* $currency
-     *
-     * @param string $currency
-     *
-     * @return string|int currency code that is accepted by bank
-     */
-    protected function mapCurrency(string $currency)
-    {
-        return $this->currencyMappings[$currency] ?? $currency;
-    }
-
-    /**
-     * @param float $amount
-     *
-     * @return int|string|float
-     */
-    protected function formatAmount(float $amount)
-    {
-        return $amount;
-    }
-
-    /**
-     * @param string $period
-     *
-     * @return string
-     */
-    protected function mapRecurringFrequency(string $period): string
-    {
-        return $this->recurringOrderFrequencyMapping[$period] ?? $period;
-    }
-
-    /**
-     * bank returns error messages for specified language value
-     * usually accepted values are tr,en
+     * according to the language value the POS UI will be displayed in the selected language
+     * and error messages will be returned in the selected language
      *
      * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $order
@@ -228,9 +82,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     {
         $lang = $order['lang'] ?? $posAccount->getLang();
 
-        return $this->langMappings[$lang]
-            ?? $this->langMappings[PosInterface::LANG_TR]
-            ?? $lang;
+        return $this->valueMapper->mapLang($lang);
     }
 
     /**
@@ -315,35 +167,5 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     protected function prepareOrderHistoryOrder(array $order): array
     {
         return $order;
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_*    $txType
-     * @phpstan-param PosInterface::MODEL_*|null $paymentModel
-     *
-     * @param string      $txType
-     * @param string|null $paymentModel
-     *
-     * @return bool
-     *
-     * @throws \InvalidArgumentException
-     */
-    private function isSupportedTxType(string $txType, ?string $paymentModel = null): bool
-    {
-        if (!isset($this->txTypeMappings[$txType])) {
-            return false;
-        }
-
-        if (\is_array($this->txTypeMappings[$txType])) {
-            if (null === $paymentModel) {
-                throw new \InvalidArgumentException(
-                    sprintf('$paymentModel must be provided for the transaction type %s', $txType)
-                );
-            }
-
-            return isset($this->txTypeMappings[$txType][$paymentModel]);
-        }
-
-        return true;
     }
 }

@@ -15,6 +15,7 @@ use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -25,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
  * Documentation:
  * @link https://dev.param.com.tr
  */
-class ParamPos extends AbstractGateway
+class ParamPos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'ParamPos';
@@ -44,7 +45,6 @@ class ParamPos extends AbstractGateway
         PosInterface::TX_TYPE_PAY_AUTH     => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_PAY,
-            PosInterface::MODEL_3D_HOST,
             PosInterface::MODEL_NON_SECURE,
         ],
         PosInterface::TX_TYPE_PAY_PRE_AUTH => [
@@ -73,34 +73,20 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            if (!isset($this->config['gateway_endpoints']['payment_api_2'])) {
-                throw new \RuntimeException('3D Host ödemeyi kullanabilmek için "payment_api_2" endpointi tanımlanmalıdır.');
-            }
-
-            return $this->config['gateway_endpoints']['payment_api_2'];
-        }
-
-        return parent::getApiURL($txType, $paymentModel, $orderTxType);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
-        if ($request->request->get('TURKPOS_RETVAL_Sonuc') !== null) {
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
+        $postParameters = $request->request;
+
+        if ($postParameters->get('TURKPOS_RETVAL_Sonuc') !== null) {
             // Doviz ile odeme
             return $this->make3DPayPayment($request, $order, $txType);
         }
 
-        $request = $request->request;
 
-        if (!$this->is3DAuthSuccess($request->all())) {
+        if (!$this->is3DAuthSuccess($postParameters->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
-                $request->all(),
+                $postParameters->all(),
                 null,
                 $txType,
                 $order
@@ -111,12 +97,17 @@ class ParamPos extends AbstractGateway
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
         ) {
             throw new HashMismatchException();
         }
 
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $postParameters->all()
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -124,7 +115,7 @@ class ParamPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -138,16 +129,18 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        $provisionResponse = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
-            $request->all(),
+            $postParameters->all(),
             $provisionResponse,
             $txType,
             $order
@@ -179,18 +172,9 @@ class ParamPos extends AbstractGateway
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        if (
-            !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
-        ) {
-            throw new HashMismatchException();
-        }
-
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
-
-        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
-
-        return $this;
+        throw new UnsupportedPaymentModelException(
+            \sprintf('Bu işlem için %s gateway kullanılmalıdır.', Param3DHostPos::class)
+        );
     }
 
     /**
@@ -201,18 +185,6 @@ class ParamPos extends AbstractGateway
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->registerPayment($order, $paymentModel, $txType, $creditCard);
-
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            return $this->requestDataMapper->create3DFormData(
-                $this->account,
-                $order,
-                $paymentModel,
-                $txType,
-                $this->get3DGatewayURL($paymentModel),
-                null,
-                $data
-            );
-        }
 
         $result = $data['TP_WMD_UCDResponse']['TP_WMD_UCDResult']
             ?? $data['TP_Islem_Odeme_WDResponse']['TP_Islem_Odeme_WDResult']
@@ -239,54 +211,9 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
-    {
-        $apiUrl ??= $this->getApiURL(PosInterface::TX_TYPE_CUSTOM_QUERY);
-
-        return parent::customQuery($requestData, $apiUrl);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function orderHistory(array $order): PosInterface
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'text/xml',
-            ],
-            'body'    => $contents,
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        $responseContent = $response->getBody()->getContents();
-
-        $decodedData = $this->serializer->decode($responseContent, $txType);
-
-        if (isset($decodedData['soap:Fault'])) {
-            $this->logger->error('soap error response', [
-                'status_code' => $response->getStatusCode(),
-                'response' => $decodedData,
-            ]);
-
-            throw new \RuntimeException($decodedData['soap:Fault']['faultstring'] ?? 'Bankaya istek başarısız!');
-        }
-
-        return $this->data = $decodedData;
     }
 
     /**
@@ -329,13 +256,14 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $requestData,
+        return $this->clientStrategy->getClient(
             $txType,
             $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
     }
 }

@@ -6,9 +6,11 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\InterPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
@@ -22,7 +24,6 @@ use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\InterPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -31,12 +32,11 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\InterPos
+ * @covers \Mews\Pos\Gateways\AbstractHttpGateway
  * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class InterPosTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private InterPosAccount $account;
 
     /** @var InterPos */
@@ -53,7 +53,10 @@ class InterPosTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
-    /** @var HttpClient & MockObject */
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
+    /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
@@ -62,12 +65,12 @@ class InterPosTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private MockObject $eventDispatcherMock;
 
-    /** @var SerializerInterface & MockObject */
-    private MockObject $serializerMock;
-
     private array $config;
 
-    private array $order;
+    private InterPosRequestValueMapper $requestValueMapper;
+
+    /** @var SerializerInterface & MockObject */
+    private MockObject $serializerMock;
 
     protected function setUp(): void
     {
@@ -77,7 +80,6 @@ class InterPosTest extends TestCase
             'name'              => 'DenizBank-InterPos',
             'class'             => InterPos::class,
             'gateway_endpoints' => [
-                'payment_api'     => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
                 'gateway_3d'      => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
                 'gateway_3d_host' => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
             ],
@@ -97,22 +99,13 @@ class InterPosTest extends TestCase
             $merchantPass
         );
 
-        $this->order = [
-            'id'          => 'order222',
-            'amount'      => '100.25',
-            'installment' => 0,
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'https://domain.com/success',
-            'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => PosInterface::LANG_TR,
-        ];
-
-
+        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $this->requestValueMapper  = new InterPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClient::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
@@ -130,11 +123,12 @@ class InterPosTest extends TestCase
         return new InterPos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
     }
@@ -144,10 +138,7 @@ class InterPosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertFalse($this->pos->isTestMode());
@@ -162,7 +153,9 @@ class InterPosTest extends TestCase
     ): void {
         $card         = $isWithCard ? $this->card : null;
         $paymentModel = $isWithCard ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_3D_HOST;
-        $gatewayUrl   = $isWithCard ? 'https://test.inter-vpos.com.tr/mpi/Default.aspx' : 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx';
+        $gatewayUrl   = $isWithCard
+            ? $this->config['gateway_endpoints']['gateway_3d']
+            : $this->config['gateway_endpoints']['gateway_3d_host'];
         $order        = ['id' => '124'];
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
@@ -244,10 +237,7 @@ class InterPosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -264,10 +254,6 @@ class InterPosTest extends TestCase
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
@@ -326,10 +312,7 @@ class InterPosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -458,7 +441,7 @@ class InterPosTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -471,13 +454,12 @@ class InterPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -491,7 +473,7 @@ class InterPosTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -505,13 +487,12 @@ class InterPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -526,7 +507,7 @@ class InterPosTest extends TestCase
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -540,13 +521,12 @@ class InterPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -560,7 +540,7 @@ class InterPosTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -574,13 +554,12 @@ class InterPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -594,7 +573,7 @@ class InterPosTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
@@ -608,13 +587,12 @@ class InterPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -628,7 +606,7 @@ class InterPosTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
@@ -643,13 +621,12 @@ class InterPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            '$updatedRequestData',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $this->account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -659,18 +636,16 @@ class InterPosTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://test.inter-vpos.com.tr/mpi/Default.aspx/xxxx',
-                'expected_api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx/xxxx',
+                'api_url'     => 'https://test.inter-vpos.com.tr/mpi/Default.aspx/xxxx',
             ],
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => null,
-                'expected_api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                'api_url'     => null,
             ],
         ];
     }
@@ -706,18 +681,16 @@ class InterPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                'txType' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             ],
         ];
     }
@@ -726,10 +699,9 @@ class InterPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
             ],
         ];
     }
@@ -738,10 +710,9 @@ class InterPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
             ],
         ];
     }
@@ -750,10 +721,9 @@ class InterPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
             ],
         ];
     }
@@ -762,10 +732,9 @@ class InterPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
             ],
         ];
     }
@@ -813,38 +782,33 @@ class InterPosTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                ],
-                'body' => $encodedRequestData,
-            ],
-        );
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')

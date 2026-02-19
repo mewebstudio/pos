@@ -8,11 +8,14 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\ToslaPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\ToslaPosRequestValueMapper;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +39,10 @@ class ToslaPosRequestDataMapperTest extends TestCase
 
     private ToslaPosRequestDataMapper $requestDataMapper;
 
+    private ToslaPosRequestValueFormatter $valueFormatter;
+
+    private ToslaPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -47,62 +54,28 @@ class ToslaPosRequestDataMapperTest extends TestCase
             'POS_ENT_Test_001!*!*',
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new ToslaPosRequestValueFormatter();
+        $this->valueMapper    = new ToslaPosRequestValueMapper();
 
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new ToslaPosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->requestDataMapper = new ToslaPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
+
+        $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
-    /**
-     * @testWith ["pay", "1"]
-     * ["pre", "2"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
+    public function testSupports(): void
     {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
+        $result = $this->requestDataMapper::supports(ToslaPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @testWith ["1"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "0"]
-     *           ["1", "0"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**
@@ -332,7 +305,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'clientId' => '1000000494',
                 'hash'     => '12fsdfdsfsfs',
                 'rnd'      => 'rndsfldfls',
-                'timeSpan' => '20241103144302',
+                'timeSpan' => new \DateTimeImmutable('2024-11-03 14:43:02'),
             ],
         ];
 
@@ -343,7 +316,6 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'clientId' => '1000000494xx',
                 'hash'     => '12fsdfdsfsfsxxx',
                 'rnd'      => 'rndsfldfls',
-                'timeSpan' => '20241103144302',
             ],
             'expected'     => [
                 'apiUser'  => 'POS_ENT_Test_001xxx',
@@ -351,7 +323,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'clientId' => '1000000494xx',
                 'hash'     => '12fsdfdsfsfsxxx',
                 'rnd'      => 'rndsfldfls',
-                'timeSpan' => '20241103144302',
+                'timeSpan' => new \DateTimeImmutable('2024-11-03 14:43:02'),
             ],
         ];
     }
@@ -362,7 +334,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'        => 'id-12',
-                    'time_span' => '20231209215355',
+                    'time_span' => new \DateTimeImmutable('20231209215355'),
                 ],
                 'expected' => [
                     'clientId' => '1000000494',
@@ -382,7 +354,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'        => 'id-12',
-                    'time_span' => '20231209215355',
+                    'time_span' => new \DateTimeImmutable('20231209215355'),
                 ],
                 'expected' => [
                     'clientId' => '1000000494',
@@ -403,7 +375,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'order'    => [
                     'id'        => 'id-12',
                     'amount'    => 1.02,
-                    'time_span' => '20231209215355',
+                    'time_span' => new \DateTimeImmutable('20231209215355'),
                 ],
                 'tx_type'  => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
@@ -427,7 +399,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
-            'time_span'   => '20231209214708',
+            'time_span'   => new \DateTimeImmutable('20231209214708'),
         ];
 
         return [
@@ -459,7 +431,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
-            'time_span'   => '20231209214708',
+            'time_span'   => new \DateTimeImmutable('20231209214708'),
         ];
 
         return [
@@ -492,7 +464,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'order'    => [
                     'id'        => '2020110828BC',
                     'amount'    => 1.10,
-                    'time_span' => '20231209213944',
+                    'time_span' => new \DateTimeImmutable('20231209213944'),
                 ],
                 'expected' => [
                     'clientId' => '1000000494',
@@ -513,7 +485,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'               => '2020110828BC',
-                    'time_span'        => '20231209215355',
+                    'time_span'        => new \DateTimeImmutable('20231209215355'),
                     'transaction_date' => new \DateTime('2023-12-09 00:00:00'),
                 ],
                 'expected' => [
@@ -531,7 +503,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'               => '2020110828BC',
-                    'time_span'        => '20231209215355',
+                    'time_span'        => new \DateTimeImmutable('20231209215355'),
                     'page'             => 2,
                     'page_size'        => 5,
                     'transaction_date' => new \DateTime('2023-12-09 00:00:00'),
@@ -577,7 +549,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'payment_model' => PosInterface::MODEL_3D_PAY,
                 'is_with_card'  => true,
                 'gateway'       => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
-                'expected' => [
+                'expected'      => [
                     'gateway' => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
                     'method'  => 'POST',
                     'inputs'  => [

@@ -6,9 +6,11 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueMapper\ToslaPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
@@ -24,7 +26,6 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ToslaPosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use Mews\Pos\Tests\Unit\Serializer\ToslaPosSerializerTest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -34,12 +35,11 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\ToslaPos
+ * @covers \Mews\Pos\Gateways\AbstractHttpGateway
  * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class ToslaPosTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     public array $config;
 
     public CreditCardInterface $card;
@@ -58,7 +58,10 @@ class ToslaPosTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
-    /** @var HttpClient & MockObject */
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
+    /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
@@ -66,6 +69,8 @@ class ToslaPosTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private MockObject $eventDispatcherMock;
+
+    private ToslaPosRequestValueMapper $requestValueMapper;
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
@@ -78,7 +83,6 @@ class ToslaPosTest extends TestCase
             'name'              => 'AKBANK T.A.S.',
             'class'             => ToslaPos::class,
             'gateway_endpoints' => [
-                'payment_api'     => 'https://ent.akodepos.com/api/Payment',
                 'gateway_3d'      => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
                 'gateway_3d_host' => 'https://ent.akodepos.com/api/Payment/threeDSecure',
             ],
@@ -91,11 +95,13 @@ class ToslaPosTest extends TestCase
             'POS_ENT_Test_001!*!*',
         );
 
+        $this->requestValueMapper  = new ToslaPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(ToslaPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClient::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
@@ -113,11 +119,12 @@ class ToslaPosTest extends TestCase
         return new ToslaPos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
     }
@@ -129,31 +136,12 @@ class ToslaPosTest extends TestCase
         $this->assertFalse($this->pos->isTestMode());
     }
 
-    /**
-     * @dataProvider getApiUrlDataProvider
-     */
-    public function testGetApiURL(string $txType, string $paymentModel, string $expected): void
-    {
-        $actual = $this->pos->getApiURL($txType, $paymentModel);
-
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @dataProvider getApiUrlExceptionDataProvider
-     */
-    public function testGetApiURLException(?string $txType, ?string $paymentModel, string $exceptionClass): void
-    {
-        $this->expectException($exceptionClass);
-        $this->pos->getApiURL($txType, $paymentModel);
-    }
-
     public function testGet3DGatewayURL(): void
     {
         $actual = $this->pos->get3DGatewayURL();
 
         $this->assertSame(
-            'https://ent.akodepos.com/api/Payment/ProcessCardForm',
+            $this->config['gateway_endpoints']['gateway_3d'],
             $actual
         );
     }
@@ -164,7 +152,7 @@ class ToslaPosTest extends TestCase
         $actual    = $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST, $sessionId);
 
         $this->assertSame(
-            'https://ent.akodepos.com/api/Payment/threeDSecure/A2A6E942BD2AE4A68BC42FE99D1BC917D67AFF54AB2BA44EBA675843744187708',
+            $this->config['gateway_endpoints']['gateway_3d_host'] . '/' . $sessionId,
             $actual
         );
     }
@@ -409,13 +397,10 @@ class ToslaPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://ent.akodepos.com/api/Payment/threeDPayment',
             $requestData,
-            $encodedRequestData,
-            $responseData,
             $decodedResponseData,
             $order,
-            $paymentModel
+            $paymentModel,
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -470,10 +455,7 @@ class ToslaPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://ent.akodepos.com/api/Payment/threeDPayment',
             $requestData,
-            'encoded-request',
-            'response-body',
             $response,
             $order,
             PosInterface::MODEL_3D_PAY
@@ -513,13 +495,12 @@ class ToslaPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://ent.akodepos.com/api/Payment/inquiry',
             $requestData,
-            $encodedRequest,
-            $responseContent,
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->pos->status($order);
@@ -554,13 +535,12 @@ class ToslaPosTest extends TestCase
 
         $this->configureClientResponse(
             PosInterface::TX_TYPE_CANCEL,
-            'https://ent.akodepos.com/api/Payment/void',
             $requestData,
-            $encodedRequest,
-            $responseContent,
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->pos->cancel($order);
@@ -595,13 +575,12 @@ class ToslaPosTest extends TestCase
 
         $this->configureClientResponse(
             PosInterface::TX_TYPE_REFUND,
-            'https://ent.akodepos.com/api/Payment/refund',
             $requestData,
-            $encodedRequest,
-            $responseContent,
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->pos->refund($order);
@@ -644,13 +623,12 @@ class ToslaPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://ent.akodepos.com/api/Payment/history',
             $requestData,
-            $encodedRequest,
-            $responseContent,
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->pos->orderHistory($order);
@@ -663,7 +641,7 @@ class ToslaPosTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
@@ -678,35 +656,31 @@ class ToslaPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
-    }
-
-
-    public function testCustomQueryRequestWithoutAPIurl(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        $this->pos->customQuery(['ac' => 'aas']);
     }
 
     public static function customQueryRequestDataProvider(): array
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo',
-                'expected_api_url' => 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo',
+                'api_url'     => 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo',
+            ],
+            [
+                'requestData' => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'     => null,
             ],
         ];
     }
@@ -846,7 +820,7 @@ class ToslaPosTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -860,13 +834,12 @@ class ToslaPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -880,7 +853,7 @@ class ToslaPosTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -894,13 +867,12 @@ class ToslaPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -915,7 +887,7 @@ class ToslaPosTest extends TestCase
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -929,13 +901,12 @@ class ToslaPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -949,7 +920,7 @@ class ToslaPosTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -963,13 +934,12 @@ class ToslaPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -983,7 +953,7 @@ class ToslaPosTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
@@ -997,13 +967,12 @@ class ToslaPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -1014,109 +983,14 @@ class ToslaPosTest extends TestCase
         $this->pos->refund($order);
     }
 
-
-    public static function getApiUrlDataProvider(): array
-    {
-        return [
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_PAY,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPayment',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_PAY,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPreAuth',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_HOST,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPayment',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_HOST,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPreAuth',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/Payment',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_POST_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/postAuth',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_STATUS,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/inquiry',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_CANCEL,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/void',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/refund',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/refund',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_ORDER_HISTORY,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://ent.akodepos.com/api/Payment/history',
-            ],
-        ];
-    }
-
-    public static function getApiUrlExceptionDataProvider(): array
-    {
-        return [
-            [
-                'txType'          => PosInterface::TX_TYPE_HISTORY,
-                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
-                'exception_class' => UnsupportedTransactionTypeException::class,
-            ],
-            [
-                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel'    => PosInterface::MODEL_3D_SECURE,
-                'exception_class' => UnsupportedTransactionTypeException::class,
-            ],
-            [
-                'txType'          => null,
-                'paymentModel'    => null,
-                'exception_class' => \InvalidArgumentException::class,
-            ],
-            [
-                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel'    => null,
-                'exception_class' => \InvalidArgumentException::class,
-            ],
-            [
-                'txType'          => null,
-                'paymentModel'    => PosInterface::MODEL_3D_PAY,
-                'exception_class' => \InvalidArgumentException::class,
-            ],
-        ];
-    }
-
-
     public static function makeRegularPaymentDataProvider(): array
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://ent.akodepos.com/api/Payment/Payment',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
         ];
     }
@@ -1125,10 +999,9 @@ class ToslaPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://ent.akodepos.com/api/Payment/postAuth',
             ],
         ];
     }
@@ -1137,10 +1010,9 @@ class ToslaPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://ent.akodepos.com/api/Payment/inquiry',
             ],
         ];
     }
@@ -1149,10 +1021,9 @@ class ToslaPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://ent.akodepos.com/api/Payment/void',
             ],
         ];
     }
@@ -1161,10 +1032,9 @@ class ToslaPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://ent.akodepos.com/api/Payment/refund',
             ],
         ];
     }
@@ -1226,38 +1096,33 @@ class ToslaPosTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-                'body'    => $encodedRequestData,
-            ],
-        );
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
@@ -1276,7 +1141,7 @@ class ToslaPosTest extends TestCase
                 )
             ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 
