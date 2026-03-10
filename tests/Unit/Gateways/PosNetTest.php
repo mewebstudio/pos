@@ -37,7 +37,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\PosNet
- * @covers \Mews\Pos\Gateways\AbstractHttpGateway
  * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class PosNetTest extends TestCase

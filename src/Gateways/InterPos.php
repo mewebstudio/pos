@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
  * Deniz bankin desteklidigi Gateway
  * Class InterPos
  */
-class InterPos extends AbstractHttpGateway
+class InterPos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'InterPos';

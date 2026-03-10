@@ -73,7 +73,7 @@ class PosFactory
 
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
-        return self::doCreateHttpPosGateway(
+        return self::doCreatePosGateway(
             $gatewayClass,
             $posAccount,
             $config['banks'][$posAccount->getBank()],
@@ -97,7 +97,7 @@ class PosFactory
      *
      * @return PosInterface
      */
-    private static function doCreateHttpPosGateway(
+    private static function doCreatePosGateway(
         string                   $gatewayClass,
         AbstractPosAccount       $posAccount,
         array                    $apiConfig,

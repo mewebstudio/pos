@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
  * Vakif Katilim banki desteleyen Gateway
  * V2.7
  */
-class VakifKatilimPos extends AbstractHttpGateway
+class VakifKatilimPos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'VakifKatilim';

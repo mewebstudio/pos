@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
  *
  * @link https://sanalpos-prep.akbank.com/#entry
  */
-class AkbankPos extends AbstractHttpGateway
+class AkbankPos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'AkbankPos';

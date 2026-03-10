@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
  * Documentation:
  * @link https://dev.param.com.tr
  */
-class ParamPos extends AbstractHttpGateway
+class ParamPos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'ParamPos';

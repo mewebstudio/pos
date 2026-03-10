@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Kuveyt bankın SOAP API'nı desteleyen Gateway
  */
-class KuveytSoapApiPos extends AbstractHttpGateway
+class KuveytSoapApiPos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'KuveytSoapApiPos';

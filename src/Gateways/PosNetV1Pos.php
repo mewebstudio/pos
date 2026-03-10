@@ -20,7 +20,7 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
-class PosNetV1Pos extends AbstractHttpGateway
+class PosNetV1Pos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'PosNetV1';

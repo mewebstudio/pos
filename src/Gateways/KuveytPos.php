@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Kuveyt banki desteleyen Gateway
  */
-class KuveytPos extends AbstractHttpGateway
+class KuveytPos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'KuveytPos';

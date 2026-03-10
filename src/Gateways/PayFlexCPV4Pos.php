@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Request;
  * PayFlex Common Payment (Ortak Ödeme) ISD v4.0
  * Dokumanlar: http://sanalpos.innova.com.tr/
  */
-class PayFlexCPV4Pos extends AbstractHttpGateway
+class PayFlexCPV4Pos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'PayFlex-Common-Payment-V4';

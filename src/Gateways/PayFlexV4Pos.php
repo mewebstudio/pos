@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
  *
  * VakıfBank VPOS 7/24
  */
-class PayFlexV4Pos extends AbstractHttpGateway
+class PayFlexV4Pos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'PayFlexV4';

@@ -27,7 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
  * Documentation:
  * @link https://tosla.com/isim-icin/gelistirici-merkezi
  */
-class ToslaPos extends AbstractHttpGateway
+class ToslaPos extends AbstractGateway
 {
     /** @var string */
     public const NAME = 'ToslaPos';
