@@ -29,14 +29,14 @@ class PosFactory
      *              payment_api: non-empty-string,
      *              payment_api2?: non-empty-string,
      *              query_api?: non-empty-string}
-     *         }>,
-     *     currencies?: array<PosInterface::CURRENCY_*, string>} $config
+     *         }>
+     *     }                                   $config
      *
-     * @param AbstractPosAccount                                 $posAccount
-     * @param array                                              $config
-     * @param EventDispatcherInterface                           $eventDispatcher
-     * @param HttpClientStrategyInterface|null                   $httpClientStrategy
-     * @param LoggerInterface|null                               $logger
+     * @param AbstractPosAccount               $posAccount
+     * @param array                            $config
+     * @param EventDispatcherInterface         $eventDispatcher
+     * @param HttpClientStrategyInterface|null $httpClientStrategy
+     * @param LoggerInterface|null             $logger
      *
      * @return PosInterface
      *
