@@ -32,8 +32,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourKullaniciAdi',
     'yourSifre',
     $paymentModel,
-    '', // bankaya göre zorunlu
-    \Mews\Pos\PosInterface::LANG_TR
+    '' // bankaya göre zorunlu
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -64,7 +63,8 @@ $order = [
     'amount'      => 1.01,
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
-    // lang degeri verilmezse account (EstPosAccount) dili kullanılacak
+
+    // lang degeri verilmezse config'de tanimlanan dil veya default olarak LANG_TR kullanılacak.
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
     if ($pos instanceof \Mews\Pos\Gateways\ParamPos

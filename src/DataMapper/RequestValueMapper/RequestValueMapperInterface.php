@@ -66,7 +66,7 @@ interface RequestValueMapperInterface
     public function getCurrencyMappings(): array;
 
     /**
-     * If language mapping is not found, returns maps for default language (PosInterface::LANG_TR) or $lang itself.
+     * If language mapping is not found, returns maps for the default language (PosInterface::LANG_TR) or $lang itself.
      *
      * @param PosInterface::LANG_* $lang
      *

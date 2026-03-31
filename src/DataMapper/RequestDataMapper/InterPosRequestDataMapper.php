@@ -58,7 +58,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'Eci'                     => $responseData['Eci'],
                 'PayerAuthenticationCode' => $responseData['PayerAuthenticationCode'],
                 'MOTO'                    => self::MOTO,
-                'Lang'                    => $this->getLang($posAccount, $order),
+                'Lang'                    => $this->getLang($order),
             ];
     }
 
@@ -77,7 +77,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'Currency'         => $this->valueMapper->mapCurrency($order['currency']),
                 'InstallmentCount' => $this->valueFormatter->formatInstallment($order['installment']),
                 'MOTO'             => self::MOTO,
-                'Lang'             => $this->getLang($posAccount, $order),
+                'Lang'             => $this->getLang($order),
                 'CardType'         => $creditCard->getType() !== null ? $this->valueMapper->mapCardType($creditCard->getType()) : null,
                 'Pan'              => $creditCard->getNumber(),
                 'Expiry'           => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expiry'),
@@ -117,7 +117,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'orgOrderId' => (string) $order['id'],
                 'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS),
                 'SecureType' => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
-                'Lang'       => $this->getLang($posAccount, $order),
+                'Lang'       => $this->getLang($order),
             ];
     }
 
@@ -134,7 +134,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'orgOrderId' => (string) $order['id'],
                 'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'SecureType' => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
-                'Lang'       => $this->getLang($posAccount, $order),
+                'Lang'       => $this->getLang($order),
             ];
     }
 
@@ -152,7 +152,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'PurchAmount' => (string) $this->valueFormatter->formatAmount($order['amount']),
                 'TxnType'     => $this->valueMapper->mapTxType($refundTxType),
                 'SecureType'  => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
-                'Lang'        => $this->getLang($posAccount, $order),
+                'Lang'        => $this->getLang($order),
                 'MOTO'        => self::MOTO,
             ];
     }
@@ -191,7 +191,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'OkUrl'            => (string) $order['success_url'],
             'FailUrl'          => (string) $order['fail_url'],
             'Rnd'              => $this->crypt->generateRandomString(),
-            'Lang'             => $this->getLang($posAccount, $order),
+            'Lang'             => $this->getLang($order),
             'Currency'         => (string) $this->valueMapper->mapCurrency($order['currency']),
             'InstallmentCount' => (string) $this->valueFormatter->formatInstallment($order['installment']),
         ];

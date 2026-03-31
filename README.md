@@ -169,7 +169,8 @@ return [
     'banks'         => [
         'akbank'    => [
             'name'  => 'AKBANK T.A.S.',
-            'class' => Mews\Pos\Gateways\EstV3Pos::class,
+            'class' => \Mews\Pos\Gateways\EstV3Pos::class,
+            'lang'  => \Mews\Pos\PosInterface::LANG_TR, // optional
             'gateway_endpoints'  => [
                 'payment_api'     => 'https://www.sanalakpos.com/fim/api',
                 'gateway_3d'      => 'https://www.sanalakpos.com/fim/est3Dgate',
@@ -181,6 +182,7 @@ return [
         'isbank'    => [ // unique bir isim vermeniz gerekir.
             'name'  => 'İŞ BANKASI .A.S.',
             'class' => \Mews\Pos\Gateways\EstV3Pos::class, // Altyapı sınıfı
+            'lang'  => \Mews\Pos\PosInterface::LANG_TR, // optional
             'gateway_endpoints'  => [
                 'payment_api'     => 'https://sanalpos.isbank.com.tr/fim/api',
                 'gateway_3d'      => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',

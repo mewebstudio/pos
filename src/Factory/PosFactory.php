@@ -25,6 +25,7 @@ class PosFactory
      *     banks: array<string, array{
      *          name: string,
      *          class?: class-string<PosInterface>,
+     *          lang?: PosInterface::LANG_*,
      *          gateway_endpoints: array{
      *              payment_api: non-empty-string,
      *              payment_api2?: non-empty-string,
@@ -44,11 +45,11 @@ class PosFactory
      * @throws BankNotFoundException
      */
     public static function createPosGateway(
-        AbstractPosAccount       $posAccount,
-        array                    $config,
-        EventDispatcherInterface $eventDispatcher,
-        ?HttpClientStrategyInterface                         $httpClientStrategy = null,
-        ?LoggerInterface         $logger = null
+        AbstractPosAccount           $posAccount,
+        array                        $config,
+        EventDispatcherInterface     $eventDispatcher,
+        ?HttpClientStrategyInterface $httpClientStrategy = null,
+        ?LoggerInterface             $logger = null
     ): PosInterface {
         if (!$logger instanceof \Psr\Log\LoggerInterface) {
             $logger = new NullLogger();
@@ -89,6 +90,7 @@ class PosFactory
      * @param array{
      *           name: string,
      *           class?: class-string,
+     *           lang?: PosInterface::LANG_*,
      *           gateway_endpoints: array<HttpClientInterface::API_NAME_*, non-empty-string>
      *          }                              $apiConfig
      * @param EventDispatcherInterface         $eventDispatcher
@@ -110,12 +112,15 @@ class PosFactory
         $crypt                 = CryptFactory::createGatewayCrypt($gatewayClass, $logger);
         $requestValueMapper    = RequestValueMapperFactory::createForGateway($gatewayClass);
         $requestValueFormatter = RequestValueFormatterFactory::createForGateway($gatewayClass);
+        $defaultLang           = $apiConfig['lang'] ?? PosInterface::LANG_TR;
+
         $requestDataMapper     = RequestDataMapperFactory::createGatewayRequestMapper(
             $gatewayClass,
             $requestValueMapper,
             $requestValueFormatter,
             $eventDispatcher,
             $crypt,
+            $defaultLang
         );
 
         $responseValueFormatter = ResponseValueFormatterFactory::createForGateway($gatewayClass);

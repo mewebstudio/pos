@@ -89,7 +89,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'AllowNotEnrolledCard' => 'false',
             'SuccessUrl'           => (string) $order['success_url'],
             'FailUrl'              => (string) $order['fail_url'],
-            'RequestLanguage'      => $this->getLang($posAccount, $order),
+            'RequestLanguage'      => $this->getLang($order),
             /**
              * Bu alanda gönderilecek değer kart hamili
              * ektresinde işlem açıklamasında çıkacaktır.

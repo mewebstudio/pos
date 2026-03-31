@@ -68,6 +68,7 @@ class EstPosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
         $this->card              = CreditCardFactory::create(
             '5555444433332222',

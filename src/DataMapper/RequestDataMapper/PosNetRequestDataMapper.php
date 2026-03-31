@@ -252,7 +252,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
              * set edilir. Form içerisinde bulundurulması yeterlidir.
              */
             'url'               => '',
-            'lang'              => $this->getLang($posAccount, $order),
+            'lang'              => $this->getLang($order),
         ];
 
         return [

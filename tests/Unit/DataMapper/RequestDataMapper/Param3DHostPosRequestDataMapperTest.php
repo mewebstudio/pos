@@ -63,6 +63,7 @@ class Param3DHostPosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
     }
 

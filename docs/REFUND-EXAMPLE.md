@@ -20,8 +20,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourKullaniciAdi',
     'yourSifre',
     \Mews\Pos\PosInterface::MODEL_NON_SECURE,
-    '', // bankaya göre zorunlu
-    \Mews\Pos\PosInterface::LANG_TR
+    '' // bankaya göre zorunlu
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();

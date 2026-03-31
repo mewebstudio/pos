@@ -13,7 +13,6 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayForAccount(
     'UcBN0',
     PosInterface::MODEL_NON_SECURE,
     null,
-    PosInterface::LANG_TR,
     \Mews\Pos\Entity\Account\PayForAccount::MBR_ID_FINANSBANK // ya da PayForAccount::MBR_ID_ZIRAAT_KATILIM
 );
 

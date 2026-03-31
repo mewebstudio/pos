@@ -40,8 +40,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourKullaniciAdi',
     'yourSifre',
     $paymentModel,
-    'yourStoreKey',
-    \Mews\Pos\PosInterface::LANG_TR
+    'yourStoreKey'
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -75,7 +74,7 @@ $order = [
     'success_url' => 'https://example.com/response.php',
     'fail_url'    => 'https://example.com/response.php',
 
-    //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
+    // lang degeri verilmezse config'de tanimlanan dil veya default olarak LANG_TR kullanılacak.
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 

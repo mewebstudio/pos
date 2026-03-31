@@ -74,6 +74,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
     }
 

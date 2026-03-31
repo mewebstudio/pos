@@ -4,7 +4,8 @@ return [
     'banks' => [
         'akbank-pos'           => [
             'name'              => 'AKBANK T.A.S.',
-            'class'             => Mews\Pos\Gateways\AkbankPos::class,
+            'class'             => \Mews\Pos\Gateways\AkbankPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
                 'gateway_3d'      => 'https://virtualpospaymentgatewaypre.akbank.com/securepay',
@@ -13,14 +14,16 @@ return [
         ],
         'param-pos'            => [
             'name'              => 'TURK Elektronik Para A.Ş',
-            'class'             => Mews\Pos\Gateways\ParamPos::class,
+            'class'             => \Mews\Pos\Gateways\ParamPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             ],
         ],
         'param-3d-host-pos' => [
             'name'              => 'TURK Elektronik Para A.Ş',
-            'class'             => Mews\Pos\Gateways\Param3DHostPos::class,
+            'class'             => \Mews\Pos\Gateways\Param3DHostPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
                 'gateway_3d_host' => 'https://test-pos.param.com.tr/default.aspx',
@@ -28,7 +31,8 @@ return [
         ],
         'payten_v3_hash'       => [
             'name'              => 'AKBANK T.A.S.',
-            'class'             => Mews\Pos\Gateways\EstV3Pos::class,
+            'class'             => \Mews\Pos\Gateways\EstV3Pos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
                 'gateway_3d'  => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
@@ -36,7 +40,8 @@ return [
         ],
         'akbank'               => [
             'name'              => 'AKBANK T.A.S.',
-            'class'             => Mews\Pos\Gateways\EstV3Pos::class,
+            'class'             => \Mews\Pos\Gateways\EstV3Pos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
                 'gateway_3d'  => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
@@ -44,7 +49,8 @@ return [
         ],
         'tosla'                => [
             'name'              => 'AkÖde A.Ş.',
-            'class'             => Mews\Pos\Gateways\ToslaPos::class,
+            'class'             => \Mews\Pos\Gateways\ToslaPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://prepentegrasyon.tosla.com/api/Payment',
                 'gateway_3d'      => 'https://prepentegrasyon.tosla.com/api/Payment/ProcessCardForm',
@@ -53,7 +59,8 @@ return [
         ],
         'yapikredi'            => [
             'name'              => 'Yapıkredi',
-            'class'             => Mews\Pos\Gateways\PosNet::class,
+            'class'             => \Mews\Pos\Gateways\PosNet::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api' => 'https://setmpos.ykb.com/PosnetWebService/XML',
                 'gateway_3d'  => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
@@ -61,7 +68,8 @@ return [
         ],
         'albaraka'             => [
             'name'              => 'Albaraka',
-            'class'             => Mews\Pos\Gateways\PosNetV1Pos::class,
+            'class'             => \Mews\Pos\Gateways\PosNetV1Pos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
                 'gateway_3d'  => 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
@@ -69,7 +77,8 @@ return [
         ],
         'garanti'              => [
             'name'              => 'Garanti',
-            'class'             => Mews\Pos\Gateways\GarantiPos::class,
+            'class'             => \Mews\Pos\Gateways\GarantiPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_configs' => [
                 // GarantiPos'u test ortamda test edebilmek için zorunlu.
                 'test_mode' => true,
@@ -81,7 +90,8 @@ return [
         ],
         'qnbfinansbank-payfor' => [
             'name'              => 'QNBFinansbank-PayFor',
-            'class'             => Mews\Pos\Gateways\PayForPos::class,
+            'class'             => \Mews\Pos\Gateways\PayForPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
                 'gateway_3d'      => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
@@ -90,7 +100,8 @@ return [
         ],
         'ziraat-katilim-payfor' => [
             'name'              => 'ZiraatKatilim-PayFor',
-            'class'             => Mews\Pos\Gateways\PayForPos::class,
+            'class'             => \Mews\Pos\Gateways\PayForPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_configs'   => [
                 // Ziraat Katilim için hash kontrolü çalışmıyor. O yüzden devre dışı bırakıyoruz.
                 'disable_3d_hash_check' => true,
@@ -103,7 +114,8 @@ return [
         ],
         'vakifbank'            => [
             'name'              => 'VakifBank-VPOS',
-            'class'             => Mews\Pos\Gateways\PayFlexV4Pos::class,
+            'class'             => \Mews\Pos\Gateways\PayFlexV4Pos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
                 'gateway_3d'  => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
@@ -112,7 +124,8 @@ return [
         ],
         'ziraat-vpos'          => [
             'name'              => 'Ziraat Bankası',
-            'class'             => Mews\Pos\Gateways\PayFlexV4Pos::class,
+            'class'             => \Mews\Pos\Gateways\PayFlexV4Pos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api' => 'https://preprod.payflex.com.tr/Ziraatbank/VposWeb/v3/Vposreq.aspx',
                 'gateway_3d'  => 'https://preprod.payflex.com.tr/ZiraatBank/MpiWeb/MPI_Enrollment.aspx',
@@ -121,7 +134,8 @@ return [
         ],
         'vakifbank-cp'         => [
             'name'              => 'VakifBank-PayFlex-Common-Payment',
-            'class'             => Mews\Pos\Gateways\PayFlexCPV4Pos::class,
+            'class'             => \Mews\Pos\Gateways\PayFlexCPV4Pos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
                 'gateway_3d'  => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
@@ -129,7 +143,8 @@ return [
         ],
         'denizbank'            => [
             'name'              => 'DenizBank-InterPos',
-            'class'             => Mews\Pos\Gateways\InterPos::class,
+            'class'             => \Mews\Pos\Gateways\InterPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
                 'gateway_3d'      => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
@@ -138,7 +153,8 @@ return [
         ],
         'kuveytpos'            => [
             'name'              => 'kuveyt-pos',
-            'class'             => Mews\Pos\Gateways\KuveytPos::class,
+            'class'             => \Mews\Pos\Gateways\KuveytPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_configs' => [
                 // testinizi SSL olmayan ortamda yapıyorsanız bu değeri true yapmanız gerekir.
                 'test_mode' => true,
@@ -150,14 +166,16 @@ return [
         ],
         'kuveytsoappos'            => [
             'name'              => 'KuveytSoapApiPos',
-            'class'             => Mews\Pos\Gateways\KuveytSoapApiPos::class,
+            'class'             => \Mews\Pos\Gateways\KuveytSoapApiPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'query_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
             ],
         ],
         'vakif-katilim'        => [
             'name'              => 'Vakıf Katılım',
-            'class'             => Mews\Pos\Gateways\VakifKatilimPos::class,
+            'class'             => \Mews\Pos\Gateways\VakifKatilimPos::class,
+            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home',
                 'gateway_3d'      => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',

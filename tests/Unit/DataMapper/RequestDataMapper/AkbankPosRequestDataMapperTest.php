@@ -58,14 +58,12 @@ class AkbankPosRequestDataMapperTest extends TestCase
             '2023090417500272654BD9A49CF07574',
             '2023090417500284633D137A249DBBEB',
             '3230323330393034313735303032363031353172675f357637355f3273387373745f7233725f73323333383737335f323272383774767276327672323531355f',
-            PosInterface::LANG_TR,
         );
         $this->subMerchantAccount = AccountFactory::createAkbankPosAccount(
             'akbank-pos',
             '2023090417500272654BD9A49CF07574',
             '2023090417500284633D137A249DBBEB',
             '3230323330393034313735303032363031353172675f357637355f3273387373745f7233725f73323333383737335f323272383774767276327672323531355f',
-            PosInterface::LANG_TR,
             'sub-merchant-id'
         );
 
@@ -89,6 +87,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
     }
 
@@ -151,7 +150,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                 'merchantSafeId' => '2023090417500272654BD9A49CF07574',
                 'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                 'orderId'        => '2020110828BC',
-                'lang'           => 'TR',
+                'lang'           => 'EN',
                 'amount'         => '1.10',
                 'currencyCode'   => '949',
                 'installCount'   => '1',
@@ -943,7 +942,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'merchantSafeId' => '2023090417500272654BD9A49CF07574',
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
-                        'lang'           => 'TR',
+                        'lang'           => 'EN',
                         'amount'         => '10.00',
                         'currencyCode'   => '949',
                         'installCount'   => '1',
@@ -977,7 +976,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'merchantSafeId' => '2023090417500272654BD9A49CF07574',
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
-                        'lang'           => 'TR',
+                        'lang'           => 'EN',
                         'amount'         => '1.10',
                         'currencyCode'   => '949',
                         'installCount'   => '1',
@@ -1014,7 +1013,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'merchantSafeId' => '2023090417500272654BD9A49CF07574',
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
-                        'lang'           => 'TR',
+                        'lang'           => 'EN',
                         'amount'         => '1.10',
                         'currencyCode'   => '949',
                         'installCount'   => '1',
@@ -1051,7 +1050,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'merchantSafeId' => '2023090417500272654BD9A49CF07574',
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
-                        'lang'           => 'TR',
+                        'lang'           => 'EN',
                         'amount'         => '1000.00',
                         'currencyCode'   => '949',
                         'installCount'   => '1',

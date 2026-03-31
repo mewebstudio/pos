@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Factory;
 use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Factory\RequestDataMapperFactory;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -31,6 +32,7 @@ class RequestDataMapperFactoryTest extends TestCase
             $valueFormatter,
             $eventDispatcher,
             $crypt,
+            PosInterface::LANG_EN
         );
         $this->assertInstanceOf($mapperClass, $mapper);
     }
@@ -48,6 +50,7 @@ class RequestDataMapperFactoryTest extends TestCase
             $valueFormatter,
             $eventDispatcher,
             $crypt,
+            PosInterface::LANG_EN
         );
     }
 

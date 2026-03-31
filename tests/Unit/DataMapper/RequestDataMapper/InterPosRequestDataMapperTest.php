@@ -72,6 +72,7 @@ class InterPosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
 
         $this->card = CreditCardFactory::create('5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
@@ -507,7 +508,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'order'        => $order,
             'tx_type'      => PosInterface::TX_TYPE_REFUND,
             'expectedData' => [
-                'Lang'        => 'tr',
+                'Lang'        => 'en',
                 'MOTO'        => '0',
                 'OrderId'     => null,
                 'PurchAmount' => '123.1',
@@ -524,7 +525,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'order'        => $order,
             'tx_type'      => PosInterface::TX_TYPE_REFUND_PARTIAL,
             'expectedData' => [
-                'Lang'        => 'tr',
+                'Lang'        => 'en',
                 'MOTO'        => '0',
                 'OrderId'     => null,
                 'PurchAmount' => '123.1',

@@ -79,6 +79,7 @@ class PosNetRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
 
         $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
@@ -350,7 +351,7 @@ class PosNetRequestDataMapperTest extends TestCase
                         'digest'            => '9998F61E1D0C0FB6EC5203A748124F30',
                         'merchantReturnURL' => 'https://domain.com/success',
                         'url'               => '',
-                        'lang'              => 'tr',
+                        'lang'              => 'en',
                     ],
                 ],
             ],

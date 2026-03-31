@@ -71,7 +71,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
                 'PurchAmount'      => (string) $this->valueFormatter->formatAmount($order['amount']),
                 'Currency'         => (string) $this->valueMapper->mapCurrency($order['currency']),
                 'InstallmentCount' => (string) $this->valueFormatter->formatInstallment($order['installment']),
-                'Lang'             => $this->getLang($posAccount, $order),
+                'Lang'             => $this->getLang($order),
                 'CardHolderName'   => $creditCard->getHolderName(),
                 'Pan'              => $creditCard->getNumber(),
                 'Expiry'           => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expiry'),
@@ -96,7 +96,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
                 'TxnType'     => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'PurchAmount' => (string) $this->valueFormatter->formatAmount($order['amount']),
                 'Currency'    => (string) $this->valueMapper->mapCurrency($order['currency']),
-                'Lang'        => $this->getLang($posAccount, $order),
+                'Lang'        => $this->getLang($order),
             ];
     }
 
@@ -114,7 +114,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($posAccount) + [
                 'OrgOrderId' => (string) $order['id'],
                 'SecureType' => 'Inquiry',
-                'Lang'       => $this->getLang($posAccount, $order),
+                'Lang'       => $this->getLang($order),
                 'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS),
             ];
     }
@@ -135,7 +135,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
                 'SecureType' => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'Currency'   => (string) $this->valueMapper->mapCurrency($order['currency']),
-                'Lang'       => $this->getLang($posAccount, $order),
+                'Lang'       => $this->getLang($order),
             ];
     }
 
@@ -152,7 +152,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($posAccount) + [
                 'SecureType'  => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
-                'Lang'        => $this->getLang($posAccount, $order),
+                'Lang'        => $this->getLang($order),
                 'OrgOrderId'  => (string) $order['id'],
                 'TxnType'     => $this->valueMapper->mapTxType($refundTxType),
                 'PurchAmount' => (string) $this->valueFormatter->formatAmount($order['amount']),
@@ -173,7 +173,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType' => 'Report',
             'OrderId'    => $order['id'],
             'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_HISTORY),
-            'Lang'       => $this->getLang($posAccount, $order),
+            'Lang'       => $this->getLang($order),
         ];
 
         return $this->getRequestAccountData($posAccount) + $requestData;
@@ -193,7 +193,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType' => 'Report',
             'ReqDate'    => $this->valueFormatter->formatDateTime($data['transaction_date'], 'ReqDate'),
             'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_HISTORY),
-            'Lang'       => $this->getLang($posAccount, $order),
+            'Lang'       => $this->getLang($order),
         ];
 
         return $this->getRequestAccountData($posAccount) + $requestData;
@@ -225,7 +225,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantID'       => $posAccount->getClientId(),
             'UserCode'         => $posAccount->getUsername(),
             'OrderId'          => (string) $order['id'],
-            'Lang'             => $this->getLang($posAccount, $order),
+            'Lang'             => $this->getLang($order),
             'SecureType'       => $this->valueMapper->mapSecureType($paymentModel),
             'TxnType'          => $this->valueMapper->mapTxType($txType),
             'PurchAmount'      => (string) $this->valueFormatter->formatAmount($order['amount']),

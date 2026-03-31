@@ -6,20 +6,15 @@
 
 namespace Mews\Pos\Entity\Account;
 
-use Mews\Pos\PosInterface;
-
 class AkbankPosAccount extends AbstractPosAccount
 {
     private ?string $subMerchantId;
 
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
-     *
      * @param string      $bank
      * @param string      $merchantSafeId Üye İş Yeri numarası
      * @param string      $terminalSafeId
      * @param string      $secretKey
-     * @param string      $lang
      * @param string|null $subMerchantId
      */
     public function __construct(
@@ -27,10 +22,9 @@ class AkbankPosAccount extends AbstractPosAccount
         string $merchantSafeId,
         string $terminalSafeId,
         string $secretKey,
-        string $lang,
         ?string $subMerchantId = null
     ) {
-        parent::__construct($bank, $merchantSafeId, $terminalSafeId, '', $lang, $secretKey);
+        parent::__construct($bank, $merchantSafeId, $terminalSafeId, '', $secretKey);
         $this->subMerchantId = $subMerchantId;
     }
 

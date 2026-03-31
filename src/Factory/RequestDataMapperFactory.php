@@ -63,6 +63,7 @@ class RequestDataMapperFactory
      * @param RequestValueFormatterInterface $valueFormatter
      * @param EventDispatcherInterface       $eventDispatcher
      * @param CryptInterface                 $crypt
+     * @param PosInterface::LANG_*           $defaultLang
      *
      * @return RequestDataMapperInterface
      */
@@ -71,12 +72,19 @@ class RequestDataMapperFactory
         RequestValueMapperInterface    $valueMapper,
         RequestValueFormatterInterface $valueFormatter,
         EventDispatcherInterface       $eventDispatcher,
-        CryptInterface                 $crypt
+        CryptInterface                 $crypt,
+        string                         $defaultLang
     ): RequestDataMapperInterface {
         /** @var class-string<RequestDataMapperInterface> $requestDataMapperClass */
         foreach (self::$requestDataMapperClasses as $requestDataMapperClass) {
             if ($requestDataMapperClass::supports($gatewayClass)) {
-                return new $requestDataMapperClass($valueMapper, $valueFormatter, $eventDispatcher, $crypt);
+                return new $requestDataMapperClass(
+                    $valueMapper,
+                    $valueFormatter,
+                    $eventDispatcher,
+                    $crypt,
+                    $defaultLang
+                );
             }
         }
 

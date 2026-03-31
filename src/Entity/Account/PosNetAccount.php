@@ -16,10 +16,9 @@ class PosNetAccount extends AbstractPosAccount
         string $clientId,
         string $posNetId,
         string $terminalId,
-        string $lang,
         ?string $storeKey = null
     ) {
-        parent::__construct($bank, $clientId, $posNetId, $terminalId, $lang, $storeKey);
+        parent::__construct($bank, $clientId, $posNetId, $terminalId, $storeKey);
     }
 
     /**

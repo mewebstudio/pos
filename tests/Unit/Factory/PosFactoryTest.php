@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -190,6 +191,11 @@ class PosFactoryTest extends TestCase
         ];
 
         foreach ($gatewayClasses as $gatewayClass => $cardTypeMapping) {
+            $lang = array_rand([
+                PosInterface::LANG_EN,
+                PosInterface::LANG_TR,
+                null,
+            ]);
             $configKey = 'abcdse';
             $gatewayEndpoints = [
                 'payment_api'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
@@ -206,6 +212,7 @@ class PosFactoryTest extends TestCase
                     $configKey => [
                         'name'              => 'Akbank',
                         'class'             => $gatewayClass,
+                        'lang'              => $lang,
                         'gateway_endpoints' => $gatewayEndpoints,
                     ],
                 ],

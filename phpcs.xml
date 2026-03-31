@@ -28,6 +28,7 @@
     <!-- Also ignore "Declare all the arguments on the same line" for tests as it was in user examples -->
     <rule ref="Symfony.Functions.Arguments.Invalid">
         <exclude-pattern>*/tests/*</exclude-pattern>
+        <exclude-pattern>*/src/*</exclude-pattern>
     </rule>
 
 </ruleset>

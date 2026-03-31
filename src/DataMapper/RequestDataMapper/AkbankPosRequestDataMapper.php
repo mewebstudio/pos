@@ -315,7 +315,7 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
             'merchantSafeId'  => $posAccount->getClientId(),
             'terminalSafeId'  => $posAccount->getTerminalId(),
             'orderId'         => (string) $order['id'],
-            'lang'            => $this->getLang($posAccount, $order),
+            'lang'            => $this->getLang($order),
             'amount'          => (string) $this->valueFormatter->formatAmount($order['amount']),
             'currencyCode'    => (string) $this->valueMapper->mapCurrency($order['currency']),
             'installCount'    => (string) $this->valueFormatter->formatInstallment($order['installment']),

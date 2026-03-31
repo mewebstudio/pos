@@ -67,6 +67,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
 
         $this->card = CreditCardFactory::create('5400619360964581', '20', '01', '056', 'ahmet');

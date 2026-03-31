@@ -65,6 +65,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
     }
 

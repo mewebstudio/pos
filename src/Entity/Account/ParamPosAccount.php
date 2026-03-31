@@ -6,8 +6,6 @@
 
 namespace Mews\Pos\Entity\Account;
 
-use Mews\Pos\PosInterface;
-
 class ParamPosAccount extends AbstractPosAccount
 {
     /**
@@ -24,6 +22,6 @@ class ParamPosAccount extends AbstractPosAccount
         string $password,
         string $secretKey
     ) {
-        parent::__construct($bank, (string) $clientId, $username, $password, PosInterface::LANG_TR, $secretKey);
+        parent::__construct($bank, (string) $clientId, $username, $password, $secretKey);
     }
 }

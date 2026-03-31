@@ -65,6 +65,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             $this->valueFormatter,
             $this->dispatcher,
             $this->crypt,
+            PosInterface::LANG_EN
         );
     }
 
@@ -274,7 +275,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'AllowNotEnrolledCard' => 'false',
                 'SuccessUrl'           => 'https://domain.com/success',
                 'FailUrl'              => 'https://domain.com/fail_url',
-                'RequestLanguage'      => 'tr-TR',
+                'RequestLanguage'      => 'en-US',
                 'Extract'              => '',
                 'CustomItems'          => '',
                 'BrandNumber'          => '100',
@@ -306,7 +307,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'AllowNotEnrolledCard' => 'false',
                 'SuccessUrl'           => 'https://domain.com/success',
                 'FailUrl'              => 'https://domain.com/fail_url',
-                'RequestLanguage'      => 'tr-TR',
+                'RequestLanguage'      => 'en-US',
                 'Extract'              => '',
                 'CustomItems'          => '',
                 'InstallmentCount'     => '2',

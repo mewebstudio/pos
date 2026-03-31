@@ -9,7 +9,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\PosInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -27,22 +27,28 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
 
     protected bool $testMode = false;
 
+    /** @var PosInterface::LANG_* */
+    protected string $defaultLang;
+
     /**
      * @param RequestValueMapperInterface    $valueMapper
      * @param RequestValueFormatterInterface $valueFormatter
      * @param EventDispatcherInterface       $eventDispatcher
      * @param CryptInterface                 $crypt
+     * @param PosInterface::LANG_*           $defaultLang
      */
     public function __construct(
         RequestValueMapperInterface    $valueMapper,
         RequestValueFormatterInterface $valueFormatter,
         EventDispatcherInterface       $eventDispatcher,
-        CryptInterface                 $crypt
+        CryptInterface                 $crypt,
+        string                         $defaultLang = PosInterface::LANG_TR
     ) {
         $this->valueMapper     = $valueMapper;
         $this->valueFormatter  = $valueFormatter;
         $this->eventDispatcher = $eventDispatcher;
         $this->crypt           = $crypt;
+        $this->defaultLang     = $defaultLang;
     }
 
     /**
@@ -70,17 +76,16 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * according to the language value the POS UI will be displayed in the selected language
+     * according to the language value, the POS UI will be displayed in the selected language
      * and error messages will be returned in the selected language
      *
-     * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $order
      *
-     * @return string if language mapping is not available it returns default LANG_TR or as is.
+     * @return string if language mapping is not available, it returns default LANG_TR or as is.
      */
-    protected function getLang(AbstractPosAccount $posAccount, array $order): string
+    protected function getLang(array $order): string
     {
-        $lang = $order['lang'] ?? $posAccount->getLang();
+        $lang = $order['lang'] ?? $this->defaultLang;
 
         return $this->valueMapper->mapLang($lang);
     }
