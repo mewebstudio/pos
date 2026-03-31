@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<ruleset name="MewsPos">
+    <description>Mews Pos coding standard</description>
+
+    <file>src</file>
+    <file>tests</file>
+
+    <arg name="colors"/>
+    <arg value="p"/>
+
+    <!-- Use the Symfony standard as the base -->
+    <rule ref="vendor/escapestudios/symfony2-coding-standard/Symfony"/>
+
+    <!-- Ignore doc errors for tests folder -->
+    <rule ref="Symfony.Commenting.FunctionComment.Missing">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="Symfony.Commenting.FunctionComment.MissingParamTag">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="Symfony.Commenting.FunctionComment.Incomplete">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="Symfony.Commenting.FunctionComment.MissingThrows">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
+    <!-- Also ignore "Declare all the arguments on the same line" for tests as it was in user examples -->
+    <rule ref="Symfony.Functions.Arguments.Invalid">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+
+</ruleset>
