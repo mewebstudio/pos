@@ -11,6 +11,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Model\Response;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -143,26 +144,26 @@ interface PosInterface
      * @param CreditCardInterface  $creditCard
      * @param string               $txType
      *
-     * @return PosInterface
+     * @return Response
      *
      * @throws \LogicException
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface;
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): Response;
 
     /**
      * Ön Provizyon kapama işlemi
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return Response
      *
      * @throws UnsupportedPaymentModelException
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function makeRegularPostPayment(array $order): PosInterface;
+    public function makeRegularPostPayment(array $order): Response;
 
     /**
      * Make 3D Payment
@@ -241,58 +242,58 @@ interface PosInterface
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return Response
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function refund(array $order): PosInterface;
+    public function refund(array $order): Response;
 
     /**
      * Cancel Order
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return Response
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function cancel(array $order): PosInterface;
+    public function cancel(array $order): Response;
 
     /**
      * Order Status
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return Response
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function status(array $order): PosInterface;
+    public function status(array $order): Response;
 
     /**
      * Order History
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return Response
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function orderHistory(array $order): PosInterface;
+    public function orderHistory(array $order): Response;
 
     /**
      * @param array<string, mixed> $data
      *
-     * @return PosInterface
+     * @return Response
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function history(array $data): PosInterface;
+    public function history(array $data): Response;
 
 
     /**
@@ -310,9 +311,10 @@ interface PosInterface
      *
      * @throws ClientExceptionInterface
      */
-    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface;
+    public function customQuery(array $requestData, ?string $apiUrl = null): Response;
 
     /**
+     * todo delete
      * Is success
      *
      * @return bool
@@ -320,6 +322,7 @@ interface PosInterface
     public function isSuccess(): bool;
 
     /**
+     * todo delete
      * returns the latest response
      *
      * @return array<string, mixed>|null
@@ -333,7 +336,7 @@ interface PosInterface
      *
      * @return PosInterface
      *
-     * @deprecated set via configuration file instead.
+     * @deprecated set via a configuration file instead.
      */
     public function setTestMode(bool $testMode): PosInterface;
 

@@ -17,6 +17,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Model\Response;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -71,6 +72,9 @@ class PosNetV1Pos extends AbstractGateway
 
         if (!$this->is3DAuthSuccess($postParameters->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData($postParameters->all(), null, $txType, $order);
+            $response = new Response(
+                $postParameters->all()
+            );
 
             return $this;
         }
