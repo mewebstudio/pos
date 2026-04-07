@@ -28,7 +28,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\InterPos
@@ -98,15 +97,15 @@ class InterPosTest extends TestCase
             $merchantPass
         );
 
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
-        $this->requestValueMapper  = new InterPosRequestValueMapper();
-        $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->serializerMock         = $this->createMock(SerializerInterface::class);
+        $this->requestValueMapper     = new InterPosRequestValueMapper();
+        $this->requestMapperMock      = $this->createMock(RequestDataMapperInterface::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
         $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -199,14 +198,14 @@ class InterPosTest extends TestCase
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $checkHash,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $checkHash,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         if ($checkHash) {
             $this->cryptMock->expects(self::once())
@@ -216,7 +215,7 @@ class InterPosTest extends TestCase
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -231,7 +230,7 @@ class InterPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
@@ -244,12 +243,12 @@ class InterPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -257,7 +256,7 @@ class InterPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $this->pos->make3DPayment($request, $order, $txType);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -268,14 +267,14 @@ class InterPosTest extends TestCase
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $checkHash,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $checkHash,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -291,7 +290,7 @@ class InterPosTest extends TestCase
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -306,7 +305,7 @@ class InterPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
@@ -319,12 +318,12 @@ class InterPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -336,7 +335,7 @@ class InterPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $pos->make3DPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -345,19 +344,16 @@ class InterPosTest extends TestCase
 
     public function testMake3DPaymentHashMismatchException(): void
     {
-        $request = Request::create(
-            '',
-            'POST',
-            ['data']
-        );
+        $gatewayResponseData = ['data'];
+
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(false);
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -367,7 +363,7 @@ class InterPosTest extends TestCase
 
         $this->expectException(HashMismatchException::class);
 
-        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], PosInterface::TX_TYPE_PAY_AUTH, null, $gatewayResponseData);
     }
 
     /**
@@ -378,19 +374,19 @@ class InterPosTest extends TestCase
         $this->cryptMock->expects(self::never())
             ->method('check3DHash');
 
-        $responseData = ['$responseData'];
-        $request      = Request::create('', 'POST', $responseData);
-        $order        = ['id' => '123'];
-        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+        $responseData        = ['$responseData'];
+        $gatewayResponseData = $responseData;
+        $order               = ['id' => '123'];
+        $txType              = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn(['status' => 'approved']);
 
         $pos = $this->pos;
 
-        $pos->make3DPayPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame(['status' => 'approved'], $result);
@@ -405,19 +401,18 @@ class InterPosTest extends TestCase
         $this->cryptMock->expects(self::never())
             ->method('check3DHash');
 
-        $responseData = ['$responseData'];
-        $request      = Request::create('', 'POST', $responseData);
-        $order        = ['id' => '123'];
-        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+        $gatewayResponseData = ['$responseData'];
+        $order               = ['id' => '123'];
+        $txType              = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn(['status' => 'approved']);
 
         $pos = $this->pos;
 
-        $pos->make3DHostPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame(['status' => 'approved'], $result);
@@ -466,7 +461,7 @@ class InterPosTest extends TestCase
             ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType, $card);
     }
 
     /**
@@ -499,7 +494,7 @@ class InterPosTest extends TestCase
             ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPostPayment($order);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType);
     }
 
 
@@ -655,7 +650,7 @@ class InterPosTest extends TestCase
             '3d_fail' => [
                 'order'           => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['order'],
                 'txType'          => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['txType'],
-                'request'         => Request::create('', 'POST', InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['threeDResponseData']),
+                'request'         => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['threeDResponseData'],
                 'paymentResponse' => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['paymentData'],
                 'expected'        => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['expectedData'],
                 'check_hash'      => false,
@@ -665,7 +660,7 @@ class InterPosTest extends TestCase
             'success' => [
                 'order'           => ['order'],
                 'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
-                'request'         => Request::create('', 'POST', ['gateway_response']),
+                'request'         => ['gateway_response'],
                 'paymentResponse' => ['paymentResponse'],
                 'expected'        => ['status' => 'approved'],
                 'check_hash'      => true,

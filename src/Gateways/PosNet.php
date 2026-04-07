@@ -19,7 +19,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class PosNet
@@ -62,16 +61,15 @@ class PosNet extends AbstractGateway
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
-        $postParameters = $request->request;
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         $this->logger->debug('getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
             $this->account,
             $order,
-            $postParameters->all()
+            $gatewayResponseData
         );
 
         $event = new RequestDataPreparedEvent(
@@ -123,7 +121,7 @@ class PosNet extends AbstractGateway
             $this->account,
             $order,
             $txType,
-            $postParameters->all()
+            $gatewayResponseData
         );
 
         $event = new RequestDataPreparedEvent(
@@ -165,7 +163,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -173,7 +171,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }

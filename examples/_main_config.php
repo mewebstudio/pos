@@ -2,7 +2,6 @@
 
 use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -11,16 +10,15 @@ error_reporting(E_ALL);
 $root = realpath(__DIR__);
 require_once "$root/../vendor/autoload.php";
 
-$request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
-$ip = $request->getClientIp();
+$ip = getUserIp();
 
-$sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => 'None',
-    'cookie_secure'   => true,
-    'cookie_httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
+// Configure session with security options
+session_set_cookie_params([
+    'samesite' => 'None',
+    'secure'   => true,
+    'httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
 ]);
-$session        = new Session($sessionHandler);
-$session->start();
+session_start();
 
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
 $subMenu = [];
@@ -49,22 +47,36 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
             sprintf('"%s %s" işlemi %s tarafından desteklenmiyor', $transaction, $paymentModel, get_class($pos))
         );
     }
-    if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class
-        && in_array($transaction, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)
-        && PosInterface::MODEL_3D_SECURE === $paymentModel
-    ) {
-        /**
-         * diger banklaradan farkli olarak 3d islemler icin de PayFlex bu asamada kredi kart bilgileri istiyor
-         */
-        $pos->payment($paymentModel, $order, $transaction, $card);
 
-    } elseif ($paymentModel === PosInterface::MODEL_NON_SECURE
-        && in_array($transaction, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)
-    ) {
-        // bu asamada $card regular/non secure odemede lazim.
-        $pos->payment($paymentModel, $order, $transaction, $card);
-    } else {
-        $pos->payment($paymentModel, $order, $transaction);
+    if (PosInterface::MODEL_NON_SECURE === $paymentModel) {
+        if (in_array($transaction, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
+            // bu işlemlerde kredi kart bilgileri zorunlu.
+            $pos->payment($paymentModel, $order, $transaction, $card);
+        } elseif (PosInterface::TX_TYPE_PAY_POST_AUTH === $transaction) {
+            $pos->payment($paymentModel, $order, $transaction);
+        }
+
+        return;
+    }
+
+    if (PosInterface::MODEL_3D_SECURE === $paymentModel) {
+        if (!in_array($transaction, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
+            throw new \LogicException('Hatalı işlem');
+        }
+        $gatewayResponseData = $_POST; // 3D otorizasyon sonrası bankadan gelen yanıt verileri.
+        if (get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
+            $gatewayResponseData = $_GET;
+        }
+        if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
+            /**
+             * diğer banklaradan farklı olarak 3d işlemler için de PayFlex bu aşamada kredi kart bilgileri istiyor.
+             */
+            $pos->payment($paymentModel, $order, $transaction, $card, $gatewayResponseData);
+
+            return;
+        }
+
+        $pos->payment($paymentModel, $order, $transaction, null, $gatewayResponseData);
     }
 }
 
@@ -170,4 +182,21 @@ function createPaymentOrder(
     }
 
     return $order;
+}
+
+function getUserIp(): string
+{
+    // Get client IP address
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        $ip = $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+    }
+    // Validate IP
+    if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        $ip = '127.0.0.1';
+    }
+
+    return $ip;
 }

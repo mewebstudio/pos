@@ -15,7 +15,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @since 1.1.0
@@ -66,14 +65,13 @@ class AkbankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
-        $postParameters = $request->request;
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
-        if (!$this->is3DAuthSuccess($postParameters->all())) {
+        if (!$this->is3DAuthSuccess($gatewayResponseData)) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
-                $postParameters->all(),
+                $gatewayResponseData,
                 null,
                 $txType,
                 $order
@@ -84,7 +82,7 @@ class AkbankPos extends AbstractGateway
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
@@ -93,7 +91,7 @@ class AkbankPos extends AbstractGateway
             $this->account,
             $order,
             $txType,
-            $postParameters->all()
+            $gatewayResponseData
         );
 
         $event = new RequestDataPreparedEvent(
@@ -130,7 +128,7 @@ class AkbankPos extends AbstractGateway
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
-            $postParameters->all(),
+            $gatewayResponseData,
             $provisionResponse,
             $txType,
             $order
@@ -143,16 +141,16 @@ class AkbankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
         return $this;
     }
@@ -160,16 +158,16 @@ class AkbankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
         return $this;
     }

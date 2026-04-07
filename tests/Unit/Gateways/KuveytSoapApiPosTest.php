@@ -28,7 +28,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\KuveytSoapApiPos
@@ -110,15 +109,15 @@ class KuveytSoapApiPosTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $this->requestValueMapper  = new KuveytPosRequestValueMapper();
-        $this->requestMapperMock   = $this->createMock(KuveytSoapApiPosRequestDataMapper::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->requestValueMapper     = new KuveytPosRequestValueMapper();
+        $this->requestMapperMock      = $this->createMock(KuveytSoapApiPosRequestDataMapper::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $this->serializerMock         = $this->createMock(SerializerInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
         $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -185,32 +184,24 @@ class KuveytSoapApiPosTest extends TestCase
 
     public function testMake3DPayment(): void
     {
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DPayment(
-            Request::create(
-                '',
-                'POST',
-            ),
-            [],
-            PosInterface::TX_TYPE_PAY_AUTH
-        );
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], $txType, null, ['abc']);
     }
 
     public function testMakeRegularPayment(): void
     {
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
         $this->expectException(UnsupportedPaymentModelException::class);
 
-        $this->pos->makeRegularPayment(
-            [],
-            $this->card,
-            PosInterface::TX_TYPE_PAY_AUTH
-        );
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, [], $txType, $this->card);
     }
 
     public function testMakeRegularPostAuthPayment(): void
     {
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->makeRegularPostPayment([]);
+
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, [], PosInterface::TX_TYPE_PAY_POST_AUTH);
     }
 
     public function testHistoryRequest(): void
@@ -227,18 +218,18 @@ class KuveytSoapApiPosTest extends TestCase
 
     public function testMake3DHostPayment(): void
     {
-        $request = Request::create('', 'POST');
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, [], $txType, null, ['abc']);
     }
 
     public function testMake3DPayPayment(): void
     {
-        $request = Request::create('', 'POST');
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, [], $txType, null, ['abc']);
     }
 
     /**
@@ -319,10 +310,10 @@ class KuveytSoapApiPosTest extends TestCase
      */
     public function testRefund(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $account            = $this->pos->getAccount();
-        $txType             = PosInterface::TX_TYPE_REFUND;
-        $requestData        = ['createRefundRequestData'];
-        $order              = $this->order;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_REFUND;
+        $requestData = ['createRefundRequestData'];
+        $order       = $this->order;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
@@ -393,6 +384,7 @@ class KuveytSoapApiPosTest extends TestCase
     public static function refundDataProvider(): array
     {
         $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::refundTestDataProvider());
+
         return [
             'fail_1'    => [
                 'bank_response' => $testData['fail1']['responseData'],

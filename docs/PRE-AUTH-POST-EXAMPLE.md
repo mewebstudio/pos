@@ -10,13 +10,13 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 <?php
 require './vendor/autoload.php';
 
-$sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => 'None',
-    'cookie_secure'   => true,
-    'cookie_httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
+// Configure session with security options
+session_set_cookie_params([
+    'samesite' => 'None',
+    'secure'   => true,
+    'httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
 ]);
-$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
-$session->start();
+session_start();
 
 // Ön otorizasyon için kullanılması gereken ödeme modeli değişir.
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
@@ -81,7 +81,7 @@ $order = [
     }
 
 
-$session->set('order', $order);
+$_SESSION['order'] = $order;
 
 // Kredi kartı bilgileri
 try {
@@ -105,7 +105,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
 
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-    $session->set('card', $_POST);
+    $_SESSION['card'] = $_POST;
 }
 
 try {
@@ -145,11 +145,11 @@ try {
 
 require 'config.php';
 
-$order = $session->get('order');
+$order = $_SESSION['order'];
 $card  = null;
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
-    $cardData = $session->get('card');
+    $cardData = $_SESSION['card'];;
     $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
         $cardData['card_number'],
@@ -162,12 +162,17 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
 }
 
 // Pre Auth Ödeme tamamlanıyor,
+$gatewayResponseData = $_POST;
+if (get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
+    $gatewayResponseData = $_GET;
+}
 try  {
     $pos->payment(
         $paymentModel,
         $order,
         $transactionType,
-        $card
+        $card,
+        $gatewayResponseData
     );
 
     // Ödeme başarılı mı?
@@ -178,7 +183,7 @@ try  {
     // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 
     if ($pos->isSuccess()) {
-        $session->set('last_response', $response);
+        $_SESSION['last_response'] = $response;
     }
 } catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
     /**
@@ -204,7 +209,7 @@ require 'config.php';
 // Ön otorizasyon kapama işlemi MODEL_NON_SECURE ile gerçekleşir.
 $paymentModel = \Mews\Pos\PosInterface::MODEL_NON_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_POST_AUTH;
-$lastResponse = $session->get('last_response');
+$_SESSION['last_response'] ?? null
 
 function createPostPayOrder(string $gatewayClass, array $lastResponse, string $ip, ?float $postAuthAmount = null): array
 {
@@ -227,7 +232,7 @@ function createPostPayOrder(string $gatewayClass, array $lastResponse, string $i
     return $postAuth;
 }
 
-$lastResponse = $session->get('last_response');
+$_SESSION['last_response'] ?? null
 
 $preAuthAmount = $lastResponse['amount'];
 // Bazi gatewaylerde otorizasyon kapama amount'u ön otorizasyon amount'tan daha fazla olabilir.

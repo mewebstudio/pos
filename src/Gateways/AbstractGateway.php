@@ -19,7 +19,6 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 abstract class AbstractGateway implements PosInterface
 {
@@ -200,10 +199,8 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null, ?array $gatewayResponseData = null): PosInterface
     {
-        $request = Request::createFromGlobals();
-
         $this->logger->debug('payment called', [
             'card_provided' => (bool) $creditCard,
             'tx_type'       => $txType,
@@ -221,12 +218,20 @@ abstract class AbstractGateway implements PosInterface
             }
 
             $this->makeRegularPayment($order, $creditCard, $txType);
-        } elseif (PosInterface::MODEL_3D_SECURE === $paymentModel) {
-            $this->make3DPayment($request, $order, $txType, $creditCard);
+
+            return $this;
+        }
+
+        if (null === $gatewayResponseData || [] === $gatewayResponseData) {
+            throw new LogicException('3D tür ödeme modelleri için bankadan 3D otorizasyon yanıt verileri gereklidir!');
+        }
+
+        if (PosInterface::MODEL_3D_SECURE === $paymentModel) {
+            $this->make3DPayment($gatewayResponseData, $order, $txType, $creditCard);
         } elseif (PosInterface::MODEL_3D_PAY === $paymentModel || PosInterface::MODEL_3D_PAY_HOSTING === $paymentModel) {
-            $this->make3DPayPayment($request, $order, $txType);
+            $this->make3DPayPayment($gatewayResponseData, $order, $txType);
         } elseif (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $this->make3DHostPayment($request, $order, $txType);
+            $this->make3DHostPayment($gatewayResponseData, $order, $txType);
         } else {
             $this->logger->error('unsupported payment model', ['model' => $paymentModel]);
             throw new UnsupportedPaymentModelException();

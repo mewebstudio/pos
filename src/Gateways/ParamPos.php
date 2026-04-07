@@ -19,7 +19,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @since 1.6.0
@@ -73,20 +72,19 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
-        $postParameters = $request->request;
 
-        if ($postParameters->get('TURKPOS_RETVAL_Sonuc') !== null) {
+        if (isset($gatewayResponseData['TURKPOS_RETVAL_Sonuc'])) {
             // Doviz ile odeme
-            return $this->make3DPayPayment($request, $order, $txType);
+            return $this->make3DPayPayment($gatewayResponseData, $order, $txType);
         }
 
 
-        if (!$this->is3DAuthSuccess($postParameters->all())) {
+        if (!$this->is3DAuthSuccess($gatewayResponseData)) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
-                $postParameters->all(),
+                $gatewayResponseData,
                 null,
                 $txType,
                 $order
@@ -97,7 +95,7 @@ class ParamPos extends AbstractGateway
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
@@ -106,7 +104,7 @@ class ParamPos extends AbstractGateway
             $this->account,
             $order,
             $txType,
-            $postParameters->all()
+            $gatewayResponseData
         );
 
         $event = new RequestDataPreparedEvent(
@@ -141,7 +139,7 @@ class ParamPos extends AbstractGateway
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
-            $postParameters->all(),
+            $gatewayResponseData,
             $provisionResponse,
             $txType,
             $order
@@ -154,16 +152,16 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
         return $this;
     }
@@ -171,7 +169,7 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException(
             \sprintf('Bu işlem için %s gateway kullanılmalıdır.', Param3DHostPos::class)

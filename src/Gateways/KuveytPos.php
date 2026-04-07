@@ -20,7 +20,6 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Kuveyt banki desteleyen Gateway
@@ -65,7 +64,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -73,7 +72,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -151,10 +150,10 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $paymentModel    = PosInterface::MODEL_3D_SECURE;
-        $gatewayResponse = $request->request->get('AuthenticationResponse');
+        $gatewayResponse = $gatewayResponseData['AuthenticationResponse'] ?? null;
         if (!\is_string($gatewayResponse)) {
             throw new LogicException('AuthenticationResponse is missing');
         }

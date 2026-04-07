@@ -17,7 +17,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Deniz bankin desteklidigi Gateway
@@ -70,13 +69,12 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
-        $postParameters = $request->request;
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         /** @var array{"3DStatus": string, MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $gatewayResponse */
-        $gatewayResponse = $postParameters->all();
+        $gatewayResponse = $gatewayResponseData;
 
         if (!$this->is3DAuthSuccess($gatewayResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
@@ -84,8 +82,7 @@ class InterPos extends AbstractGateway
             return $this;
         }
 
-        if (
-            !$this->is3DHashCheckDisabled()
+        if (!$this->is3DHashCheckDisabled()
             && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)
         ) {
             throw new HashMismatchException();
@@ -135,9 +132,9 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
         return $this;
     }
@@ -145,9 +142,9 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
         return $this;
     }

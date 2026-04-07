@@ -89,7 +89,7 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
 }
 
 // odemeden aldiginiz cevap: $pos->getResponse();
-$lastResponse = $session->get('last_response');
+$_SESSION['last_response'] ?? null
 
 // tam iade:
 $refundAmount = $lastResponse['amount'];

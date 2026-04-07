@@ -3,7 +3,6 @@
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 // ilgili gatewayin payment modele gore configini load ediyoruz
 // ornegin: payten/3d/_config.php ya da payten/3d-host/_config.php
@@ -18,16 +17,14 @@ require '../../_templates/_header.php';
  * Bu script redirectli, iframe'de ve popup'da odemeler icin kullanilabilinir.
  */
 // 3D odemelerde gatewayden genelde POST istek bekleniyor.
-if (($request->getMethod() !== 'POST')
-    // PayFlex-CP GET request ile cevapliyor
-    && ($request->getMethod() === 'GET'
-        && (get_class($pos) !== \Mews\Pos\Gateways\PayFlexCPV4Pos::class || [] === $request->query->all()))
-) {
-    echo new RedirectResponse($baseUrl);
+$requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+if ('GET' === $requestMethod && get_class($pos) !== \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
+    // Hata: Sadece PayFlexCP GET request ile cevaplıyor.
+    header('Location: '.$baseUrl);
     exit();
 }
 
-$order = $session->get('order');
+$order = $_SESSION['order'] ?? null;
 if (!$order) {
     throw new Exception('Sipariş bulunamadı, session sıfırlanmış olabilir.');
 }
@@ -78,8 +75,10 @@ $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (Request
 $card = null;
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
-    $savedCard = $session->get('card');
-    $session->remove('card');
+    $savedCard = $_SESSION['card'] ?? null;
+    if (isset($_SESSION['card'])) {
+        unset($_SESSION['card']);
+    }
     $card      = createCard($pos, $savedCard);
 }
 // ============================================================================================
@@ -103,7 +102,7 @@ try {
 $response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
-    $session->set('last_response', $response);
+    $_SESSION['last_response'] = $response;
 }
 
 require __DIR__.'/_render_payment_response.php';

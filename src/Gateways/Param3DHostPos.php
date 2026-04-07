@@ -19,7 +19,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @since 2.0.0
@@ -66,7 +65,7 @@ class Param3DHostPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         throw new UnsupportedPaymentModelException(
             \sprintf('Bu işlem için %s gateway kullanılmalıdır.', ParamPos::class)
@@ -76,7 +75,7 @@ class Param3DHostPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException(
             \sprintf('Bu işlem için %s gateway kullanılmalıdır.', ParamPos::class)
@@ -86,16 +85,16 @@ class Param3DHostPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 

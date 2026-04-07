@@ -40,7 +40,7 @@ function createStatusOrder(string $gatewayClass, array $lastResponse, string $ip
     return $statusOrder;
 }
 
-$order = createStatusOrder(get_class($pos), $session->get('last_response'), $ip);
+$order = createStatusOrder(get_class($pos), $_SESSION['last_response'] ?? null, $ip);
 dump($order);
 
 $pos->status($order);

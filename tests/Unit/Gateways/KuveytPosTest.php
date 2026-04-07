@@ -27,7 +27,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\KuveytPos
@@ -230,14 +229,14 @@ class KuveytPosTest extends TestCase
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $decodedRequest,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $decodedRequest,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         $this->cryptMock->expects(self::never())
             ->method('check3DHash');
@@ -245,7 +244,7 @@ class KuveytPosTest extends TestCase
         $this->serializerMock->expects(self::once())
             ->method('decode')
             ->with(
-                \urldecode($request->request->get('AuthenticationResponse')),
+                \urldecode($gatewayResponseData['AuthenticationResponse']),
                 $txType
             )->willReturn($decodedRequest);
 
@@ -287,11 +286,11 @@ class KuveytPosTest extends TestCase
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData')
-                ->with(urldecode($request->request->get('AuthenticationResponse')), $txType)
+                ->with(urldecode($gatewayResponseData['AuthenticationResponse']), $txType)
                 ->willReturn($decodedRequest);
         }
 
-        $this->pos->make3DPayment($request, $order, $txType);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -300,7 +299,7 @@ class KuveytPosTest extends TestCase
 
     public function testMake3DPaymentException(): void
     {
-        $request = Request::create('');
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->cryptMock->expects(self::never())
             ->method('check3DHash');
@@ -321,7 +320,7 @@ class KuveytPosTest extends TestCase
             ->method('decode');
 
         $this->expectException(\LogicException::class);
-        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], $txType, null, ['abc']);
     }
 
     /**
@@ -352,13 +351,13 @@ class KuveytPosTest extends TestCase
             ->with($paymentResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType, $card);
     }
 
     public function testMakeRegularPostAuthPayment(): void
     {
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->makeRegularPostPayment([]);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, [], PosInterface::TX_TYPE_PAY_POST_AUTH);
     }
 
     public function testStatusRequest(): void
@@ -393,18 +392,18 @@ class KuveytPosTest extends TestCase
 
     public function testMake3DHostPayment(): void
     {
-        $request = Request::create('', 'POST');
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, [], $txType, null, ['abc']);
     }
 
     public function testMake3DPayPayment(): void
     {
-        $request = Request::create('', 'POST');
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, [], $txType, null, ['abc']);
     }
 
 
@@ -414,11 +413,7 @@ class KuveytPosTest extends TestCase
             'auth_fail'                    => [
                 'order'           => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
                 'txType'          => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    ['AuthenticationResponse' => 'base64-encoded-xml']
-                ),
+                'request'         => ['AuthenticationResponse' => 'base64-encoded-xml'],
                 'decodedRequest'  => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData'],
                 'paymentResponse' => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
                 'expected'        => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
@@ -428,11 +423,7 @@ class KuveytPosTest extends TestCase
             '3d_auth_success_payment_fail' => [
                 'order'           => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail_1']['order'],
                 'txType'          => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail_1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    ['AuthenticationResponse' => 'base64-encoded-xml']
-                ),
+                'request'         => ['AuthenticationResponse' => 'base64-encoded-xml'],
                 'decodedRequest'  => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail_1']['threeDResponseData'],
                 'paymentResponse' => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail_1']['paymentData'],
                 'expected'        => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail_1']['expectedData'],
@@ -442,11 +433,7 @@ class KuveytPosTest extends TestCase
             'success'                      => [
                 'order'           => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    ['AuthenticationResponse' => 'base64-encoded-xml']
-                ),
+                'request'         => ['AuthenticationResponse' => 'base64-encoded-xml'],
                 'decodedRequest'  => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
                 'paymentResponse' => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
                 'expected'        => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
@@ -520,12 +507,12 @@ class KuveytPosTest extends TestCase
     }
 
     private function configureClientResponse(
-        string              $txType,
-        array               $requestData,
+        string  $txType,
+        array   $requestData,
         $decodedResponse,
-        array               $order,
-        string              $paymentModel,
-        ?string             $clientTxType = null
+        array   $order,
+        string  $paymentModel,
+        ?string $clientTxType = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 

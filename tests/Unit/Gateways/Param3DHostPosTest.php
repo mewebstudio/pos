@@ -30,7 +30,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\Param3DHostPos
@@ -213,53 +212,42 @@ class Param3DHostPosTest extends TestCase
 
     public function testMake3DPayment(): void
     {
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DPayment(
-            Request::create(
-                '',
-                'POST',
-            ),
-            [],
-            PosInterface::TX_TYPE_PAY_AUTH
-        );
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], $txType, null, ['abc']);
     }
 
     public function testMake3DPayPayment(): void
     {
-        $request = Request::create('', 'POST');
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, [], $txType, null, ['abc']);
     }
 
     public function testMake3DHostPaymentHashMismatchException(): void
     {
-        $request = Request::create(
-            '',
-            'POST',
-            ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']
-        );
+        $txType              = PosInterface::TX_TYPE_PAY_AUTH;
+        $gatewayResponseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(false);
 
         $this->expectException(HashMismatchException::class);
 
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, [], $txType, null, $gatewayResponseData);
     }
 
     public function testMake3DHostPayment(): void
     {
-        $responseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
-        $request      = Request::create(
-            '',
-            'POST',
-            $responseData
-        );
+        $gatewayResponseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(true);
 
         $order  = ['id' => '123'];
@@ -267,12 +255,12 @@ class Param3DHostPosTest extends TestCase
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn(['status' => 'approved']);
 
         $pos = $this->pos;
 
-        $pos->make3DHostPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame(['status' => 'approved'], $result);
@@ -296,22 +284,17 @@ class Param3DHostPosTest extends TestCase
         $this->cryptMock->expects(self::never())
             ->method('check3DHash');
 
-        $responseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
-        $request = Request::create(
-            '',
-            'POST',
-            $responseData
-        );
+        $gatewayResponseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
 
-        $order        = ['id' => '123'];
-        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+        $order  = ['id' => '123'];
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn(['status' => 'approved']);
 
-        $pos->make3DHostPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame(['status' => 'approved'], $result);
@@ -320,19 +303,16 @@ class Param3DHostPosTest extends TestCase
 
     public function testMakeRegularPayment(): void
     {
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
         $this->expectException(UnsupportedPaymentModelException::class);
 
-        $this->pos->makeRegularPayment(
-            [],
-            $this->createMock(CreditCardInterface::class),
-            PosInterface::TX_TYPE_PAY_AUTH
-        );
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, [], $txType, $this->createMock(CreditCardInterface::class), ['abc']);
     }
 
     public function testMakeRegularPostAuthPayment(): void
     {
         $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->pos->makeRegularPostPayment([]);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, [], PosInterface::TX_TYPE_PAY_POST_AUTH);
     }
 
 

@@ -2,7 +2,6 @@
 
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 // dinamik olarak ilgili bunkanin regular klasor altindaki _config.php yuklenir
 // ornegin: payten/regular/_config.php
@@ -14,7 +13,7 @@ require '../../_templates/_header.php';
  * MODEL_NON_SECURE ve TX_TYPE_PAY_POST_AUTH odemede kredi kart bilgileri olmadan Ön Otorizasyon İşlemi tamamlar.
  */
 if (PosInterface::TX_TYPE_PAY_POST_AUTH !== $transaction) {
-    echo new RedirectResponse($baseUrl);
+    header('Location: '.$baseUrl);
     exit();
 }
 
@@ -36,7 +35,7 @@ try {
 $response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
-    $session->set('last_response', $response);
+    $_SESSION['last_response'] = $response;
 }
 
 require __DIR__.'/_render_payment_response.php';

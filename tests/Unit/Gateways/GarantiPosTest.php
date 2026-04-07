@@ -28,7 +28,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\GarantiPos
@@ -79,7 +78,7 @@ class GarantiPosTest extends TestCase
             'name'              => 'Garanti',
             'class'             => GarantiPos::class,
             'gateway_endpoints' => [
-                'gateway_3d'  => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+                'gateway_3d' => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
             ],
         ];
 
@@ -95,15 +94,15 @@ class GarantiPosTest extends TestCase
             '123qweASD/'
         );
 
-        $this->requestValueMapper  = new GarantiPosRequestValueMapper();
-        $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->requestValueMapper     = new GarantiPosRequestValueMapper();
+        $this->requestMapperMock      = $this->createMock(RequestDataMapperInterface::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $this->serializerMock         = $this->createMock(SerializerInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
         $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -200,24 +199,24 @@ class GarantiPosTest extends TestCase
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
-                ->with($this->account, $request->request->all())
+                ->with($this->account, $gatewayResponseData)
                 ->willReturn(true);
         }
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -232,7 +231,7 @@ class GarantiPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
@@ -245,12 +244,12 @@ class GarantiPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -258,7 +257,7 @@ class GarantiPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $this->pos->make3DPayment($request, $order, $txType);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -270,13 +269,13 @@ class GarantiPosTest extends TestCase
      * @dataProvider make3DPaymentWithoutHashCheckDataProvider
      */
     public function testMake3DPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -292,7 +291,7 @@ class GarantiPosTest extends TestCase
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -307,7 +306,7 @@ class GarantiPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
@@ -320,12 +319,12 @@ class GarantiPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -337,7 +336,7 @@ class GarantiPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $pos->make3DPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -346,8 +345,7 @@ class GarantiPosTest extends TestCase
 
     public function testMake3DPaymentHashMismatchException(): void
     {
-        $data    = GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData'];
-        $request = Request::create('', 'POST', $data);
+        $data = GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData'];
 
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
@@ -366,15 +364,13 @@ class GarantiPosTest extends TestCase
             ->method('dispatch');
 
         $this->expectException(HashMismatchException::class);
-        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], PosInterface::TX_TYPE_PAY_AUTH, null, $data);
     }
 
     public function testMake3DHostPayment(): void
     {
-        $request = Request::create('', 'POST');
-
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, [], PosInterface::TX_TYPE_PAY_AUTH, null, ['abc']);
     }
 
     /**
@@ -386,18 +382,17 @@ class GarantiPosTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request      = Request::create('', 'POST', $responseData);
         $order        = ['id' => '123'];
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($responseData, $txType, $order)
             ->willReturn(['status' => 'approved']);
 
         $pos = $this->pos;
 
-        $pos->make3DPayPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $responseData);
 
         $result = $pos->getResponse();
         $this->assertSame(['status' => 'approved'], $result);
@@ -434,7 +429,7 @@ class GarantiPosTest extends TestCase
             ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType, $card);
     }
 
     /**
@@ -466,7 +461,7 @@ class GarantiPosTest extends TestCase
             ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPostPayment($order);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType);
     }
 
     /**
@@ -667,10 +662,10 @@ class GarantiPosTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet/xxxx',
+                'api_url'     => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet/xxxx',
             ],
             [
                 'requestData' => [
@@ -685,43 +680,31 @@ class GarantiPosTest extends TestCase
     {
         return [
             '3d_auth_fail_1'               => [
-                'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['order'],
-                'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['threeDResponseData']
-                ),
-                'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['paymentData'],
-                'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['expectedData'],
-                'is3DSuccess'     => false,
-                'isSuccess'       => false,
+                'order'               => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['order'],
+                'txType'              => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['txType'],
+                'gatewayResponseData' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['threeDResponseData'],
+                'paymentResponse'     => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['paymentData'],
+                'expected'            => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['expectedData'],
+                'is3DSuccess'         => false,
+                'isSuccess'           => false,
             ],
             '3d_auth_success_payment_fail' => [
-                'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['order'],
-                'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData']
-                ),
-                'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['paymentData'],
-                'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => false,
+                'order'               => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['order'],
+                'txType'              => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['txType'],
+                'gatewayResponseData' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData'],
+                'paymentResponse'     => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['paymentData'],
+                'expected'            => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => false,
             ],
             'success'                      => [
-                'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-                ),
-                'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                'order'               => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'              => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse'     => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -730,30 +713,22 @@ class GarantiPosTest extends TestCase
     {
         return [
             '3d_auth_success_payment_fail' => [
-                'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['order'],
-                'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData']
-                ),
-                'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['paymentData'],
-                'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => false,
+                'order'               => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['order'],
+                'txType'              => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['txType'],
+                'gatewayResponseData' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData'],
+                'paymentResponse'     => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['paymentData'],
+                'expected'            => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => false,
             ],
             'success'                      => [
-                'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-                ),
-                'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                'order'               => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'              => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse'     => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => true,
             ],
         ];
     }

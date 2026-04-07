@@ -18,13 +18,13 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 <?php
 require './vendor/autoload.php';
 
-$sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => 'None',
-    'cookie_secure'   => true,
-    'cookie_httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
+// Configure session with security options
+session_set_cookie_params([
+    'samesite' => 'None',
+    'secure'   => true,
+    'httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
 ]);
-$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
-$session->start();
+session_start();
 
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
@@ -108,7 +108,7 @@ $order = [
  * NOT! kod örneği basit tutma amaçlı order'i (ve diğer verileri) session'a kaydediyoruz.
  * Siz veri tabanı ya da farklı bir storage mediumda kullanabilirsiniz.
  */
-$session->set('order', $order);
+$_SESSION['order'] = $order;
 
 // Kredi kartı bilgileri
 try {
@@ -132,7 +132,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
 
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-    $session->set('card', $_POST);
+    $_SESSION['card'] = $_POST;
 }
 
 try {
@@ -263,12 +263,12 @@ if (is_string($formData)) {
 
 require 'config.php';
 
-$order = $session->get('order');
+$order = $_SESSION['order'];
 $card  = null;
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
-    $cardData = $session->get('card')
-    $session->remove('card');
+    $cardData = $_SESSION['card'];
+    unset($_SESSION['card']);
     $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
         $cardData['card_number'],
@@ -280,13 +280,19 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
   );
 }
 
-// Ödeme tamamlanıyor,
+// Ödeme tamamlanıyor
+$gatewayResponseData = $_POST;
+if (get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
+    $gatewayResponseData = $_GET;
+}
+
 try  {
     $pos->payment(
         $paymentModel,
         $order,
         $transactionType,
-        $card
+        $card,
+        $gatewayResponseData
     );
 
     // Ödeme başarılı mı?

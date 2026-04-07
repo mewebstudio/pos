@@ -20,7 +20,8 @@ $order = createPaymentOrder(
     false,
     $request->get('lang', PosInterface::LANG_TR)
 );
-$session->set('order', $order);
+
+$_SESSION['order'] = $order;
 
 $formVerisiniOlusturmakIcinApiIstegiGonderenGatewayler = [
     \Mews\Pos\Gateways\PosNet::class,

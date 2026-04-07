@@ -18,7 +18,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * PayFlex MPI ISD v4 gateway'i destekler (INNOVA BİLİŞİM ÇÖZÜMLERİ A.Ş)
@@ -69,19 +68,18 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
-        $postParameters = $request->request;
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
-        if (!$this->is3DAuthSuccess($postParameters->all())) {
-            $this->response = $this->responseDataMapper->map3DPaymentData($postParameters->all(), null, $txType, $order);
+        if (!$this->is3DAuthSuccess($gatewayResponseData)) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponseData, null, $txType, $order);
 
             return $this;
         }
 
         /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
-        $requestData = $postParameters->all();
+        $requestData = $gatewayResponseData;
         // NOT: diger gatewaylerden farkli olarak payflex kredit bilgilerini bu asamada da istiyor.
         $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $requestData, $creditCard);
 
@@ -116,7 +114,7 @@ class PayFlexV4Pos extends AbstractGateway
             $order,
         );
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($postParameters->all(), $bankResponse, $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponseData, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -125,7 +123,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -133,7 +131,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }

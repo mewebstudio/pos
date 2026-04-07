@@ -29,7 +29,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\AkbankPos
@@ -94,15 +93,15 @@ class AkbankPosTest extends TestCase
             PosInterface::LANG_TR
         );
 
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
-        $this->requestValueMapper  = new AkbankPosRequestValueMapper();
-        $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->serializerMock         = $this->createMock(SerializerInterface::class);
+        $this->requestValueMapper     = new AkbankPosRequestValueMapper();
+        $this->requestMapperMock      = $this->createMock(RequestDataMapperInterface::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
         $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -159,15 +158,15 @@ class AkbankPosTest extends TestCase
      * @dataProvider make3DPayPaymentDataProvider
      */
     public function testMake3DPayPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $expectedResponse,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $expectedResponse,
+        bool   $isSuccess
     ): void {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->pos->getAccount(), $request->request->all())
+            ->with($this->pos->getAccount(), $gatewayResponseData)
             ->willReturn(true);
 
         $this->responseMapperMock->expects(self::never())
@@ -180,7 +179,7 @@ class AkbankPosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->make3DPayPayment($request, $order, $txType);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -191,11 +190,11 @@ class AkbankPosTest extends TestCase
      * @dataProvider make3DPayPaymentDataProvider
      */
     public function testMake3DPayPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $expectedResponse,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $expectedResponse,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -219,7 +218,7 @@ class AkbankPosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $pos->make3DPayPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -228,34 +227,30 @@ class AkbankPosTest extends TestCase
 
     public function testMake3DPayPaymentHashMismatchException(): void
     {
-        $request = Request::create(
-            '',
-            'POST',
-            AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']
-        );
+        $gatewayResponseData = AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(false);
 
         $this->expectException(HashMismatchException::class);
 
-        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, [], PosInterface::TX_TYPE_PAY_AUTH, null, $gatewayResponseData);
     }
 
     /**
      * @dataProvider make3DHostPaymentDataProvider
      */
     public function testMake3DHostPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $expectedResponse,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $expectedResponse,
+        bool   $isSuccess
     ): void {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(true);
 
         $this->responseMapperMock->expects(self::never())
@@ -268,7 +263,7 @@ class AkbankPosTest extends TestCase
             ->method('map3DHostResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->make3DHostPayment($request, $order, $txType);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -280,11 +275,11 @@ class AkbankPosTest extends TestCase
      * @dataProvider make3DHostPaymentDataProvider
      */
     public function testMake3DHostPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $expectedResponse,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $expectedResponse,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -308,7 +303,7 @@ class AkbankPosTest extends TestCase
             ->method('map3DHostResponseData')
             ->willReturn($expectedResponse);
 
-        $pos->make3DHostPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -317,43 +312,39 @@ class AkbankPosTest extends TestCase
 
     public function testMake3DHostPaymentHashMismatchException(): void
     {
-        $request = Request::create(
-            '',
-            'POST',
-            AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData']
-        );
+        $gatewayResponseData = AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData'];
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(false);
 
         $this->expectException(HashMismatchException::class);
 
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, [], PosInterface::TX_TYPE_PAY_AUTH, null, $gatewayResponseData);
     }
 
     /**
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
-                ->with($this->account, $request->request->all())
+                ->with($this->account, $gatewayResponseData)
                 ->willReturn(true);
         }
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -367,7 +358,7 @@ class AkbankPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
@@ -380,12 +371,12 @@ class AkbankPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -393,7 +384,7 @@ class AkbankPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $this->pos->make3DPayment($request, $order, $txType);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -404,13 +395,13 @@ class AkbankPosTest extends TestCase
      * @dataProvider make3DPaymentWithoutHashCheckDataProvider
      */
     public function testMake3DPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -426,7 +417,7 @@ class AkbankPosTest extends TestCase
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -440,7 +431,7 @@ class AkbankPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
@@ -453,12 +444,12 @@ class AkbankPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -470,7 +461,7 @@ class AkbankPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $pos->make3DPayment($request, $order, $txType);
+        $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
         $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -480,19 +471,15 @@ class AkbankPosTest extends TestCase
 
     public function testMake3DPaymentHashMismatchException(): void
     {
-        $request = Request::create(
-            '',
-            'POST',
-            AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-        );
+        $gatewayResponseData = AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(false);
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -502,7 +489,7 @@ class AkbankPosTest extends TestCase
 
         $this->expectException(HashMismatchException::class);
 
-        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], PosInterface::TX_TYPE_PAY_AUTH, null, $gatewayResponseData);
     }
 
     /**
@@ -652,7 +639,7 @@ class AkbankPosTest extends TestCase
             ->with(['paymentResponse'], $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType, $card);
     }
 
     /**
@@ -679,7 +666,7 @@ class AkbankPosTest extends TestCase
         );
 
         $this->expectException(\RuntimeException::class);
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType, $card);
     }
 
     /**
@@ -709,7 +696,7 @@ class AkbankPosTest extends TestCase
             ->with(['paymentResponse'], $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPostPayment($order);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType);
     }
 
     public function testStatusRequest(): void
@@ -882,43 +869,31 @@ class AkbankPosTest extends TestCase
     {
         return [
             'auth_fail'                    => [
-                'order'           => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
-                'txType'          => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
-                'expected'        => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
-                'is3DSuccess'     => false,
-                'isSuccess'       => false,
+                'order'               => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData'],
+                'paymentResponse'     => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
+                'is3DSuccess'         => false,
+                'isSuccess'           => false,
             ],
             '3d_auth_success_payment_fail' => [
-                'order'           => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
-                'txType'          => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
-                'expected'        => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => false,
+                'order'               => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData'],
+                'paymentResponse'     => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => false,
             ],
             'success'                      => [
-                'order'           => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-                ),
-                'paymentResponse' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                'order'               => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse'     => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -927,30 +902,22 @@ class AkbankPosTest extends TestCase
     {
         return [
             '3d_auth_success_payment_fail' => [
-                'order'           => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
-                'txType'          => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
-                'expected'        => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => false,
+                'order'               => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData'],
+                'paymentResponse'     => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => false,
             ],
             'success'                      => [
-                'order'           => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-                ),
-                'paymentResponse' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                'order'               => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse'     => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -1054,18 +1021,18 @@ class AkbankPosTest extends TestCase
     {
         return [
             'auth_fail' => [
-                'order'     => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
-                'txType'    => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
-                'request'   => Request::create('', 'POST', AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']),
-                'expected'  => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
-                'isSuccess' => false,
+                'order'               => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
+                'isSuccess'           => false,
             ],
             'success'   => [
-                'order'     => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
-                'txType'    => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
-                'request'   => Request::create('', 'POST', AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']),
-                'expected'  => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
-                'isSuccess' => true,
+                'order'               => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -1074,26 +1041,18 @@ class AkbankPosTest extends TestCase
     {
         return [
             'auth_fail' => [
-                'order'     => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['order'],
-                'txType'    => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['txType'],
-                'request'   => Request::create(
-                    '',
-                    'POST',
-                    AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['paymentData']
-                ),
-                'expected'  => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['expectedData'],
-                'isSuccess' => false,
+                'order'               => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['auth_fail']['expectedData'],
+                'isSuccess'           => false,
             ],
             'success'   => [
-                'order'     => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['order'],
-                'txType'    => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['txType'],
-                'request'   => Request::create(
-                    '',
-                    'POST',
-                    AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData']
-                ),
-                'expected'  => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['expectedData'],
-                'isSuccess' => true,
+                'order'               => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['order'],
+                'txType'              => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => AkbankPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['expectedData'],
+                'isSuccess'           => true,
             ],
         ];
     }

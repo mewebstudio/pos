@@ -83,7 +83,7 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
 }
 
 
-$order = createCancelOrder(get_class($pos), $session->get('last_response'), $ip);
+$order = createCancelOrder(get_class($pos), $_SESSION['last_response'] ?? null, $ip);
 dump($order);
 
 try {

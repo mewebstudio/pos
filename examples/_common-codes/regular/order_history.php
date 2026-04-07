@@ -60,7 +60,7 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
     return $order;
 }
 
-$lastResponse = $session->get('last_response');
+$lastResponse = $_SESSION['last_response'] ?? null;
 
 $order = createOrderHistoryOrder(get_class($pos), $lastResponse);
 dump($order);

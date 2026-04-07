@@ -88,7 +88,7 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
 }
 
 // odemeden aldiginiz cevap: $pos->getResponse();
-$lastResponse = $session->get('last_response');
+$_SESSION['last_response'] ?? null
 
 $order = createOrderHistoryOrder(get_class($pos), $lastResponse);
 

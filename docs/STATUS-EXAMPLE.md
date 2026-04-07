@@ -72,7 +72,7 @@ function createStatusOrder(string $gatewayClass, array $lastResponse, string $ip
 }
 
 // odemeden aldiginiz cevap: $pos->getResponse();
-$lastResponse = $session->get('last_response');
+$_SESSION['last_response'] ?? null
 $ip = '127.0.0.1';
 $order = createStatusOrder(get_class($pos), $lastResponse, $ip);
 
