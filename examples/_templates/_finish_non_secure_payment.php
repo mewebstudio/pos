@@ -54,11 +54,10 @@ $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (Request
 // OZEL DURUMLAR ICIN KODLAR END
 // ============================================================================================
 try {
-    doPayment($pos, $paymentModel, $transaction, $order, $card);
+    $response = doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (Exception $e) {
     dd($e);
 }
-$response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
     $_SESSION['last_response'] = $response;

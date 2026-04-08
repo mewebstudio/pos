@@ -76,22 +76,19 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
             $card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'hata');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     public function testNonSecureForeignCurrencyPaymentSuccess(): array
@@ -117,22 +114,19 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
             $card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'hata');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     public function testNonSecurePaymentWithInstallment(): array
@@ -140,21 +134,18 @@ class ParamPosTest extends TestCase
         $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
         $order['installment'] = 2;
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'hata');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     public function testNonSecurePrePaymentSuccess(): array
@@ -170,22 +161,19 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_PRE_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'hata');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -204,22 +192,19 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_POST_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'hata');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -239,10 +224,9 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->status($statusOrder);
+        $response = $this->pos->status($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -268,10 +252,9 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->cancel($cancelOrder);
+        $response = $this->pos->cancel($cancelOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -283,14 +266,12 @@ class ParamPosTest extends TestCase
     {
         $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
-        $this->pos->payment(
+        $lastResponse = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_PRE_AUTH,
             $this->card
         );
-
-        $lastResponse = $this->pos->getResponse();
 
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'hata');
 
@@ -397,7 +378,7 @@ class ParamPosTest extends TestCase
     {
         $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
-        $this->pos->payment(
+        $lastResponse = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
@@ -405,8 +386,6 @@ class ParamPosTest extends TestCase
         );
 
         $this->assertTrue($this->pos->isSuccess());
-
-        $lastResponse = $this->pos->getResponse();
         $this->assertTrue($this->pos->isSuccess(), $lastResponse['error_message'] ?? 'hata');
 
         $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
@@ -421,8 +400,8 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
-        $response = $this->pos->getResponse();
+        $response = $this->pos->refund($refundOrder);
+
         // fails with error: Failed, Bu işlem geri alınamaz, lüften asıl işlemi iptal edin.
         $this->assertFalse($this->pos->isSuccess(), $response['error_message'] ?? 'hata');
         $this->assertIsArray($response);
@@ -450,9 +429,8 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->customQuery($customQuery);
+        $response = $this->pos->customQuery($customQuery);
 
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertArrayHasKey('TP_Ozel_Oran_ListeResponse', $response);
@@ -475,9 +453,8 @@ class ParamPosTest extends TestCase
             }
         );
 
-        $this->pos->history($historyOrder);
+        $response = $this->pos->history($historyOrder);
 
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertTrue($eventIsThrown);
         $this->assertNotEmpty($response['transactions']);

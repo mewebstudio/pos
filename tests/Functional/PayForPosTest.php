@@ -74,7 +74,7 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
@@ -82,13 +82,11 @@ class PayForPosTest extends TestCase
         );
 
         $this->assertTrue($this->pos->isSuccess());
-
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -108,10 +106,9 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->status($statusOrder);
+        $response = $this->pos->status($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -137,9 +134,8 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->cancel($statusOrder);
+        $response = $this->pos->cancel($statusOrder);
 
-        $response = $this->pos->getResponse();
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
@@ -166,9 +162,8 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->orderHistory($historyOrder);
+        $response = $this->pos->orderHistory($historyOrder);
 
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -188,9 +183,8 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->history($historyOrder);
+        $response = $this->pos->history($historyOrder);
 
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertTrue($eventIsThrown);
         $this->assertNotEmpty($response['transactions']);
@@ -215,7 +209,7 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_PRE_AUTH,
@@ -223,13 +217,11 @@ class PayForPosTest extends TestCase
         );
 
         $this->assertTrue($this->pos->isSuccess());
-
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -249,14 +241,13 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_POST_AUTH
         );
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -309,10 +300,9 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
+        $response = $this->pos->refund($refundOrder);
 
         $this->assertFalse($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertSame('V014', $response['proc_return_code']);
@@ -341,9 +331,7 @@ class PayForPosTest extends TestCase
             }
         );
 
-        $this->pos->customQuery($customQuery);
-
-        $response = $this->pos->getResponse();
+        $response = $this->pos->customQuery($customQuery);
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);

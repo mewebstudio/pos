@@ -199,7 +199,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null, ?array $gatewayResponseData = null): PosInterface
+    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null, ?array $gatewayResponseData = null): array
     {
         $this->logger->debug('payment called', [
             'card_provided' => (bool) $creditCard,
@@ -207,9 +207,7 @@ abstract class AbstractGateway implements PosInterface
             'model'         => $paymentModel,
         ]);
         if (PosInterface::TX_TYPE_PAY_POST_AUTH === $txType) {
-            $this->makeRegularPostPayment($order);
-
-            return $this;
+            return $this->makeRegularPostPayment($order);
         }
 
         if (PosInterface::MODEL_NON_SECURE === $paymentModel) {
@@ -217,9 +215,7 @@ abstract class AbstractGateway implements PosInterface
                 throw new LogicException('Bu işlem için kredi kartı bilgileri zorunlu!');
             }
 
-            $this->makeRegularPayment($order, $creditCard, $txType);
-
-            return $this;
+            return $this->makeRegularPayment($order, $creditCard, $txType);
         }
 
         if (null === $gatewayResponseData || [] === $gatewayResponseData) {
@@ -227,23 +223,23 @@ abstract class AbstractGateway implements PosInterface
         }
 
         if (PosInterface::MODEL_3D_SECURE === $paymentModel) {
-            $this->make3DPayment($gatewayResponseData, $order, $txType, $creditCard);
-        } elseif (PosInterface::MODEL_3D_PAY === $paymentModel || PosInterface::MODEL_3D_PAY_HOSTING === $paymentModel) {
-            $this->make3DPayPayment($gatewayResponseData, $order, $txType);
-        } elseif (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $this->make3DHostPayment($gatewayResponseData, $order, $txType);
-        } else {
-            $this->logger->error('unsupported payment model', ['model' => $paymentModel]);
-            throw new UnsupportedPaymentModelException();
+            return $this->make3DPayment($gatewayResponseData, $order, $txType, $creditCard);
+        }
+        if (PosInterface::MODEL_3D_PAY === $paymentModel || PosInterface::MODEL_3D_PAY_HOSTING === $paymentModel) {
+            return $this->make3DPayPayment($gatewayResponseData, $order, $txType);
+        }
+        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
+            return $this->make3DHostPayment($gatewayResponseData, $order, $txType);
         }
 
-        return $this;
+        $this->logger->error('unsupported payment model', ['model' => $paymentModel]);
+        throw new UnsupportedPaymentModelException();
     }
 
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): array
     {
         $paymentModel = PosInterface::MODEL_NON_SECURE;
         $this->logger->debug('making payment', [
@@ -290,13 +286,13 @@ abstract class AbstractGateway implements PosInterface
         );
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function makeRegularPostPayment(array $order): PosInterface
+    public function makeRegularPostPayment(array $order): array
     {
         $txType       = PosInterface::TX_TYPE_PAY_POST_AUTH;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
@@ -342,13 +338,13 @@ abstract class AbstractGateway implements PosInterface
 
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function refund(array $order): PosInterface
+    public function refund(array $order): array
     {
         $txType       = PosInterface::TX_TYPE_REFUND;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
@@ -392,13 +388,13 @@ abstract class AbstractGateway implements PosInterface
         );
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function cancel(array $order): PosInterface
+    public function cancel(array $order): array
     {
         $txType       = PosInterface::TX_TYPE_CANCEL;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
@@ -438,13 +434,13 @@ abstract class AbstractGateway implements PosInterface
         );
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function status(array $order): PosInterface
+    public function status(array $order): array
     {
         $txType       = PosInterface::TX_TYPE_STATUS;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
@@ -485,13 +481,13 @@ abstract class AbstractGateway implements PosInterface
 
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         $txType       = PosInterface::TX_TYPE_HISTORY;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
@@ -532,13 +528,13 @@ abstract class AbstractGateway implements PosInterface
 
         $this->response     = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function orderHistory(array $order): PosInterface
+    public function orderHistory(array $order): array
     {
         $txType       = PosInterface::TX_TYPE_ORDER_HISTORY;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
@@ -579,13 +575,13 @@ abstract class AbstractGateway implements PosInterface
 
         $this->response = $this->responseDataMapper->mapOrderHistoryResponse($bankResponse);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): array
     {
         $txType       = PosInterface::TX_TYPE_CUSTOM_QUERY;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
@@ -627,7 +623,7 @@ abstract class AbstractGateway implements PosInterface
 
         $this->response = $bankResponse;
 
-        return $this;
+        return $this->response;
     }
 
     /**

@@ -28,11 +28,10 @@ try {
     });
 
     dump($order);
-    doPayment($pos, $paymentModel, $transaction, $order, null);
+    $response = doPayment($pos, $paymentModel, $transaction, $order, null);
 } catch (Exception $e) {
     dd($e);
 }
-$response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
     $_SESSION['last_response'] = $response;

@@ -67,14 +67,14 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         if (!$this->is3DAuthSuccess($gatewayResponseData)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponseData, null, $txType, $order);
 
-            return $this;
+            return $this->response;
         }
 
         if (
@@ -125,17 +125,17 @@ class GarantiPos extends AbstractGateway
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponseData, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
@@ -162,7 +162,7 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }

@@ -328,9 +328,8 @@ class PayFlexCPV4PosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -390,9 +389,8 @@ class PayFlexCPV4PosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $this->pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }

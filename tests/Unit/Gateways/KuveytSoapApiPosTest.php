@@ -262,9 +262,8 @@ class KuveytSoapApiPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->status($order);
+        $result = $this->pos->status($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -298,9 +297,8 @@ class KuveytSoapApiPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->cancel($order);
+        $result = $this->pos->cancel($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -335,9 +333,8 @@ class KuveytSoapApiPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->refund($order);
+        $result = $this->pos->refund($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }

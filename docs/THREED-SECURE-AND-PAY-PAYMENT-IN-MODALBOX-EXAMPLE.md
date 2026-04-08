@@ -287,7 +287,7 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
 }
 
 try  {
-    $pos->payment(
+    $response = $pos->payment(
         $paymentModel,
         $order,
         $transactionType,
@@ -297,8 +297,6 @@ try  {
 
     // Ödeme başarılı mı?
     $pos->isSuccess();
-    // Sonuç çıktısı
-    $response = $pos->getResponse();
 } catch (Mews\Pos\Exceptions\HashMismatchException $e) {
     /**
      * Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.

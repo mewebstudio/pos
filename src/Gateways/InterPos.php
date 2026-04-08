@@ -69,7 +69,7 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
@@ -79,7 +79,7 @@ class InterPos extends AbstractGateway
         if (!$this->is3DAuthSuccess($gatewayResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
 
-            return $this;
+            return $this->response;
         }
 
         if (!$this->is3DHashCheckDisabled()
@@ -126,34 +126,34 @@ class InterPos extends AbstractGateway
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * Deniz bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -161,7 +161,7 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function orderHistory(array $order): PosInterface
+    public function orderHistory(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }

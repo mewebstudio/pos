@@ -119,21 +119,20 @@ class PayFlexV4PosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
         $this->assertTrue($this->pos->isSuccess());
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -153,10 +152,9 @@ class PayFlexV4PosTest extends TestCase
             }
         );
 
-        $this->pos->cancel($statusOrder);
+        $response = $this->pos->cancel($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -183,22 +181,19 @@ class PayFlexV4PosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_PRE_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess());
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -217,15 +212,13 @@ class PayFlexV4PosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_POST_AUTH
         );
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -249,9 +242,8 @@ class PayFlexV4PosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
+        $response = $this->pos->refund($refundOrder);
 
-        $response = $this->pos->getResponse();
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);

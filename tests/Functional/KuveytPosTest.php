@@ -171,22 +171,19 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -206,10 +203,9 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->soapApiPos->cancel($statusOrder);
+        $response = $this->soapApiPos->cancel($statusOrder);
 
         $this->assertTrue($this->soapApiPos->isSuccess());
-        $response = $this->soapApiPos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -234,10 +230,9 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->soapApiPos->status($statusOrder);
+        $response = $this->soapApiPos->status($statusOrder);
 
         $this->assertTrue($this->soapApiPos->isSuccess());
-        $response = $this->soapApiPos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -249,7 +244,7 @@ class KuveytPosTest extends TestCase
     {
         $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
@@ -258,7 +253,7 @@ class KuveytPosTest extends TestCase
 
         $this->assertTrue($this->pos->isSuccess());
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -278,8 +273,7 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->soapApiPos->refund($refundOrder);
-        $response = $this->soapApiPos->getResponse();
+        $response = $this->soapApiPos->refund($refundOrder);
 
         $this->assertFalse($this->soapApiPos->isSuccess());
         $this->assertIsArray($response);
@@ -314,8 +308,7 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->soapApiPos->refund($refundOrder);
-        $response = $this->soapApiPos->getResponse();
+        $response = $this->soapApiPos->refund($refundOrder);
 
         $this->assertTrue($this->soapApiPos->isSuccess(), $response['error_message'] ?? 'error');
         $this->assertIsArray($response);

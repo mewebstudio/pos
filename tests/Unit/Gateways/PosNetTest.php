@@ -418,9 +418,8 @@ class PosNetTest extends TestCase
                 ->method('create3DPaymentRequestData');
         }
 
-        $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -597,9 +596,8 @@ class PosNetTest extends TestCase
                 ->method('create3DPaymentRequestData');
         }
 
-        $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $pos->isSuccess());
     }

@@ -86,7 +86,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -94,7 +94,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         if (
             $this->is3DAuthSuccess($gatewayResponseData)
@@ -108,13 +108,13 @@ class ToslaPos extends AbstractGateway
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         if (
             $this->is3DAuthSuccess($gatewayResponseData)
@@ -128,7 +128,7 @@ class ToslaPos extends AbstractGateway
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
@@ -165,7 +165,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
     }

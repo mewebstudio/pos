@@ -72,12 +72,10 @@ $order = createRefundOrder(
 dump($order);
 
 try {
-    $pos->refund($order);
+    $response = $pos->refund($order);
 } catch (Exception $e) {
     dd($e);
 }
-
-$response = $pos->getResponse();
 
 require '../../_templates/_simple_response_dump.php';
 require '../../_templates/_footer.php';

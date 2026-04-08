@@ -78,7 +78,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
 
 // Ödeme tamamlanıyor
 try {
-    $pos->payment(
+    $response = $pos->payment(
         $paymentModel,
         $order,
         $transactionType,
@@ -88,9 +88,6 @@ try {
     var_dump($e);
     exit;
 }
-
-// Sonuç çıktısı
-$response = $pos->getResponse();
 
 var_dump($response);
 // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.

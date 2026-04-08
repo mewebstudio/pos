@@ -149,16 +149,13 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
     $gatewayResponseData = $_GET;
 }
 try  {
-    $pos->payment(
+    $response = $pos->payment(
         $paymentModel,
         $order,
         $transactionType,
         $card,
         $gatewayResponseData
     );
-
-    // Sonuç çıktısı
-    $response = $pos->getResponse();
     var_dump($response);
     // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 

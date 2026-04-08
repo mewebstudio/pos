@@ -87,17 +87,16 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
     return $order;
 }
 
-// odemeden aldiginiz cevap: $pos->getResponse();
+// ödeme işlemi sonrası dönen veriler:
 $_SESSION['last_response'] ?? null
 
 $order = createOrderHistoryOrder(get_class($pos), $lastResponse);
 
 try {
-    $pos->orderHistory($order);
+    $response = $pos->orderHistory($order);
 } catch (\Error $e) {
     var_dump($e);
     exit;
 }
-$response = $pos->getResponse();
 var_dump($response);
 ```

@@ -121,6 +121,12 @@ parameters:
 			path: src/Gateways/AbstractGateway.php
 
 		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Gateways/AbstractGateway.php
+
+		-
 			message: '#^Parameter \#2 \$rawPaymentResponseData of method Mews\\Pos\\DataMapper\\ResponseDataMapper\\GarantiPosResponseDataMapper\:\:map3DPaymentData\(\) expects array\{Order\: array\<string, array\<string, string\|null\>\|string\>, Response\: array\<string, string\>, Transaction\: array\<string, array\<string, string\>\|string\>\}\|null, array\<string, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -133,13 +139,13 @@ parameters:
 			path: src/Gateways/PayFlexCPV4Pos.php
 
 		-
-			message: '#^Parameter \#1 \$raw3DAuthResponseData of method Mews\\Pos\\DataMapper\\ResponseDataMapper\\PayFlexCPV4PosResponseDataMapper\:\:map3DHostResponseData\(\) expects array\{ErrorCode\: string\}\|array\{Rc\: string, AuthCode\: string, TransactionId\: string, PaymentToken\: string, MaskedPan\: string\}\|array\{Rc\: string, Message\: string, TransactionId\: string, PaymentToken\: string\}, array given\.$#'
+			message: '#^Parameter \#1 \$raw3DAuthResponseData of method Mews\\Pos\\DataMapper\\ResponseDataMapper\\PayFlexCPV4PosResponseDataMapper\:\:map3DHostResponseData\(\) expects array\{ErrorCode\: string\}\|array\{Rc\: string, AuthCode\: string, TransactionId\: string, PaymentToken\: string, MaskedPan\: string\}\|array\{Rc\: string, Message\: string, TransactionId\: string, PaymentToken\: string\}, array\<string, string\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Gateways/PayFlexCPV4Pos.php
 
 		-
-			message: '#^Parameter \#1 \$raw3DAuthResponseData of method Mews\\Pos\\DataMapper\\ResponseDataMapper\\PayFlexCPV4PosResponseDataMapper\:\:map3DPayResponseData\(\) expects array\{ErrorCode\: string\}\|array\{Rc\: string, AuthCode\: string, TransactionId\: string, PaymentToken\: string, MaskedPan\: string\}\|array\{Rc\: string, Message\: string, TransactionId\: string, PaymentToken\: string\}, array given\.$#'
+			message: '#^Parameter \#1 \$raw3DAuthResponseData of method Mews\\Pos\\DataMapper\\ResponseDataMapper\\PayFlexCPV4PosResponseDataMapper\:\:map3DPayResponseData\(\) expects array\{ErrorCode\: string\}\|array\{Rc\: string, AuthCode\: string, TransactionId\: string, PaymentToken\: string, MaskedPan\: string\}\|array\{Rc\: string, Message\: string, TransactionId\: string, PaymentToken\: string\}, array\<string, string\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Gateways/PayFlexCPV4Pos.php

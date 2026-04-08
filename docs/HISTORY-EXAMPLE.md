@@ -83,11 +83,10 @@ function createHistoryOrder(string $gatewayClass, array $extraData, string $ip):
 $order = createHistoryOrder(get_class($pos), [], '127.0.0.1');
 
 try {
-    $pos->history($order);
+    $response = $pos->history($order);
 } catch (\Error $e) {
     var_dump($e);
     exit;
 }
-$response = $pos->getResponse();
 var_dump($response);
 ```

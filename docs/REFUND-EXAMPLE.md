@@ -88,7 +88,7 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
     return $refundOrder;
 }
 
-// odemeden aldiginiz cevap: $pos->getResponse();
+// ödeme işlemi sonrası dönen veriler:
 $_SESSION['last_response'] ?? null
 
 // tam iade:
@@ -100,12 +100,10 @@ $ip = '127.0.0.1';
 $order = createRefundOrder(get_class($pos), $lastResponse, $ip, $refundAmount);
 
 try {
-    $pos->refund($order);
+    $response = $pos->refund($order);
 } catch (\Error $e) {
     var_dump($e);
     exit;
 }
-
-$response = $pos->getResponse();
 var_dump($response);
 ```

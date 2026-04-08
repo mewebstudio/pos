@@ -57,7 +57,7 @@ class KuveytSoapApiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -65,7 +65,7 @@ class KuveytSoapApiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -74,7 +74,7 @@ class KuveytSoapApiPos extends AbstractGateway
      * Kuveyt bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -83,7 +83,7 @@ class KuveytSoapApiPos extends AbstractGateway
      * Kuveyt bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
      * @inheritDoc
      */
-    public function orderHistory(array $order): PosInterface
+    public function orderHistory(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -99,7 +99,7 @@ class KuveytSoapApiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -107,7 +107,7 @@ class KuveytSoapApiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function makeRegularPostPayment(array $order): PosInterface
+    public function makeRegularPostPayment(array $order): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -115,7 +115,7 @@ class KuveytSoapApiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         throw new UnsupportedPaymentModelException('Bu işlem için KuveytPos gateway kullanılmalıdır.');
     }
@@ -123,7 +123,7 @@ class KuveytSoapApiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): array
     {
         throw new UnsupportedTransactionTypeException();
     }

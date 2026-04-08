@@ -40,7 +40,7 @@ $paymentModel  = null;
 $posClass      = null;
 $transaction   = null;
 
-function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\CreditCardInterface $card)
+function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\CreditCardInterface $card): array
 {
     if (!$pos::isSupportedTransaction($transaction, $paymentModel)) {
         throw new \LogicException(
@@ -51,12 +51,13 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
     if (PosInterface::MODEL_NON_SECURE === $paymentModel) {
         if (in_array($transaction, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
             // bu işlemlerde kredi kart bilgileri zorunlu.
-            $pos->payment($paymentModel, $order, $transaction, $card);
-        } elseif (PosInterface::TX_TYPE_PAY_POST_AUTH === $transaction) {
-            $pos->payment($paymentModel, $order, $transaction);
+            return $pos->payment($paymentModel, $order, $transaction, $card);
+        }
+        if (PosInterface::TX_TYPE_PAY_POST_AUTH === $transaction) {
+            return $pos->payment($paymentModel, $order, $transaction);
         }
 
-        return;
+        throw new \LogicException('Hatalı işlem');
     }
 
     if (PosInterface::MODEL_3D_SECURE === $paymentModel) {
@@ -71,13 +72,13 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
             /**
              * diğer banklaradan farklı olarak 3d işlemler için de PayFlex bu aşamada kredi kart bilgileri istiyor.
              */
-            $pos->payment($paymentModel, $order, $transaction, $card, $gatewayResponseData);
-
-            return;
+            return $pos->payment($paymentModel, $order, $transaction, $card, $gatewayResponseData);
         }
 
-        $pos->payment($paymentModel, $order, $transaction, null, $gatewayResponseData);
+        return $pos->payment($paymentModel, $order, $transaction, null, $gatewayResponseData);
     }
+
+    throw new \LogicException('Hatalı işlem');
 }
 
 function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?PosInterface

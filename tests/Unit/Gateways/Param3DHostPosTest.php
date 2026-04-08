@@ -260,9 +260,8 @@ class Param3DHostPosTest extends TestCase
 
         $pos = $this->pos;
 
-        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame(['status' => 'approved'], $result);
         $this->assertTrue($pos->isSuccess());
     }
@@ -294,9 +293,8 @@ class Param3DHostPosTest extends TestCase
             ->with($gatewayResponseData, $txType, $order)
             ->willReturn(['status' => 'approved']);
 
-        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame(['status' => 'approved'], $result);
         $this->assertTrue($pos->isSuccess());
     }

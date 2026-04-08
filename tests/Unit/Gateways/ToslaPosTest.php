@@ -186,9 +186,8 @@ class ToslaPosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -230,9 +229,8 @@ class ToslaPosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $pos->isSuccess());
     }
@@ -290,9 +288,8 @@ class ToslaPosTest extends TestCase
             ->method('map3DHostResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -334,9 +331,8 @@ class ToslaPosTest extends TestCase
             ->method('map3DHostResponseData')
             ->willReturn($expectedResponse);
 
-        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $pos->isSuccess());
     }
@@ -501,10 +497,9 @@ class ToslaPosTest extends TestCase
             $account
         );
 
-        $this->pos->status($order);
+        $result = $this->pos->status($order);
 
         $this->assertSame($isSuccess, $this->pos->isSuccess());
-        $result = $this->pos->getResponse();
         $this->assertSame($result, $mappedResponse);
     }
 
@@ -541,10 +536,9 @@ class ToslaPosTest extends TestCase
             $this->account
         );
 
-        $this->pos->cancel($order);
+        $result = $this->pos->cancel($order);
 
         $this->assertSame($isSuccess, $this->pos->isSuccess());
-        $result = $this->pos->getResponse();
         $this->assertSame($result, $mappedResponse);
     }
 
@@ -581,10 +575,9 @@ class ToslaPosTest extends TestCase
             $this->account
         );
 
-        $this->pos->refund($order);
+        $result = $this->pos->refund($order);
 
         $this->assertSame($isSuccess, $this->pos->isSuccess());
-        $result = $this->pos->getResponse();
         $this->assertSame($result, $mappedResponse);
     }
 
@@ -629,10 +622,9 @@ class ToslaPosTest extends TestCase
             $this->account
         );
 
-        $this->pos->orderHistory($order);
+        $result = $this->pos->orderHistory($order);
 
         $this->assertSame($isSuccess, $this->pos->isSuccess());
-        $result = $this->pos->getResponse();
         $this->assertSame($result, $mappedResponse);
     }
 

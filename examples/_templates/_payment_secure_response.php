@@ -86,7 +86,7 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
 // ============================================================================================
 
 try {
-    doPayment($pos, $paymentModel, $transaction, $order, $card);
+    $response = doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (HashMismatchException $e) {
     /**
      * Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
@@ -99,7 +99,6 @@ try {
 } catch (\Exception|\Error $e) {
     dd($e);
 }
-$response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
     $_SESSION['last_response'] = $response;

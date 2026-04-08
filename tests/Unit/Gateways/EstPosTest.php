@@ -227,9 +227,8 @@ class EstPosTest extends TestCase
 
         $pos = $this->pos;
 
-        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
@@ -261,9 +260,8 @@ class EstPosTest extends TestCase
             ->with($gatewayResponseData, $txType, $order)
             ->willReturn($testData['expectedData']);
 
-        $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
@@ -306,9 +304,8 @@ class EstPosTest extends TestCase
 
         $pos = $this->pos;
 
-        $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
@@ -340,9 +337,8 @@ class EstPosTest extends TestCase
             ->with($gatewayResponseData, $txType, $order)
             ->willReturn($testData['expectedData']);
 
-        $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
@@ -394,9 +390,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->status($order);
+        $result = $this->pos->status($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -437,9 +432,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->orderHistory($order);
+        $result = $this->pos->orderHistory($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -474,9 +468,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->cancel($order);
+        $result = $this->pos->cancel($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -511,9 +504,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->refund($order);
+        $result = $this->pos->refund($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -579,9 +571,8 @@ class EstPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -656,9 +647,8 @@ class EstPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
+        $result = $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $pos->isSuccess());
     }

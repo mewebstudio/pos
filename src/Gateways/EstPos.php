@@ -63,7 +63,7 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
@@ -81,7 +81,7 @@ class EstPos extends AbstractGateway
                 $order
             );
 
-            return $this;
+            return $this->response;
         }
 
         if (
@@ -135,13 +135,13 @@ class EstPos extends AbstractGateway
         );
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         if (
             !$this->is3DHashCheckDisabled()
@@ -152,13 +152,13 @@ class EstPos extends AbstractGateway
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         if (
             !$this->is3DHashCheckDisabled()
@@ -169,7 +169,7 @@ class EstPos extends AbstractGateway
 
         $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
@@ -196,7 +196,7 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
     }

@@ -142,26 +142,26 @@ interface PosInterface
      * @param CreditCardInterface  $creditCard
      * @param string               $txType
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws \LogicException
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface;
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): array;
 
     /**
      * Ön Provizyon kapama işlemi
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws UnsupportedPaymentModelException
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function makeRegularPostPayment(array $order): PosInterface;
+    public function makeRegularPostPayment(array $order): array;
 
     /**
      * Make 3D Payment
@@ -172,14 +172,14 @@ interface PosInterface
      * @param string                   $txType
      * @param CreditCardInterface|null $creditCard simdilik sadece PayFlexV4Pos icin card isteniyor.
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws HashMismatchException
      * @throws UnsupportedTransactionTypeException
      * @throws UnsupportedPaymentModelException
      * @throws ClientExceptionInterface
      */
-    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface;
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array;
 
     /**
      * Just returns formatted data of 3d_pay payment response
@@ -189,13 +189,13 @@ interface PosInterface
      * @param array<string, mixed>  $order
      * @param string                $txType
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws HashMismatchException
      * @throws UnsupportedTransactionTypeException
      * @throws UnsupportedPaymentModelException
      */
-    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): PosInterface;
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array;
 
     /**
      * Just returns formatted data of host payment response
@@ -205,13 +205,13 @@ interface PosInterface
      * @param array<string, mixed>  $order
      * @param string                $txType
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws HashMismatchException
      * @throws UnsupportedTransactionTypeException
      * @throws UnsupportedPaymentModelException
      */
-    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): PosInterface;
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array;
 
     /**
      * Main Payment method
@@ -227,72 +227,72 @@ interface PosInterface
      * @param CreditCardInterface|null   $creditCard
      * @param array<string, string>|null $gatewayResponseData 3D tür ödeme sonrası gateway tarafından POST/GET edilen veriler.
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws UnsupportedPaymentModelException
      * @throws UnsupportedTransactionTypeException
      * @throws \LogicException
      * @throws ClientExceptionInterface
      */
-    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null, ?array $gatewayResponseData = null): PosInterface;
+    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null, ?array $gatewayResponseData = null): array;
 
     /**
      * Refund Order
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function refund(array $order): PosInterface;
+    public function refund(array $order): array;
 
     /**
      * Cancel Order
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function cancel(array $order): PosInterface;
+    public function cancel(array $order): array;
 
     /**
      * Order Status
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function status(array $order): PosInterface;
+    public function status(array $order): array;
 
     /**
      * Order History
      *
      * @param array<string, mixed> $order
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function orderHistory(array $order): PosInterface;
+    public function orderHistory(array $order): array;
 
     /**
      * @param array<string, mixed> $data
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function history(array $data): PosInterface;
+    public function history(array $data): array;
 
 
     /**
@@ -306,11 +306,11 @@ interface PosInterface
      * @param array<string, mixed>  $requestData API'a gönderilecek veri.
      * @param non-empty-string|null $apiUrl
      *
-     * @return PosInterface
+     * @return array<string, mixed>
      *
      * @throws ClientExceptionInterface
      */
-    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface;
+    public function customQuery(array $requestData, ?string $apiUrl = null): array;
 
     /**
      * Is success
