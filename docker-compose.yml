@@ -9,5 +9,6 @@ services:
       - ./:/var/www/
       - ./.docker/virtualhost.conf:/etc/apache2/sites-available/000-default.conf
       - ./.docker/php-xdebug.ini:/usr/local/etc/php/php.ini
+      - ./var/log:/var/www/var/log
     ports:
       - "80:80"

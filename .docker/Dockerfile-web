@@ -17,3 +17,5 @@ RUN pecl install xdebug-3.5.0 && docker-php-ext-enable xdebug
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 
 WORKDIR /var/www
+
+RUN mkdir -p /var/www/var/log
