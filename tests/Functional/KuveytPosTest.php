@@ -4,6 +4,8 @@
  * @license MIT
  */
 
+namespace Mews\Pos\Tests\Functional;
+
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -43,7 +45,7 @@ class KuveytPosTest extends TestCase
 
         $this->eventDispatcher = new EventDispatcher();
 
-        $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
+        $this->pos        = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
@@ -135,7 +137,7 @@ class KuveytPosTest extends TestCase
             $this->card,
         );
 
-        $this->assertIsArray($formData);
+        $this->assertIsString($formData);
         $this->assertNotEmpty($formData);
         $this->assertTrue($eventIsThrown);
     }
@@ -153,22 +155,19 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
-
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -188,10 +187,9 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->cancel($statusOrder);
+        $response = $this->pos->cancel($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -216,10 +214,9 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->status($statusOrder);
+        $response = $this->pos->status($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -231,7 +228,7 @@ class KuveytPosTest extends TestCase
     {
         $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
@@ -240,7 +237,7 @@ class KuveytPosTest extends TestCase
 
         $this->assertTrue($this->pos->isSuccess());
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -260,8 +257,7 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
-        $response = $this->pos->getResponse();
+        $response = $this->pos->refund($refundOrder);
 
         $this->assertFalse($this->pos->isSuccess());
         $this->assertIsArray($response);
@@ -296,8 +292,7 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
-        $response = $this->pos->getResponse();
+        $response = $this->pos->refund($refundOrder);
 
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'error');
         $this->assertIsArray($response);

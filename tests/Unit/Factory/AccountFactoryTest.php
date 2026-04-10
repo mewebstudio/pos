@@ -29,7 +29,6 @@ class AccountFactoryTest extends TestCase
             '11111',
             'kdsnsksl',
             PosInterface::MODEL_3D_SECURE,
-            PosInterface::LANG_TR,
             'SUB1',
         );
 
@@ -47,7 +46,6 @@ class AccountFactoryTest extends TestCase
             '1',
             'APIUSER',
             'kdsnsksl',
-            PosInterface::LANG_EN,
             'SUB1',
         );
 
@@ -55,7 +53,6 @@ class AccountFactoryTest extends TestCase
         $this->assertSame('APIUSER', $account->getTerminalId());
         $this->assertSame('kdsnsksl', $account->getStoreKey());
         $this->assertSame('SUB1', $account->getSubMerchantId());
-        $this->assertSame(PosInterface::LANG_EN, $account->getLang());
     }
 
     public function testCreateParamPosAccount(): void
@@ -72,7 +69,6 @@ class AccountFactoryTest extends TestCase
         $this->assertSame('APIUSER', $account->getUsername());
         $this->assertSame('kdsnsksl', $account->getPassword());
         $this->assertSame('guid123', $account->getStoreKey());
-        $this->assertSame(PosInterface::LANG_TR, $account->getLang());
     }
 
     public function testCreatePayForPosAccount(): void
@@ -84,7 +80,6 @@ class AccountFactoryTest extends TestCase
             'UcBN0',
             PosInterface::MODEL_3D_SECURE,
             '12345678',
-            PosInterface::LANG_EN,
             \Mews\Pos\Entity\Account\PayForAccount::MBR_ID_ZIRAAT_KATILIM
         );
 
@@ -92,7 +87,6 @@ class AccountFactoryTest extends TestCase
         $this->assertSame('QNB_API_KULLANICI_3DPAY', $account->getUsername());
         $this->assertSame('UcBN0', $account->getPassword());
         $this->assertSame('12345678', $account->getStoreKey());
-        $this->assertSame(PosInterface::LANG_EN, $account->getLang());
         $this->assertSame(PayForAccount::MBR_ID_ZIRAAT_KATILIM, $account->getMbrId());
     }
 }

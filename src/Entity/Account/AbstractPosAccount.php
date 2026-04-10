@@ -6,8 +6,6 @@
 
 namespace Mews\Pos\Entity\Account;
 
-use Mews\Pos\PosInterface;
-
 abstract class AbstractPosAccount
 {
     protected string $clientId;
@@ -21,9 +19,6 @@ abstract class AbstractPosAccount
      */
     protected ?string $storeKey;
 
-    /** @var PosInterface::LANG_* */
-    protected string $lang;
-
     /**
      * bank key name used in configuration file
      */
@@ -32,21 +27,19 @@ abstract class AbstractPosAccount
     /**
      * AbstractPosAccount constructor.
      *
-     * @param string               $bank
-     * @param string               $clientId
-     * @param string               $username
-     * @param string               $password
-     * @param PosInterface::LANG_* $lang
-     * @param string|null          $storeKey
+     * @param string      $bank
+     * @param string      $clientId
+     * @param string      $username
+     * @param string      $password
+     * @param string|null $storeKey
      */
-    public function __construct(string $bank, string $clientId, string $username, string $password, string $lang, ?string $storeKey = null)
+    public function __construct(string $bank, string $clientId, string $username, string $password, ?string $storeKey = null)
     {
         $this->clientId = $clientId;
         $this->username = $username;
         $this->password = $password;
         $this->storeKey = $storeKey;
-        $this->lang = $lang;
-        $this->bank = $bank;
+        $this->bank     = $bank;
     }
 
     /**
@@ -79,14 +72,6 @@ abstract class AbstractPosAccount
     public function getStoreKey(): ?string
     {
         return $this->storeKey;
-    }
-
-    /**
-     * @return string
-     */
-    public function getLang(): string
-    {
-        return $this->lang;
     }
 
     /**

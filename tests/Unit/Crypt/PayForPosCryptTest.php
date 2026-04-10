@@ -10,6 +10,8 @@ use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -43,6 +45,14 @@ class PayForPosCryptTest extends TestCase
         $this->crypt = new PayForPosCrypt($logger);
     }
 
+    public function testSupports(): void
+    {
+        $supports = $this->crypt::supports(PayForPos::class);
+        $this->assertTrue($supports);
+
+        $supports = $this->crypt::supports(EstV3Pos::class);
+        $this->assertFalse($supports);
+    }
 
     /**
      * @dataProvider threeDHashCreateDataProvider

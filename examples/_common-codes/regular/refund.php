@@ -58,7 +58,7 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
     return $refundOrder;
 }
 
-$lastResponse = $session->get('last_response');
+$lastResponse = $_SESSION['last_response'] ?? null;
 // kismi iade:
 $refundAmount = $lastResponse['amount'] - 2;
 
@@ -72,12 +72,10 @@ $order = createRefundOrder(
 dump($order);
 
 try {
-    $pos->refund($order);
+    $response = $pos->refund($order);
 } catch (Exception $e) {
     dd($e);
 }
-
-$response = $pos->getResponse();
 
 require '../../_templates/_simple_response_dump.php';
 require '../../_templates/_footer.php';

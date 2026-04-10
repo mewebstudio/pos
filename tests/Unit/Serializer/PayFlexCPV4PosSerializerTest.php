@@ -10,6 +10,7 @@ use Generator;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
@@ -47,17 +48,18 @@ class PayFlexCPV4PosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $txType, string $expected): void
+    public function testEncode(array $data, string $txType, ?string $format, string $expectedFormat, string $expected): void
     {
-        $result = $this->serializer->encode($data, $txType);
+        $result = $this->serializer->encode($data, $txType, $format);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     public static function encodeDataProvider(): Generator
     {
         yield 'test1' => [
-            'input'    => [
+            'input'           => [
                 'MerchantId'              => '000000000111111',
                 'Password'                => '3XTgER89as',
                 'TransactionType'         => 'Sale',
@@ -70,18 +72,34 @@ class PayFlexCPV4PosSerializerTest extends TestCase
                 'Expiry'                  => '202112',
                 'Cvv'                     => '122',
             ],
-            'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
-            'expected' => 'MerchantId=000000000111111&Password=3XTgER89as&TransactionType=Sale&OrderId=order222&CurrencyAmount=100.00&CurrencyCode=949&ClientIp=127.0.0.1&TransactionDeviceSource=0&Pan=5555444433332222&Expiry=202112&Cvv=122',
+            'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_FORM,
+            'expected'        => 'MerchantId=000000000111111&Password=3XTgER89as&TransactionType=Sale&OrderId=order222&CurrencyAmount=100.00&CurrencyCode=949&ClientIp=127.0.0.1&TransactionDeviceSource=0&Pan=5555444433332222&Expiry=202112&Cvv=122',
+        ];
+
+        yield 'test2' => [
+            'input'           => [
+                'MerchantId'      => '000000000111111',
+                'Password'        => '3XTgER89as',
+                'TransactionType' => 'Sale',
+            ],
+            'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+            'format'          => SerializerInterface::FORMAT_FORM,
+            'expected_format' => SerializerInterface::FORMAT_FORM,
+            'expected'        => 'MerchantId=000000000111111&Password=3XTgER89as&TransactionType=Sale',
         ];
 
         yield 'custom_query' => [
-            'input'    => [
+            'input'           => [
                 'MerchantId' => '000000000111111',
                 'Password'   => '3XTgER89as',
                 'abc'        => 'abc',
             ],
-            'txType'   => PosInterface::TX_TYPE_CUSTOM_QUERY,
-            'expected' => 'MerchantId=000000000111111&Password=3XTgER89as&abc=abc',
+            'txType'          => PosInterface::TX_TYPE_CUSTOM_QUERY,
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_FORM,
+            'expected'        => 'MerchantId=000000000111111&Password=3XTgER89as&abc=abc',
         ];
     }
 

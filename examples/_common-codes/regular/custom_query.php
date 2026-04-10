@@ -29,10 +29,13 @@ $eventDispatcher->addListener(\Mews\Pos\Event\RequestDataPreparedEvent::class, f
 
 try {
     /**
-     * requestData içinde API hesap bilgileri, hash verisi ve bazi sabit değerler
+     * $requestData içinde API hesap bilgileri, hash verisi ve bazi sabit değerler
      * eğer zaten bulunmuyorsa kütüphane otomatik ekler.
+     *
+     * $response: Bankadan dönen cevap array'e dönüştürülür,
+     * ancak diğer transaction'larda olduğu gibi mapping/normalization yapılmaz.
      */
-    $pos->customQuery(
+    $response = $pos->customQuery(
         $requestData,
 
         // URL optional, bazı gateway'lerde zorunlu.
@@ -42,12 +45,6 @@ try {
 } catch (Exception $e) {
     dd($e);
 }
-
-/**
- * Bankadan dönen cevap array'e dönüştürülür,
- * ancak diğer transaction'larda olduğu gibi mapping/normalization yapılmaz.
- */
-$response = $pos->getResponse();
 
 require '../../_templates/_simple_response_dump.php';
 require '../../_templates/_footer.php';

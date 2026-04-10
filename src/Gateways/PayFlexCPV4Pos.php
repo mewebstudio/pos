@@ -18,7 +18,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * PayFlex Common Payment (Ortak Ödeme) ISD v4.0
@@ -63,7 +62,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -73,23 +72,23 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws ClientExceptionInterface
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
-        $resultCode = $request->query->get('Rc');
+        $resultCode = $gatewayResponseData['Rc'] ?? null;
         if (null !== $resultCode && $this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $resultCode) {
-            $this->logger->error('received error response from the bank', $request->query->all());
-            $this->response = $this->responseDataMapper->map3DPayResponseData($request->query->all(), $txType, $order);
+            $this->logger->error('received error response from the bank', $gatewayResponseData);
+            $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
-            return $this;
+            return $this->response;
         }
 
-        $bankResponse = $this->get3DPaymentStatus($request, $order);
+        $bankResponse = $this->get3DPaymentStatus($gatewayResponseData, $order);
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
@@ -97,29 +96,29 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws ClientExceptionInterface
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
-        $resultCode = $request->query->get('Rc');
+        $resultCode = $gatewayResponseData['Rc'] ?? null;
         if (null !== $resultCode && $this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $resultCode) {
-            $this->logger->error('received error response from the bank', $request->query->all());
-            $this->response = $this->responseDataMapper->map3DHostResponseData($request->query->all(), $txType, $order);
+            $this->logger->error('received error response from the bank', $gatewayResponseData);
+            $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
-            return $this;
+            return $this->response;
         }
 
-        $bankResponse = $this->get3DPaymentStatus($request, $order);
+        $bankResponse = $this->get3DPaymentStatus($gatewayResponseData, $order);
 
         $this->response = $this->responseDataMapper->map3DHostResponseData($bankResponse, $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -127,7 +126,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function makeRegularPostPayment(array $order): PosInterface
+    public function makeRegularPostPayment(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -135,7 +134,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function status(array $order): PosInterface
+    public function status(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -143,7 +142,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function refund(array $order): PosInterface
+    public function refund(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -151,7 +150,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function cancel(array $order): PosInterface
+    public function cancel(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -159,7 +158,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -167,7 +166,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function orderHistory(array $order): PosInterface
+    public function orderHistory(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -200,33 +199,6 @@ class PayFlexCPV4Pos extends AbstractGateway
             null,
             $data
         );
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        if (!\is_string($contents)) {
-            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
-        }
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Accept'       => 'text/xml',
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-            'body'    => $contents,
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        $responseContent = $response->getBody()->getContents();
-
-        return $this->data = $this->serializer->decode($responseContent, $txType);
     }
 
     /**
@@ -280,22 +252,23 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
-
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->send(
-            $contents,
+        $response = $this->clientStrategy->getClient(
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
-            $this->get3DGatewayURL()
+            $requestData,
+            $order
         );
 
         return $response;
     }
 
     /**
-     * get 3D Payment status  to make sure that payment was successful
-     * @param Request              $request
+     * get 3D Payment status to make sure that payment was successful
+     * @param array<string, mixed> $gatewayResponseData
      * @param array<string, mixed> $order
      *
      * @return  array{ErrorCode: string}|array{
@@ -311,13 +284,13 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws ClientExceptionInterface
      */
-    private function get3DPaymentStatus(Request $request, array $order): array
+    private function get3DPaymentStatus(array $gatewayResponseData, array $order): array
     {
         $txType       = PosInterface::TX_TYPE_STATUS;
         $paymentModel = PosInterface::MODEL_NON_SECURE;
 
         /** @var array{TransactionId: string, PaymentToken: string} $queryParams */
-        $queryParams = $request->query->all();
+        $queryParams = $gatewayResponseData;
 
         // Burda odemenin basarili olup olmadigini sorguluyoruz.
         $requestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
@@ -342,16 +315,17 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
-
-        /**
-         * sending request to make sure that payment was successful
-         */
-        return $this->send(
-            $contents,
+        /** @var array<string, mixed> $result */
+        $result = $this->clientStrategy->getClient(
             $txType,
             $paymentModel,
-            $this->getApiURL()
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
+
+        return $result;
     }
 }

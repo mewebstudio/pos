@@ -18,8 +18,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
     $userCode,
     $userPass,
     PosInterface::MODEL_3D_HOST,
-    $merchantPass,
-    PosInterface::LANG_TR
+    $merchantPass
 );
 
 $pos = getGateway($account, $eventDispatcher);

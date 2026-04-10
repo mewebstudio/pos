@@ -8,6 +8,7 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\EstV3Pos;
 
 class EstV3PosCrypt extends AbstractCrypt
 {
@@ -16,6 +17,14 @@ class EstV3PosCrypt extends AbstractCrypt
 
     /** @var string */
     protected const HASH_SEPARATOR = '|';
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return EstV3Pos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

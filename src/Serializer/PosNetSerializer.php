@@ -27,7 +27,7 @@ class PosNetSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return PosNet::class === $gatewayClass;
     }
@@ -35,9 +35,14 @@ class PosNetSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): string
+    public function encode(array $data, ?string $txType = null): EncodedData
     {
-        return $this->serializer->encode($data, XmlEncoder::FORMAT);
+        $format = self::FORMAT_XML;
+
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**

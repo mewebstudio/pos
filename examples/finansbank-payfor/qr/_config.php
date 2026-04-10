@@ -14,13 +14,12 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayForAccount(
     'IGhq8',
     PosInterface::MODEL_3D_HOST,
     '88921532',
-    PosInterface::LANG_TR,
     \Mews\Pos\Entity\Account\PayForAccount::MBR_ID_FINANSBANK // ya da PayForAccount::MBR_ID_ZIRAAT_KATILIM
 );
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
+$transaction = $_SESSION['tx'] ?? PosInterface::TX_TYPE_PAY_AUTH;
 
 $templateTitle = 'QR Code Payment';
 $paymentModel  = PosInterface::MODEL_3D_HOST;

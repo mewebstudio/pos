@@ -60,18 +60,16 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
     return $order;
 }
 
-$lastResponse = $session->get('last_response');
+$lastResponse = $_SESSION['last_response'] ?? null;
 
 $order = createOrderHistoryOrder(get_class($pos), $lastResponse);
 dump($order);
 
 try {
-    $pos->orderHistory($order);
+    $response = $pos->orderHistory($order);
 } catch (Exception $e) {
     dd($e);
 }
-
-$response = $pos->getResponse();
 
 require '../../_templates/_simple_response_dump.php';
 require '../../_templates/_footer.php';

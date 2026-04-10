@@ -15,7 +15,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createToslaPosAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
+$transaction = $_SESSION['tx'] ?? PosInterface::TX_TYPE_PAY_AUTH;
 
 $templateTitle = 'Regular Payment';
 $paymentModel = PosInterface::MODEL_NON_SECURE;

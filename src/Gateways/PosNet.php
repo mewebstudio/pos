@@ -6,7 +6,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
@@ -20,7 +19,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class PosNet
@@ -63,15 +61,15 @@ class PosNet extends AbstractGateway
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
-        $request = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         $this->logger->debug('getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
             $this->account,
             $order,
-            $request->all()
+            $gatewayResponseData
         );
 
         $event = new RequestDataPreparedEvent(
@@ -80,7 +78,7 @@ class PosNet extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -94,19 +92,22 @@ class PosNet extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents           = $this->serializer->encode($requestData, $txType);
-        $userVerifyResponse = $this->send(
-            $contents,
+        /** @var array<string, mixed> $userVerifyResponse */
+        $userVerifyResponse = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
 
         if (!$this->is3DAuthSuccess($userVerifyResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, null, $txType, $order);
             $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-            return $this;
+            return $this->response;
         }
 
         if (
@@ -116,7 +117,12 @@ class PosNet extends AbstractGateway
             throw new HashMismatchException();
         }
 
-        $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        $requestData  = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $gatewayResponseData
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -124,7 +130,7 @@ class PosNet extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -137,25 +143,27 @@ class PosNet extends AbstractGateway
             ]);
             $requestData = $event->getRequestData();
         }
-
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        /** @var array<string, mixed> $bankResponse */
+        $bankResponse = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -163,7 +171,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -209,7 +217,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -217,39 +225,9 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function orderHistory(array $order): PosInterface
+    public function orderHistory(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        if (!\is_string($contents)) {
-            throw new InvalidArgumentException(
-                \sprintf(
-                    'Argument type must be XML string, %s provided.',
-                    \gettype($contents)
-                )
-            );
-        }
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-            'body'    => \sprintf('xmldata=%s', $contents),
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 
     /**
@@ -298,13 +276,17 @@ class PosNet extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $xml = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $xml,
+        /** @var array<string, mixed> $result */
+        $result = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
+
+        return $result;
     }
 }

@@ -68,7 +68,7 @@ class ToslaPosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
@@ -76,13 +76,11 @@ class ToslaPosTest extends TestCase
         );
 
         $this->assertTrue($this->pos->isSuccess());
-
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -102,10 +100,9 @@ class ToslaPosTest extends TestCase
             }
         );
 
-        $this->pos->status($statusOrder);
+        $response = $this->pos->status($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -131,10 +128,9 @@ class ToslaPosTest extends TestCase
             }
         );
 
-        $this->pos->cancel($statusOrder);
+        $response = $this->pos->cancel($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -159,10 +155,9 @@ class ToslaPosTest extends TestCase
             }
         );
 
-        $this->pos->orderHistory($historyOrder);
+        $response = $this->pos->orderHistory($historyOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -195,7 +190,7 @@ class ToslaPosTest extends TestCase
     {
         $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
-        $this->pos->payment(
+        $lastResponse = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
@@ -203,8 +198,6 @@ class ToslaPosTest extends TestCase
         );
 
         $this->assertTrue($this->pos->isSuccess());
-
-        $lastResponse = $this->pos->getResponse();
 
         $refundOrder           = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
         $refundOrder['amount'] = 0.59;
@@ -219,10 +212,9 @@ class ToslaPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
+        $response = $this->pos->refund($refundOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -246,9 +238,8 @@ class ToslaPosTest extends TestCase
             }
         );
 
-        $this->pos->customQuery($customQuery, 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo');
+        $response = $this->pos->customQuery($customQuery, 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo');
 
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertArrayHasKey('BankCode', $response);

@@ -6,85 +6,38 @@
 
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
+use Mews\Pos\DataMapper\RequestValueFormatter\ParamPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\ParamPosRequestValueMapper;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 /**
- * Creates request data for ParamPoss Gateway requests
+ * Creates request data for ParamPos Gateway requests
  */
 class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'Y';
+    /**
+     * @var ParamPosRequestValueMapper
+     */
+    protected RequestValueMapperInterface $valueMapper;
 
     /**
-     * {@inheritDoc}
+     * @var ParamPosRequestValueFormatter
      */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => [
-            PosInterface::MODEL_NON_SECURE => 'TP_WMD_UCD',
-            PosInterface::MODEL_3D_SECURE  => 'TP_WMD_UCD',
-            PosInterface::MODEL_3D_PAY     => 'Pos_Odeme',
-            PosInterface::MODEL_3D_HOST    => 'TO_Pre_Encrypting_OOS',
-        ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
-            PosInterface::MODEL_NON_SECURE => 'TP_Islem_Odeme_OnProv_WMD',
-            PosInterface::MODEL_3D_SECURE  => 'TP_Islem_Odeme_OnProv_WMD',
-        ],
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'TP_Islem_Odeme_OnProv_Kapa',
-        PosInterface::TX_TYPE_REFUND         => 'TP_Islem_Iptal_Iade_Kismi2',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'TP_Islem_Iptal_Iade_Kismi2',
-        PosInterface::TX_TYPE_CANCEL         => 'TP_Islem_Iptal_Iade_Kismi2',
-        PosInterface::TX_TYPE_STATUS         => 'TP_Islem_Sorgulama4',
-        PosInterface::TX_TYPE_HISTORY        => 'TP_Islem_Izleme',
-    ];
+    protected RequestValueFormatterInterface $valueFormatter;
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    protected array $secureTypeMappings = [
-        PosInterface::MODEL_3D_SECURE  => '3D',
-        PosInterface::MODEL_3D_PAY     => '3D',
-        PosInterface::MODEL_NON_SECURE => 'NS',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $currencyMappings = [
-        PosInterface::CURRENCY_TRY => '1000',
-        PosInterface::CURRENCY_USD => '1001',
-        PosInterface::CURRENCY_EUR => '1002',
-        PosInterface::CURRENCY_GBP => '1003',
-    ];
-
-    /**
-     * @param PosInterface::TX_TYPE_*          $txType
-     * @param PosInterface::MODEL_*|null       $paymentModel
-     * @param PosInterface::TX_TYPE_PAY_*|null $orderTxType
-     * @param PosInterface::CURRENCY_*|null    $currency
-     *
-     * @return string
-     *
-     * @throws \Mews\Pos\Exceptions\UnsupportedTransactionTypeException
-     */
-    public function mapTxType(string $txType, ?string $paymentModel = null, ?string $orderTxType = null, ?string $currency = null): string
+    public static function supports(string $gatewayClass): bool
     {
-        if (null !== $currency && PosInterface::CURRENCY_TRY !== $currency) {
-            return 'TP_Islem_Odeme_WD';
-        }
-
-        if (PosInterface::TX_TYPE_CANCEL === $txType && PosInterface::TX_TYPE_PAY_PRE_AUTH === $orderTxType) {
-            return 'TP_Islem_Iptal_OnProv';
-        }
-
-        return parent::mapTxType($txType, $paymentModel);
+        return ParamPos::class === $gatewayClass;
     }
 
     /**
@@ -101,7 +54,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
                 'Siparis_ID' => (string) $responseData['orderId'],
             ];
 
-        return $this->wrapSoapEnvelope(['TP_WMD_Pay' => $requestData], $posAccount);
+        return $this->wrapSoapEnvelope(['TP_WMD_Pay' => $requestData]);
     }
 
     /**
@@ -116,7 +69,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order, ?CreditCardInterface $creditCard, string $txType, string $paymentModel): array
     {
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            return $this->create3DHostEnrollmentCheckRequestData($posAccount, $order, $txType);
+            throw new \InvalidArgumentException();
         }
 
         if (!$creditCard instanceof \Mews\Pos\Entity\Card\CreditCardInterface) {
@@ -127,73 +80,34 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($posAccount) + [
                 '@xmlns'             => 'https://turkpos.com.tr/',
-                'Islem_Guvenlik_Tip' => $this->secureTypeMappings[$paymentModel],
+                'Islem_Guvenlik_Tip' => $this->valueMapper->mapSecureType($paymentModel),
                 'Islem_ID'           => $this->crypt->generateRandomString(),
                 'IPAdr'              => (string) $order['ip'],
                 'Siparis_ID'         => (string) $order['id'],
-                'Islem_Tutar'        => $this->formatAmount($order['amount']),
-                'Toplam_Tutar'       => $this->formatAmount($order['amount']),
+                'Islem_Tutar'        => $this->valueFormatter->formatAmount($order['amount'], $txType),
+                'Toplam_Tutar'       => $this->valueFormatter->formatAmount($order['amount'], $txType),
                 'Basarili_URL'       => (string) $order['success_url'],
                 'Hata_URL'           => (string) $order['fail_url'],
-                'Taksit'             => $this->mapInstallment((int) $order['installment']),
+                'Taksit'             => $this->valueFormatter->formatInstallment((int) $order['installment']),
                 'KK_Sahibi'          => $creditCard->getHolderName(),
                 'KK_No'              => $creditCard->getNumber(),
-                'KK_SK_Ay'           => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_MONTH_FORMAT),
-                'KK_SK_Yil'          => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_YEAR_FORMAT),
+                'KK_SK_Ay'           => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'KK_SK_Ay'),
+                'KK_SK_Yil'          => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'KK_SK_Yil'),
                 'KK_CVC'             => $creditCard->getCvv(),
                 'KK_Sahibi_GSM'      => '', //optional olmasina ragmen hic gonderilmeyince hata aliniyor.
             ];
 
         if (PosInterface::CURRENCY_TRY !== $order['currency']) {
-            $requestData['Doviz_Kodu'] = $this->mapCurrency($order['currency']);
+            $requestData['Doviz_Kodu'] = $this->valueMapper->mapCurrency($order['currency']);
         }
 
-        $soapAction = $this->mapTxType($txType, $paymentModel, null, $order['currency']);
+        $soapAction = $this->valueMapper->mapTxType($txType, $paymentModel, $order);
 
         $requestData = [$soapAction => $requestData];
 
         $requestData[$soapAction]['Islem_Hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->wrapSoapEnvelope($requestData, $posAccount);
-    }
-
-    /**
-     * @param AbstractPosAccount          $posAccount
-     * @param array<string, mixed>        $order
-     * @param PosInterface::TX_TYPE_PAY_* $txType
-     *
-     * @return array<string, mixed>
-     *
-     * @throws \Mews\Pos\Exceptions\UnsupportedTransactionTypeException
-     */
-    public function create3DHostEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order, string $txType): array
-    {
-        $order = $this->preparePaymentOrder($order);
-
-        $requestData = [
-            '@xmlns'           => 'https://turkodeme.com.tr/',
-            // Bu alan editable olsun istiyorsanız başına “e|”,
-            // readonly olsun istiyorsanız başına “r|” eklemelisiniz.
-            'Borclu_Tutar'     => 'r|'.$this->formatAmount($order['amount']),
-            'Borclu_Odeme_Tip' => 'r|Diğer',
-            'Borclu_AdSoyad'   => 'r|',
-            'Borclu_Aciklama'  => 'r|',
-            'Return_URL'       => 'r|'.$order['success_url'],
-            'Islem_ID'         => $this->crypt->generateRandomString(),
-            'Borclu_Kisi_TC'   => '',
-            'Terminal_ID'      => $posAccount->getClientId(),
-            'Borclu_GSM'       => 'r|',
-            // = 0 ise tüm taksitler listelenir. > 0 ise sadece o taksit seçeneği listelenir.
-            'Taksit'           => $this->mapInstallment((int) $order['installment']),
-        ];
-
-        if (PosInterface::CURRENCY_TRY !== $order['currency']) {
-            $requestData['Doviz_Kodu'] = $this->mapCurrency($order['currency']);
-        }
-
-        $soapAction = $this->mapTxType($txType, PosInterface::MODEL_3D_HOST);
-
-        return $this->wrapSoapEnvelope([$soapAction => $requestData], $posAccount);
+        return $this->wrapSoapEnvelope($requestData);
     }
 
     /**
@@ -206,38 +120,38 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($posAccount) + [
                 '@xmlns'             => 'https://turkpos.com.tr/',
-                'Islem_Guvenlik_Tip' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'Islem_Guvenlik_Tip' => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'Islem_ID'           => $this->crypt->generateRandomString(),
                 'IPAdr'              => (string) $order['ip'],
                 'Siparis_ID'         => (string) $order['id'],
-                'Islem_Tutar'        => $this->formatAmount($order['amount']),
-                'Toplam_Tutar'       => $this->formatAmount($order['amount']),
-                'Taksit'             => $this->mapInstallment((int) $order['installment']),
+                'Islem_Tutar'        => $this->valueFormatter->formatAmount($order['amount'], $txType),
+                'Toplam_Tutar'       => $this->valueFormatter->formatAmount($order['amount'], $txType),
+                'Taksit'             => $this->valueFormatter->formatInstallment((int) $order['installment']),
                 'KK_Sahibi'          => $creditCard->getHolderName(),
                 'KK_No'              => $creditCard->getNumber(),
-                'KK_SK_Ay'           => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_MONTH_FORMAT),
-                'KK_SK_Yil'          => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_YEAR_FORMAT),
+                'KK_SK_Ay'           => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'KK_SK_Ay'),
+                'KK_SK_Yil'          => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'KK_SK_Yil'),
                 'KK_CVC'             => $creditCard->getCvv(),
                 'KK_Sahibi_GSM'      => '', //optional olmasina ragmen hic gonderilmeyince hata aliniyor.
             ];
 
         if (PosInterface::CURRENCY_TRY !== $order['currency']) {
-            $requestData['Doviz_Kodu']   = $this->mapCurrency($order['currency']);
+            $requestData['Doviz_Kodu']   = $this->valueMapper->mapCurrency($order['currency']);
             $requestData['Basarili_URL'] = (string) $order['success_url'];
             $requestData['Hata_URL']     = (string) $order['fail_url'];
         }
 
-        $soapAction = $this->mapTxType($txType, PosInterface::MODEL_NON_SECURE, null, $order['currency']);
+        $soapAction = $this->valueMapper->mapTxType($txType, PosInterface::MODEL_NON_SECURE, $order);
 
         if (PosInterface::TX_TYPE_PAY_PRE_AUTH === $txType) {
-            $soapAction = $this->mapTxType($txType, PosInterface::MODEL_NON_SECURE);
+            $soapAction = $this->valueMapper->mapTxType($txType, PosInterface::MODEL_NON_SECURE);
         }
 
         $requestData = [$soapAction => $requestData];
 
         $requestData[$soapAction]['Islem_Hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->wrapSoapEnvelope($requestData, $posAccount);
+        return $this->wrapSoapEnvelope($requestData);
     }
 
     /**
@@ -250,13 +164,13 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = $this->getRequestAccountData($posAccount) + [
                 '@xmlns'     => 'https://turkpos.com.tr/',
                 'Prov_ID'    => '',
-                'Prov_Tutar' => $this->formatAmount($order['amount']),
+                'Prov_Tutar' => $this->valueFormatter->formatAmount($order['amount'], PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'Siparis_ID' => (string) $order['id'],
             ];
 
         return $this->wrapSoapEnvelope([
-            $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH) => $requestData,
-        ], $posAccount);
+            $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH) => $requestData,
+        ]);
     }
 
     /**
@@ -272,8 +186,8 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
             ];
 
         return $this->wrapSoapEnvelope([
-            $this->mapTxType(PosInterface::TX_TYPE_STATUS) => $requestData,
-        ], $posAccount);
+            $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS) => $requestData,
+        ]);
     }
 
     /**
@@ -294,13 +208,13 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
                     '@xmlns'     => 'https://turkpos.com.tr/',
                     'Durum'      => 'IPTAL',
                     'Siparis_ID' => $order['id'],
-                    'Tutar'      => $order['amount'],
+                    'Tutar'      => $this->valueFormatter->formatAmount($order['amount'], PosInterface::TX_TYPE_CANCEL),
                 ];
         }
 
         return $this->wrapSoapEnvelope([
-            $this->mapTxType(PosInterface::TX_TYPE_CANCEL, null, $order['transaction_type']) => $requestData,
-        ], $posAccount);
+            $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL, null, $order) => $requestData,
+        ]);
     }
 
 
@@ -315,10 +229,12 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
                 '@xmlns'     => 'https://turkpos.com.tr/',
                 'Durum'      => 'IADE',
                 'Siparis_ID' => $order['id'],
-                'Tutar'      => $order['amount'],
+                'Tutar'      => $this->valueFormatter->formatAmount($order['amount'], $refundTxType),
             ];
 
-        return $this->wrapSoapEnvelope([$this->mapTxType($refundTxType) => $requestData], $posAccount);
+        return $this->wrapSoapEnvelope([
+            $this->valueMapper->mapTxType($refundTxType) => $requestData,
+        ]);
     }
 
     /**
@@ -339,8 +255,8 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($posAccount) + [
                 '@xmlns'    => 'https://turkpos.com.tr/',
-                'Tarih_Bas' => $this->formatRequestDateTime($order['start_date']),
-                'Tarih_Bit' => $this->formatRequestDateTime($order['end_date']),
+                'Tarih_Bas' => $this->valueFormatter->formatDateTime($order['start_date'], 'Tarih_Bas'),
+                'Tarih_Bit' => $this->valueFormatter->formatDateTime($order['end_date'], 'Tarih_Bit'),
             ];
 
         if (isset($data['order_status'])) {
@@ -358,8 +274,8 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         return $this->wrapSoapEnvelope([
-            $this->mapTxType(PosInterface::TX_TYPE_HISTORY) => $requestData,
-        ], $posAccount);
+            $this->valueMapper->mapTxType(PosInterface::TX_TYPE_HISTORY) => $requestData,
+        ]);
     }
 
     /**
@@ -377,24 +293,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         array                $extraData = []
     ) {
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            if (null === $gatewayURL) {
-                throw new \InvalidArgumentException('Please provide $gatewayURL');
-            }
-
-            $decoded = \base64_decode($extraData['TO_Pre_Encrypting_OOSResponse']['TO_Pre_Encrypting_OOSResult'], true);
-            if (false === $decoded) {
-                throw new \RuntimeException($extraData['TO_Pre_Encrypting_OOSResponse']['TO_Pre_Encrypting_OOSResult']);
-            }
-
-            $inputs = [
-                's' => (string) $extraData['TO_Pre_Encrypting_OOSResponse']['TO_Pre_Encrypting_OOSResult'],
-            ];
-
-            return [
-                'gateway' => $gatewayURL,
-                'method'  => 'GET',
-                'inputs'  => $inputs,
-            ];
+            throw new \InvalidArgumentException();
         }
 
         if (PosInterface::MODEL_3D_PAY === $paymentModel) {
@@ -441,18 +340,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         $soapAction               = \array_key_first($requestData);
         $requestData[$soapAction] += $this->getRequestAccountData($posAccount);
 
-        return $this->wrapSoapEnvelope($requestData, $posAccount);
-    }
-
-    /**
-     * 0 => '1'
-     * 1 => '1'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '1';
+        return $this->wrapSoapEnvelope($requestData);
     }
 
     /**
@@ -494,28 +382,6 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @inheritDoc
-     *
-     * @return string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return (string) ($this->currencyMappings[$currency] ?? $currency);
-    }
-
-    /**
-     * 10.0 => 10,00
-     * 1000.5 => 1000,50
-     * @param float $amount
-     *
-     * @return string
-     */
-    protected function formatAmount(float $amount): string
-    {
-        return \number_format($amount, 2, ',', '');
-    }
-
-    /**
-     * @inheritDoc
      */
     protected function prepareCancelOrder(array $order): array
     {
@@ -544,37 +410,12 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param \DateTimeInterface $dateTime
-     *
-     * @return string example 20.11.2018 15:00:00
-     */
-    private function formatRequestDateTime(\DateTimeInterface $dateTime): string
-    {
-        return $dateTime->format('d.m.Y H:i:s');
-    }
-
-    /**
      * @param array<string, mixed> $data
-     * @param AbstractPosAccount   $posAccount
      *
-     * @return array{"soap:Body": array<string, mixed>, "soap:Header"?: array<string, mixed>}
+     * @return array{"soap:Body": array<string, mixed>}
      */
-    private function wrapSoapEnvelope(array $data, AbstractPosAccount $posAccount): array
+    private function wrapSoapEnvelope(array $data): array
     {
-        if (isset($data['TO_Pre_Encrypting_OOS'])) {
-            return [
-                'soap:Header' => [
-                    'ServiceSecuritySoapHeader' => [
-                        '@xmlns'          => 'https://turkodeme.com.tr/',
-                        'CLIENT_CODE'     => $posAccount->getClientId(),
-                        'CLIENT_USERNAME' => $posAccount->getUsername(),
-                        'CLIENT_PASSWORD' => $posAccount->getPassword(),
-                    ],
-                ],
-                'soap:Body'   => $data,
-            ];
-        }
-
         return [
             'soap:Body' => $data,
         ];

@@ -6,14 +6,18 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\Crypt\CryptInterface;
-use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -27,24 +31,37 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
+    /** @var ResponseValueFormatterInterface & MockObject */
+    private ResponseValueFormatterInterface $responseValueFormatter;
+
+    /** @var ResponseValueMapperInterface & MockObject */
+    private ResponseValueMapperInterface $responseValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestDataMapper = new ToslaPosRequestDataMapper(
-            $this->createMock(EventDispatcherInterface::class),
-            $this->createMock(CryptInterface::class),
-        );
+        $this->responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $this->responseValueMapper    = $this->createMock(ResponseValueMapperInterface::class);
 
         $this->responseDataMapper = new ToslaPosResponseDataMapper(
-            $requestDataMapper->getCurrencyMappings(),
-            $requestDataMapper->getTxTypeMappings(),
-            $requestDataMapper->getSecureTypeMappings(),
-            $this->logger,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
+            $this->logger
         );
     }
+
+    public function testSupports(): void
+    {
+        $result = $this->responseDataMapper::supports(ToslaPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(AkbankPos::class);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @testWith [null, false]
@@ -79,14 +96,14 @@ class ToslaPosResponseDataMapperTest extends TestCase
      */
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -104,14 +121,19 @@ class ToslaPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapOrderStatus')
+            ->with($responseData['RequestStatus'])
+            ->willReturn($expectedData['tx_status']);
+
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -128,14 +150,19 @@ class ToslaPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapOrderStatus')
+            ->with($responseData['RequestStatus'])
+            ->willReturn($expectedData['tx_status']);
+
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -152,18 +179,59 @@ class ToslaPosResponseDataMapperTest extends TestCase
      */
     public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        if (isset($responseData['CreateDate'])) {
-            $this->assertSame($actualData['transaction_time']->format('YmdHis'), $responseData['CreateDate']);
-            $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-            $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
-            $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
-            unset($actualData['transaction_time'], $expectedData['transaction_time']);
-            unset($actualData['capture_time'], $expectedData['capture_time']);
-            unset($actualData['refund_time'], $expectedData['refund_time']);
-            unset($actualData['cancel_time'], $expectedData['cancel_time']);
+        $txType = PosInterface::TX_TYPE_STATUS;
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapOrderStatus')
+            ->with($responseData['RequestStatus'])
+            ->willReturn($expectedData['order_status']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with($responseData['TransactionType'])
+            ->willReturn($expectedData['transaction_type']);
+
+        if ($responseData['Currency'] > 0) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($responseData['Currency'], $txType)
+                ->willReturn($expectedData['currency']);
+
+            $amountMatcher = $this->atLeastOnce();
+            $this->responseValueFormatter->expects($amountMatcher)
+                ->method('formatAmount')
+                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData): bool {
+                    if ($amountMatcher->getInvocationCount() === 1) {
+                        return $amount === $responseData['Amount'];
+                    }
+
+                    if ($amountMatcher->getInvocationCount() === 2) {
+                        return $amount === $responseData['RefundedAmount'];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($amountMatcher, $expectedData) {
+                        if ($amountMatcher->getInvocationCount() === 1) {
+                            return $expectedData['first_amount'];
+                        }
+
+                        if ($amountMatcher->getInvocationCount() === 2) {
+                            return $expectedData['refund_amount'];
+                        }
+
+                        return false;
+                    }
+                );
+
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['CreateDate'], $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
+
+        $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -206,11 +274,18 @@ class ToslaPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * Doing integration test because of the iteration, sorting and conditional statements it is difficult to mock values.
      * @dataProvider orderHistoryDataProvider
      */
     public function testMapOrderHistoryResponse(array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
+        $requestValueMapper = RequestValueMapperFactory::createForGateway(ToslaPos::class);
+        $responseDataMapper = new ToslaPosResponseDataMapper(
+            ResponseValueFormatterFactory::createForGateway(ToslaPos::class),
+            ResponseValueMapperFactory::createForGateway(ToslaPos::class, $requestValueMapper),
+            $this->logger
+        );
+        $actualData = $responseDataMapper->mapOrderHistoryResponse($responseData);
         if (isset($responseData['Transactions'])) {
             $this->assertCount($actualData['trans_count'], $actualData['transactions']);
             if (count($actualData['transactions']) > 1

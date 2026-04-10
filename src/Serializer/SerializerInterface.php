@@ -8,27 +8,34 @@ namespace Mews\Pos\Serializer;
 
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 interface SerializerInterface
 {
+    public const FORMAT_XML = XmlEncoder::FORMAT;
+
+    public const FORMAT_JSON = JsonEncoder::FORMAT;
+
+    public const FORMAT_FORM = 'form';
+
     /**
      * @param class-string<PosInterface> $gatewayClass
+     * @param string|null                $apiName todo strict type
      *
      * @return bool
      */
-    public static function supports(string $gatewayClass): bool;
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @param array<string, mixed>    $data
+     * @param PosInterface::TX_TYPE_* $txType
      *
-     * @param array<string, mixed> $data
-     * @param string               $txType
-     *
-     * @return string|array<string, mixed> returns XML/JSON string or $data itself when encoding is not needed
+     * @return EncodedData
      *
      * @throws UnsupportedTransactionTypeException
      */
-    public function encode(array $data, string $txType);
+    public function encode(array $data, string $txType): EncodedData;
 
     /**
      * @phpstan-param PosInterface::TX_TYPE_* $txType

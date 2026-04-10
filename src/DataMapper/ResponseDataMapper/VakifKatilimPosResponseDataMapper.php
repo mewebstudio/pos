@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
 class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
@@ -23,16 +24,12 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
-     * Order Status Codes
-     *
-     * @var array<int, PosInterface::PAYMENT_STATUS_*>
+     * @inheritDoc
      */
-    protected array $orderStatusMappings = [
-        1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
-        5 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
-        6 => PosInterface::PAYMENT_STATUS_CANCELED,
-    ];
+    public static function supports(string $gatewayClass): bool
+    {
+        return VakifKatilimPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}
@@ -73,20 +70,20 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $vPosMessage = $rawPaymentResponseData['VPosMessage'];
 
         // ProvisionNumber: Başarılı işlemlerde kart bankasının vermiş olduğu otorizasyon numarasıdır.
-        $result['auth_code']       = $rawPaymentResponseData['ProvisionNumber'];
+        $result['auth_code'] = $rawPaymentResponseData['ProvisionNumber'];
         // RRN:  Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
         $result['batch_num']   = $vPosMessage['BatchID'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['transaction_id']    = $rawPaymentResponseData['Stan'];
         $result['masked_number']     = $vPosMessage['CardNumber'];
-        $result['amount']            = $this->formatAmount($vPosMessage['Amount']);
-        $result['currency']          = $this->mapCurrency($vPosMessage['CurrencyCode']);
-        $result['installment_count'] = $this->mapInstallment($vPosMessage['InstallmentCount']);
+        $result['amount']            = $this->valueFormatter->formatAmount($vPosMessage['Amount'], $txType);
+        $result['currency']          = $this->valueMapper->mapCurrency($vPosMessage['CurrencyCode'], $txType);
+        $result['installment_count'] = $this->valueFormatter->formatInstallment($vPosMessage['InstallmentCount'], $txType);
         if ('0001-01-01T00:00:00' !== $rawPaymentResponseData['TransactionTime'] && '00010101T00:00:00' !== $rawPaymentResponseData['TransactionTime']) {
-            $result['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['TransactionTime']);
+            $result['transaction_time'] = $this->valueFormatter->formatDateTime($rawPaymentResponseData['TransactionTime'], $txType);
         } else {
-            $result['transaction_time'] = new \DateTimeImmutable();
+            $result['transaction_time'] = $this->valueFormatter->formatDateTime('now', $txType);
         }
 
 
@@ -138,7 +135,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping 3D payment data', [
-            '3d_auth_response'   => $raw3DAuthResponseData,
+            '3d_auth_response' => $raw3DAuthResponseData,
         ]);
 
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
@@ -176,7 +173,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $defaultResponse['transaction_id']   = $raw3DAuthResponseData['Stan'];
         $defaultResponse['auth_code']        = $raw3DAuthResponseData['ProvisionNumber'] ?? null;
-        $defaultResponse['transaction_time'] = new \DateTimeImmutable();
+        $defaultResponse['transaction_time'] = $this->valueFormatter->formatDateTime('now', $txType);
 
         return $defaultResponse;
     }
@@ -191,7 +188,10 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
 
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $mappedTransactions = $this->mapSingleHistoryTransaction($rawResponseData['VPosOrderData']['OrderContract']);
+            $mappedTransactions = $this->mapSingleHistoryTransaction(
+                $rawResponseData['VPosOrderData']['OrderContract'],
+                PosInterface::TX_TYPE_STATUS
+            );
 
             return \array_merge($defaultResponse, $mappedTransactions);
         }
@@ -278,7 +278,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
 
         if (isset($rawResponseData['VPosOrderData']['OrderContract'])) {
             foreach ($rawResponseData['VPosOrderData']['OrderContract'] as $tx) {
-                $mappedTransactions[] = $this->mapSingleHistoryTransaction($tx);
+                $mappedTransactions[] = $this->mapSingleHistoryTransaction($tx, PosInterface::TX_TYPE_HISTORY);
             }
         }
 
@@ -321,7 +321,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $remoteOrderId = null;
         if (isset($rawResponseData['VPosOrderData']['OrderContract'])) {
             foreach ($rawResponseData['VPosOrderData']['OrderContract'] as $tx) {
-                $mappedTransactions[] = $this->mapSingleOrderHistoryTransaction($tx);
+                $mappedTransactions[] = $this->mapSingleOrderHistoryTransaction($tx, PosInterface::TX_TYPE_ORDER_HISTORY);
                 $orderId              = $tx['MerchantOrderId'];
                 $remoteOrderId        = $tx['OrderId'];
             }
@@ -365,17 +365,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * "101" => 1.01
-     * @param string $amount
-     *
-     * @return float
-     */
-    protected function formatAmount(string $amount): float
-    {
-        return (float) $amount / 100;
-    }
-
-    /**
      * Get ProcReturnCode
      *
      * @param array<string, string|null> $response
@@ -386,20 +375,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
     {
         return $response['ResponseCode'] ?? null;
     }
-
-    /**
-     * @param string $currency currency code that is accepted by bank
-     *
-     * @return PosInterface::CURRENCY_*|string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        // 949 => 0949; for the request gateway wants 0949 code, but in response they send 949 code.
-        $currencyNormalized = \str_pad($currency, 4, '0', STR_PAD_LEFT);
-
-        return parent::mapCurrency($currencyNormalized);
-    }
-
 
     /**
      * @param string $mdStatus
@@ -449,12 +424,13 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
 
     /**
      * @param array<string, string|null> $rawTx
+     * @param PosInterface::TX_TYPE_*    $txType
      *
      * @return array<string, int|string|null|float|bool|\DateTimeImmutable>
      */
-    private function mapSingleHistoryTransaction(array $rawTx): array
+    private function mapSingleHistoryTransaction(array $rawTx, string $txType): array
     {
-        $response                    = $this->mapSingleOrderHistoryTransaction($rawTx);
+        $response                    = $this->mapSingleOrderHistoryTransaction($rawTx, $txType);
         $response['order_id']        = $rawTx['MerchantOrderId'];
         $response['remote_order_id'] = $rawTx['OrderId'];
 
@@ -464,10 +440,11 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
 
     /**
      * @param array<string, string|null> $rawTx
+     * @param PosInterface::TX_TYPE_*    $txType
      *
      * @return array<string, int|string|null|float|bool|\DateTimeImmutable>
      */
-    private function mapSingleOrderHistoryTransaction(array $rawTx): array
+    private function mapSingleOrderHistoryTransaction(array $rawTx, string $txType): array
     {
         $procReturnCode = $this->getProcReturnCode($rawTx);
         $status         = self::TX_DECLINED;
@@ -482,22 +459,23 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
         $defaultResponse['error_code']       = self::TX_APPROVED === $status ? null : $procReturnCode;
         $defaultResponse['error_message']    = self::TX_APPROVED === $status ? null : $rawTx['ResponseExplain'];
-        $defaultResponse['currency']         = null !== $rawTx['FEC'] ? $this->mapCurrency($rawTx['FEC']) : null;
-        $defaultResponse['payment_model']    = null !== $rawTx['TransactionSecurity'] ? $this->mapSecurityType($rawTx['TransactionSecurity']) : null;
+        $defaultResponse['currency']         = null !== $rawTx['FEC'] ? $this->valueMapper->mapCurrency($rawTx['FEC'], $txType) : null;
+        $defaultResponse['payment_model']    = null !== $rawTx['TransactionSecurity'] ? $this->valueMapper->mapSecureType($rawTx['TransactionSecurity'], $txType) : null;
         $defaultResponse['ref_ret_num']      = $rawTx['RRN'];
         $defaultResponse['transaction_id']   = $rawTx['Stan'];
-        $defaultResponse['transaction_time'] = null !== $rawTx['OrderDate'] ? new \DateTimeImmutable($rawTx['OrderDate']) : null;
+        $defaultResponse['transaction_time'] = null !== $rawTx['OrderDate'] ? $this->valueFormatter->formatDateTime($rawTx['OrderDate'], $txType) : null;
 
         if (self::TX_APPROVED === $status) {
             $defaultResponse['auth_code']         = $rawTx['ProvNumber'] ?? null;
-            $defaultResponse['installment_count'] = $this->mapInstallment($rawTx['InstallmentCount']);
+            $defaultResponse['installment_count'] = $this->valueFormatter->formatInstallment($rawTx['InstallmentCount'], $txType);
             $defaultResponse['masked_number']     = $rawTx['CardNumber'];
-            $defaultResponse['first_amount']      = null === $rawTx['FirstAmount'] ? null : (float) $rawTx['FirstAmount'];
-            $defaultResponse['order_status']      = $this->orderStatusMappings[$rawTx['LastOrderStatus']] ?? $rawTx['LastOrderStatusDescription'];
-            $initialOrderStatus                   = $this->orderStatusMappings[$rawTx['OrderStatus']] ?? null;
+            $defaultResponse['first_amount']      = null === $rawTx['FirstAmount'] ? null : $this->valueFormatter->formatAmount($rawTx['FirstAmount'], $txType);
+            $rawLastOrderStatus                   = $rawTx['LastOrderStatus'] ?? $rawTx['LastOrderStatusDescription'];
+            $defaultResponse['order_status']      = null === $rawLastOrderStatus ? null : $this->valueMapper->mapOrderStatus($rawLastOrderStatus);
+            $initialOrderStatus                   = null === $rawTx['OrderStatus'] ? null : $this->valueMapper->mapOrderStatus($rawTx['OrderStatus']);
 
             if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $initialOrderStatus) {
-                $defaultResponse['capture_amount'] = isset($rawTx['TranAmount']) ? (float) $rawTx['TranAmount'] : 0;
+                $defaultResponse['capture_amount'] = isset($rawTx['TranAmount']) ? $this->valueFormatter->formatAmount($rawTx['TranAmount'], $txType) : 0;
                 $defaultResponse['capture']        = $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
                 if ($defaultResponse['capture']) {
                     $defaultResponse['capture_time'] = $defaultResponse['transaction_time'];
@@ -562,13 +540,13 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $result['batch_num']         = $vPosMessage['BatchId'];
         $result['auth_code']         = $rawPaymentResponseData['ProvisionNumber'] ?? null;
         $result['masked_number']     = $vPosMessage['CardNumber'] ?? null;
-        $result['currency']          = isset($vPosMessage['CurrencyCode']) ? $this->mapCurrency($vPosMessage['CurrencyCode']) : $order['currency'];
-        $result['amount']            = $this->formatAmount($vPosMessage['Amount']);
-        $result['installment_count'] = $this->mapInstallment($vPosMessage['InstallmentCount']);
+        $result['currency']          = isset($vPosMessage['CurrencyCode']) ? $this->valueMapper->mapCurrency($vPosMessage['CurrencyCode'], $txType) : $order['currency'];
+        $result['amount']            = $this->valueFormatter->formatAmount($vPosMessage['Amount'], $txType);
+        $result['installment_count'] = $this->valueFormatter->formatInstallment($vPosMessage['InstallmentCount'], $txType);
         if ('0001-01-01T00:00:00' !== $rawPaymentResponseData['TransactionTime'] && '00010101T00:00:00' !== $rawPaymentResponseData['TransactionTime']) {
-            $result['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['TransactionTime']);
+            $result['transaction_time'] = $this->valueFormatter->formatDateTime($rawPaymentResponseData['TransactionTime'], $txType);
         } else {
-            $result['transaction_time'] = new \DateTimeImmutable();
+            $result['transaction_time'] = $this->valueFormatter->formatDateTime('now', $txType);
         }
 
         $this->logger->debug('mapped payment response', $result);

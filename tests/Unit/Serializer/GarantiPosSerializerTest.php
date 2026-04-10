@@ -10,6 +10,7 @@ use Generator;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\GarantiPosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,12 +37,13 @@ class GarantiPosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, string $expected): void
     {
-        $result   = $this->serializer->encode($data);
+        $result   = $this->serializer->encode($data, null, $format);
         $expected = str_replace(["\r"], '', $expected);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -57,7 +59,7 @@ class GarantiPosSerializerTest extends TestCase
     public static function encodeDataProvider(): Generator
     {
         yield 'test1' => [
-            'input'    => [
+            'input'           => [
                 'Mode'        => 'TEST',
                 'Version'     => 'v0.01',
                 'Terminal'    => [
@@ -77,7 +79,7 @@ class GarantiPosSerializerTest extends TestCase
                     'CVV2'       => '122',
                 ],
                 'Order'       => [
-                    'OrderID'     => 'order222',
+                    'OrderID' => 'order222',
                 ],
                 'Transaction' => [
                     'Type'                  => 'sales',
@@ -88,7 +90,48 @@ class GarantiPosSerializerTest extends TestCase
                     'MotoInd'               => 'N',
                 ],
             ],
-            'expected' => '<?xml version="1.0" encoding="UTF-8"?>
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<?xml version="1.0" encoding="UTF-8"?>
+<GVPSRequest><Mode>TEST</Mode><Version>v0.01</Version><Terminal><ProvUserID>PROVAUT</ProvUserID><UserID>PROVAUT</UserID><HashData>3732634F78053D42304B0966E263629FE44E258B</HashData><ID>30691298</ID><MerchantID>7000679</MerchantID></Terminal><Customer><IPAddress></IPAddress><EmailAddress>test@test.com</EmailAddress></Customer><Card><Number>5555444433332222</Number><ExpireDate>1221</ExpireDate><CVV2>122</CVV2></Card><Order><OrderID>order222</OrderID></Order><Transaction><Type>sales</Type><InstallmentCnt></InstallmentCnt><Amount>10025</Amount><CurrencyCode>949</CurrencyCode><CardholderPresentCode>0</CardholderPresentCode><MotoInd>N</MotoInd></Transaction></GVPSRequest>
+',
+        ];
+
+        yield 'test2' => [
+            'input'           => [
+                'Mode'        => 'TEST',
+                'Version'     => 'v0.01',
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVAUT',
+                    'UserID'     => 'PROVAUT',
+                    'HashData'   => '3732634F78053D42304B0966E263629FE44E258B',
+                    'ID'         => '30691298',
+                    'MerchantID' => '7000679',
+                ],
+                'Customer'    => [
+                    'IPAddress'    => '',
+                    'EmailAddress' => 'test@test.com',
+                ],
+                'Card'        => [
+                    'Number'     => '5555444433332222',
+                    'ExpireDate' => '1221',
+                    'CVV2'       => '122',
+                ],
+                'Order'       => [
+                    'OrderID' => 'order222',
+                ],
+                'Transaction' => [
+                    'Type'                  => 'sales',
+                    'InstallmentCnt'        => '',
+                    'Amount'                => 10025,
+                    'CurrencyCode'          => '949',
+                    'CardholderPresentCode' => '0',
+                    'MotoInd'               => 'N',
+                ],
+            ],
+            'format'          => SerializerInterface::FORMAT_XML,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<?xml version="1.0" encoding="UTF-8"?>
 <GVPSRequest><Mode>TEST</Mode><Version>v0.01</Version><Terminal><ProvUserID>PROVAUT</ProvUserID><UserID>PROVAUT</UserID><HashData>3732634F78053D42304B0966E263629FE44E258B</HashData><ID>30691298</ID><MerchantID>7000679</MerchantID></Terminal><Customer><IPAddress></IPAddress><EmailAddress>test@test.com</EmailAddress></Customer><Card><Number>5555444433332222</Number><ExpireDate>1221</ExpireDate><CVV2>122</CVV2></Card><Order><OrderID>order222</OrderID></Order><Transaction><Type>sales</Type><InstallmentCnt></InstallmentCnt><Amount>10025</Amount><CurrencyCode>949</CurrencyCode><CardholderPresentCode>0</CardholderPresentCode><MotoInd>N</MotoInd></Transaction></GVPSRequest>
 ',
         ];

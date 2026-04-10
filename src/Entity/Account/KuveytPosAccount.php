@@ -6,8 +6,6 @@
 
 namespace Mews\Pos\Entity\Account;
 
-use Mews\Pos\PosInterface;
-
 /**
  * KuveytPosAccount
  */
@@ -20,13 +18,12 @@ class KuveytPosAccount extends AbstractPosAccount
     protected ?string $subMerchantId;
 
     /**
-     * @param string               $bank
-     * @param string               $merchantId Mağaza Numarası
-     * @param string               $username   POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı oluşturulmalıdır
-     * @param string               $customerId CustomerNumber, Müşteri No
-     * @param string               $storeKey   Oluşturulan APİ kullanıcısının şifre bilgisidir.
-     * @param PosInterface::LANG_* $lang
-     * @param string|null          $subMerchantId
+     * @param string      $bank
+     * @param string      $merchantId Mağaza Numarası
+     * @param string      $username   POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı oluşturulmalıdır
+     * @param string      $customerId CustomerNumber, Müşteri No
+     * @param string      $storeKey   Oluşturulan APİ kullanıcısının şifre bilgisidir.
+     * @param string|null $subMerchantId
      */
     public function __construct(
         string $bank,
@@ -34,10 +31,9 @@ class KuveytPosAccount extends AbstractPosAccount
         string $username,
         string $customerId,
         string $storeKey,
-        string $lang,
         ?string $subMerchantId = null
     ) {
-        parent::__construct($bank, $merchantId, $username, $customerId, $lang, $storeKey);
+        parent::__construct($bank, $merchantId, $username, $customerId, $storeKey);
         $this->subMerchantId = $subMerchantId;
     }
 

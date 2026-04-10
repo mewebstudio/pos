@@ -15,7 +15,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @since 1.1.0
@@ -57,20 +56,6 @@ class AkbankPos extends AbstractGateway
         PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
-    /**
-     * @inheritDoc
-     *
-     * @throws \InvalidArgumentException when transaction type is not provided
-     */
-    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
-        }
-
-        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
-    }
-
     /** @return AkbankPosAccount */
     public function getAccount(): AbstractPosAccount
     {
@@ -80,29 +65,34 @@ class AkbankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
-        $request = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
-        if (!$this->is3DAuthSuccess($request->all())) {
+        if (!$this->is3DAuthSuccess($gatewayResponseData)) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
-                $request->all(),
+                $gatewayResponseData,
                 null,
                 $txType,
                 $order
             );
 
-            return $this;
+            return $this->response;
         }
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $gatewayResponseData
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -110,7 +100,7 @@ class AkbankPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -124,57 +114,62 @@ class AkbankPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        /** @var array<string, mixed> $provisionResponse */
+        $provisionResponse = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
-            $request->all(),
+            $gatewayResponseData,
             $provisionResponse,
             $txType,
             $order
         );
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
-        return $this;
+        return $this->response;
     }
 
     /**
@@ -201,61 +196,8 @@ class AkbankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function status(array $order): PosInterface
+    public function status(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     *
-     * @throws \RuntimeException thrown when we get HTTP 400 error
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        if (!\is_string($contents)) {
-            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
-        }
-
-        $hash = $this->requestDataMapper->getCrypt()->hashString($contents, $this->account->getStoreKey());
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'auth-hash'    => $hash,
-            ],
-            'body'    => $contents,
-        ]);
-
-        if ($response->getStatusCode() === 400) {
-            $this->logger->error('api error', ['status_code' => $response->getStatusCode()]);
-
-            // when the data is sent fails validation checks we get 400 error
-            $data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-            throw new \RuntimeException($data['message'], $data['code']);
-        }
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     *
-     * @param string $txType
-     *
-     * @return string
-     */
-    private function getRequestURIByTransactionType(string $txType): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_HISTORY => 'portal/report/transaction',
-        ];
-
-        return $arr[$txType] ?? 'transaction/process';
     }
 }

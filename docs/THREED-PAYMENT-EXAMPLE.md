@@ -23,17 +23,16 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
 
     // Session için projenizde başka bir tool kullanıyorsanız, aşağıdaki kod yerine onu kullanmaya devam edebiliriniz.
     // Yalnız session cookie'si için samesite, secure ve httponly flagleri aynı şekilde ayarlamanız gerekiyor.
-    $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-        'cookie_samesite' => 'None',
-        'cookie_secure'   => true,
-        'cookie_httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
+    session_set_cookie_params([
+        'samesite' => 'None',
+        'secure'   => true,
+        'httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
     ]);
-    $session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
-    $session->start();
-    
+    session_start();
+
     $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
     $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
-    
+
     // API kullanıcı bilgileri
     // AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
     // /examples klasörde farklı gatewayler için örnek kullanımı ve kodları bulabilirsiniz.
@@ -44,15 +43,14 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
         'yourKullaniciAdi',
         'yourSifre',
         $paymentModel,
-        'yourStoreKey',
-        \Mews\Pos\PosInterface::LANG_TR
+        'yourStoreKey'
     );
-    
+
     $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
-    
+
     try {
         $config = require __DIR__.'/pos_test_ayarlar.php';
-    
+
         $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
     } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
         var_dump($e);
@@ -64,22 +62,22 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
 
     ```php
     <?php
-    
+
     require 'config.php';
-    
+
     // Sipariş bilgileri
     $order = [
         'id'          => 'BENZERSIZ-SIPARIS-ID',
         'amount'      => 1.01,
         'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
         'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
-    
+
         // Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
         // success_url ve fail_url'lerin aynı olmasın fayda var çünkü bazı gateyway'ler tek bir URL kabul eder.
         'success_url' => 'https://example.com/response.php',
         'fail_url'    => 'https://example.com/response.php',
-    
-        //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
+
+        // lang degeri verilmezse config'de tanimlanan dil veya default olarak LANG_TR kullanılacak.
         'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
     ];
 
@@ -98,15 +96,15 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
         'frequencyType' => $recurringFrequencyType,
         'installment'   => $installment,
 
-        // GarantiPos optional    
+        // GarantiPos optional
         'startDate'     => new \DateTimeImmutable(),
 
         // Sadece PayFlexV4'te zorunlu
-        'endDate'       => (new \DateTime())->modify(\sprintf('+%d %s', $endPeriod, $recurringFrequencyType)), 
+        'endDate'       => (new \DateTime())->modify(\sprintf('+%d %s', $endPeriod, $recurringFrequencyType)),
     ];
-    
-    $session->set('order', $order);
-    
+
+    $_SESSION['order'] = $order;
+
     // Kredi kartı bilgileri
     $card = null;
     if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
@@ -118,7 +116,7 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
                 $_POST['card_month'],
                 $_POST['card_cvv'],
                 $_POST['card_name'],
-    
+
                 // kart tipi Gateway'e göre zorunlu, alabileceği örnek değer: "visa"
                 // alabileceği alternatif değerler için \Mews\Pos\Entity\Card\CreditCardInterface'a bakınız.
                 $_POST['card_type'] ?? null
@@ -128,13 +126,13 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
         } catch (\Mews\Pos\Exceptions\CardTypeNotSupportedException $e) {
             // sağlanan kart tipi bu gateway tarafından desteklenmiyor
         }
-    
+
         if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
             // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-            $session->set('card', $_POST);
+            $_SESSION['card'] = $_POST;
         }
     }
-    
+
     // ============================================================================================
     // OZEL DURUMLAR ICIN KODLAR START
     // ============================================================================================
@@ -159,7 +157,7 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
              * }
              */
         });
-    
+
         /**
          * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
          * Eğer ekleyeceğiniz veri hash hesaplamada kullanılmıyorsa Form verisi oluştuktan sonra da güncelleyebilirsiniz.
@@ -190,7 +188,7 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
     //           $event->setFormInputs($formInputs);
             }
         });
-    
+
         // KuveytVos TDV2.0.0 için özel ve zorunlu biri durum
         $eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
@@ -223,7 +221,7 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
                 $requestData = array_merge_recursive($requestData, $additionalRequestDataForKuveyt);
                 $requestDataPreparedEvent->setRequestData($requestData);
             });
-    
+
     // ============================================================================================
     // OZEL DURUMLAR ICIN KODLAR END
     // ============================================================================================
@@ -270,20 +268,20 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
         }
     </script>
     ```
-7. **response.php (gateway'den döndükten sonra çalışacak kod)**
-    
+    **response.php (gateway'den döndükten sonra çalışacak kod)**
+
     ```php
     <?php
-    
+
     require 'config.php';
-    
-    $order = $session->get('order');
+
+    $order = $_SESSION['order'];
     $card  = null;
     if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
         if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
             // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
-            $cardData = $session->get('card');
-            $session->remove('card');
+            $cardData = $_SESSION['card'];
+            unset($_SESSION['card']);
             $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
                 $pos,
                 $cardData['card_number'],
@@ -295,11 +293,11 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
           );
         }
     }
-    
+
     // ============================================================================================
     // OZEL DURUMLAR ICIN KODLAR START
     // ============================================================================================
-    
+
     //    // Isbank İMECE için ekstra alanların eklenme örneği
     //    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
     //        if ($event->getPaymentModel() === PosInterface::MODEL_3D_SECURE && $event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
@@ -309,25 +307,29 @@ Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
     //            $event->setRequestData($data);
     //        }
     //    });
-    
+
     // ============================================================================================
     // OZEL DURUMLAR ICIN KODLAR END
     // ============================================================================================
-    
-    
-    // Ödeme tamamlanıyor,
+
+
+    // Ödeme tamamlanıyor
+    $gatewayResponseData = $_POST;
+    if (get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
+        $gatewayResponseData = $_GET;
+    }
+
     try  {
-        $pos->payment(
+        $response = $pos->payment(
             $paymentModel,
             $order,
             $transactionType,
-            $card
+            $card,
+            $gatewayResponseData
         );
-    
-        // Sonuç çıktısı
-        $response = $pos->getResponse();
+
         var_dump($response);
-        // response içeriği için /examples/template/_render_payment_response.php dosyaya bakınız.
+        // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 
         // Ödeme başarılı mı?
         if ($pos->isSuccess()) {

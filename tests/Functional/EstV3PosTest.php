@@ -71,21 +71,20 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
             $this->card
         );
 
-        $response = $this->pos->getResponse();
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -105,10 +104,9 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->status($statusOrder);
+        $response = $this->pos->status($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -134,10 +132,9 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->cancel($cancelOrder);
+        $response = $this->pos->cancel($cancelOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -164,7 +161,7 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_PRE_AUTH,
@@ -172,13 +169,11 @@ class EstV3PosTest extends TestCase
         );
 
         $this->assertTrue($this->pos->isSuccess());
-
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
-        return $this->pos->getResponse();
+        return $response;
     }
 
     /**
@@ -203,15 +198,13 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->payment(
+        $response = $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
             PosInterface::TX_TYPE_PAY_POST_AUTH
         );
 
-        $response = $this->pos->getResponse();
         $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
-
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -237,10 +230,9 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
+        $response = $this->pos->refund($refundOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -266,10 +258,9 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->orderHistory($historyOrder);
+        $response = $this->pos->orderHistory($historyOrder);
 
         $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -324,9 +315,7 @@ class EstV3PosTest extends TestCase
             }
         );
 
-        $this->pos->customQuery($customQuery);
-
-        $response = $this->pos->getResponse();
+        $response = $this->pos->customQuery($customQuery);
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);

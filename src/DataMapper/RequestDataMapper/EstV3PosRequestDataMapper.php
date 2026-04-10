@@ -17,6 +17,14 @@ use Mews\Pos\Gateways\EstV3Pos;
 class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
 {
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return EstV3Pos::class === $gatewayClass;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
@@ -25,7 +33,7 @@ class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
 
         $data = $this->create3DFormDataCommon($posAccount, $order, $paymentModel, $txType, $gatewayURL, $creditCard);
 
-        $data['inputs']['TranType'] = $this->mapTxType($txType);
+        $data['inputs']['TranType'] = $this->valueMapper->mapTxType($txType);
         unset($data['inputs']['islemtipi']);
 
         $data['inputs']['hashAlgorithm'] = 'ver3';

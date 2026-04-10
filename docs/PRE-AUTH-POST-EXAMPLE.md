@@ -10,13 +10,13 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 <?php
 require './vendor/autoload.php';
 
-$sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => 'None',
-    'cookie_secure'   => true,
-    'cookie_httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
+// Configure session with security options
+session_set_cookie_params([
+    'samesite' => 'None',
+    'secure'   => true,
+    'httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
 ]);
-$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
-$session->start();
+session_start();
 
 // Ön otorizasyon için kullanılması gereken ödeme modeli değişir.
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
@@ -32,8 +32,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourKullaniciAdi',
     'yourSifre',
     $paymentModel,
-    '', // bankaya göre zorunlu
-    \Mews\Pos\PosInterface::LANG_TR
+    '' // bankaya göre zorunlu
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -64,7 +63,8 @@ $order = [
     'amount'      => 1.01,
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
-    // lang degeri verilmezse account (EstPosAccount) dili kullanılacak
+
+    // lang degeri verilmezse config'de tanimlanan dil veya default olarak LANG_TR kullanılacak.
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
     if ($pos instanceof \Mews\Pos\Gateways\ParamPos
@@ -81,7 +81,7 @@ $order = [
     }
 
 
-$session->set('order', $order);
+$_SESSION['order'] = $order;
 
 // Kredi kartı bilgileri
 try {
@@ -105,7 +105,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
 
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-    $session->set('card', $_POST);
+    $_SESSION['card'] = $_POST;
 }
 
 try {
@@ -145,11 +145,11 @@ try {
 
 require 'config.php';
 
-$order = $session->get('order');
+$order = $_SESSION['order'];
 $card  = null;
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
-    $cardData = $session->get('card');
+    $cardData = $_SESSION['card'];;
     $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
         $cardData['card_number'],
@@ -162,23 +162,26 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
 }
 
 // Pre Auth Ödeme tamamlanıyor,
+$gatewayResponseData = $_POST;
+if (get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {
+    $gatewayResponseData = $_GET;
+}
 try  {
-    $pos->payment(
+    $response = $pos->payment(
         $paymentModel,
         $order,
         $transactionType,
-        $card
+        $card,
+        $gatewayResponseData
     );
 
     // Ödeme başarılı mı?
     $pos->isSuccess();
-    // Sonuç çıktısı
-    $response = $pos->getResponse();
     var_dump($response);
     // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 
     if ($pos->isSuccess()) {
-        $session->set('last_response', $response);
+        $_SESSION['last_response'] = $response;
     }
 } catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
     /**
@@ -204,7 +207,7 @@ require 'config.php';
 // Ön otorizasyon kapama işlemi MODEL_NON_SECURE ile gerçekleşir.
 $paymentModel = \Mews\Pos\PosInterface::MODEL_NON_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_POST_AUTH;
-$lastResponse = $session->get('last_response');
+$_SESSION['last_response'] ?? null
 
 function createPostPayOrder(string $gatewayClass, array $lastResponse, string $ip, ?float $postAuthAmount = null): array
 {
@@ -227,7 +230,7 @@ function createPostPayOrder(string $gatewayClass, array $lastResponse, string $i
     return $postAuth;
 }
 
-$lastResponse = $session->get('last_response');
+$_SESSION['last_response'] ?? null
 
 $preAuthAmount = $lastResponse['amount'];
 // Bazi gatewaylerde otorizasyon kapama amount'u ön otorizasyon amount'tan daha fazla olabilir.

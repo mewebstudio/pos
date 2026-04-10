@@ -6,16 +6,19 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\ParamPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -24,13 +27,11 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ParamPosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ParamPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use Mews\Pos\Tests\Unit\Serializer\ParamPosSerializerTest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\ParamPos
@@ -38,8 +39,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ParamPosTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private ParamPosAccount $account;
 
     private array $config;
@@ -56,7 +55,10 @@ class ParamPosTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
-    /** @var HttpClient & MockObject */
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
+    /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
@@ -68,6 +70,9 @@ class ParamPosTest extends TestCase
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
 
+    /** @var ParamPosRequestValueMapper & MockObject */
+    private ParamPosRequestValueMapper $requestValueMapperMock;
+
     private CreditCardInterface $card;
 
     protected function setUp(): void
@@ -77,11 +82,7 @@ class ParamPosTest extends TestCase
         $this->config = [
             'name'              => 'param-pos',
             'class'             => ParamPos::class,
-            'gateway_endpoints' => [
-                'payment_api'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
-                'payment_api_2'   => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
-                'gateway_3d_host' => 'https://test-pos.param.com.tr/default.aspx',
-            ],
+            'gateway_endpoints' => [],
         ];
 
         $this->account = AccountFactory::createParamPosAccount(
@@ -92,13 +93,15 @@ class ParamPosTest extends TestCase
             '0c13d406-873b-403b-9c09-a5766840d98c'
         );
 
-        $this->requestMapperMock   = $this->createMock(ParamPosRequestDataMapper::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClient::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->requestValueMapperMock = $this->createMock(ParamPosRequestValueMapper::class);
+        $this->requestMapperMock      = $this->createMock(ParamPosRequestDataMapper::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $this->serializerMock         = $this->createMock(SerializerInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -122,12 +125,13 @@ class ParamPosTest extends TestCase
         return new ParamPos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapperMock,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
-            $this->loggerMock,
+            $this->httpClientStrategyMock,
+            $this->loggerMock
         );
     }
 
@@ -136,27 +140,13 @@ class ParamPosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
+        $this->requestValueMapperMock->expects(self::once())
             ->method('getCurrencyMappings')
             ->willReturn([PosInterface::CURRENCY_TRY => '1000']);
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
         $this->assertFalse($this->pos->isTestMode());
-
-        $this->assertSame($this->config['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST));
-        $this->assertSame($this->config['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
-        $this->assertSame($this->config['gateway_endpoints']['payment_api_2'], $this->pos->getApiURL(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_HOST));
-    }
-
-    public function testGetAPIURLException(): void
-    {
-        $configs = $this->config;
-        unset($configs['gateway_endpoints']['payment_api_2']);
-        $this->pos = $this->createGateway($configs);
-
-        $this->expectException(\RuntimeException::class);
-        $this->pos->getApiURL(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_HOST);
     }
 
     /**
@@ -179,7 +169,6 @@ class ParamPosTest extends TestCase
         string  $txType,
         bool    $isWithCard,
         array   $requestData,
-        string  $apiUrl,
         ?string $gatewayUrl,
         string  $encodedRequestData,
         string  $responseData,
@@ -195,10 +184,7 @@ class ParamPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            $encodedRequestData,
-            $responseData,
             $decodedResponseData,
             $order,
             $paymentModel
@@ -241,10 +227,7 @@ class ParamPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             $requestData,
-            $encodedRequestData,
-            $responseData,
             $decodedResponseData,
             $order,
             $paymentModel
@@ -281,24 +264,24 @@ class ParamPosTest extends TestCase
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
-                ->with($this->account, $request->request->all())
+                ->with($this->account, $gatewayResponseData)
                 ->willReturn(true);
         }
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -314,15 +297,12 @@ class ParamPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -330,26 +310,21 @@ class ParamPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
 
-        $this->pos->make3DPayment($request, $order, $txType);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -358,13 +333,13 @@ class ParamPosTest extends TestCase
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -380,7 +355,7 @@ class ParamPosTest extends TestCase
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -396,15 +371,12 @@ class ParamPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -412,12 +384,12 @@ class ParamPosTest extends TestCase
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -429,9 +401,8 @@ class ParamPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $pos->make3DPayment($request, $order, $txType);
+        $result = $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $pos->isSuccess());
     }
@@ -440,15 +411,15 @@ class ParamPosTest extends TestCase
      * @dataProvider make3DPaymentDataForeignCurrencyProvider
      */
     public function testMake3DPaymentForeignCurrency(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $expectedResponse,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $expectedResponse,
+        bool   $isSuccess
     ): void {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->pos->getAccount(), $request->request->all())
+            ->with($this->pos->getAccount(), $gatewayResponseData)
             ->willReturn(true);
 
         $this->responseMapperMock->expects(self::never())
@@ -461,17 +432,15 @@ class ParamPosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->make3DPayment($request, $order, $txType);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
     public function testMake3DPaymentHashMismatchException(): void
     {
-        $data    = ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
-        $request = Request::create('', 'POST', $data);
+        $data = ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
 
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
@@ -486,30 +455,26 @@ class ParamPosTest extends TestCase
             ->method('map3DPaymentData');
         $this->requestMapperMock->expects(self::never())
             ->method('create3DPaymentRequestData');
-        $this->serializerMock->expects(self::never())
-            ->method('encode');
-        $this->serializerMock->expects(self::never())
-            ->method('decode');
         $this->eventDispatcherMock->expects(self::never())
             ->method('dispatch');
 
         $this->expectException(HashMismatchException::class);
-        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], PosInterface::TX_TYPE_PAY_AUTH, null, $data);
     }
 
     /**
      * @dataProvider make3DPayPaymentDataProvider
      */
     public function testMake3DPayPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $expectedResponse,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $expectedResponse,
+        bool   $isSuccess
     ): void {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->pos->getAccount(), $request->request->all())
+            ->with($this->pos->getAccount(), $gatewayResponseData)
             ->willReturn(true);
 
         $this->responseMapperMock->expects(self::never())
@@ -522,9 +487,8 @@ class ParamPosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->make3DPayPayment($request, $order, $txType);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -533,11 +497,11 @@ class ParamPosTest extends TestCase
      * @dataProvider make3DPayPaymentDataProvider
      */
     public function testMake3DPayPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $expectedResponse,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $expectedResponse,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -561,123 +525,35 @@ class ParamPosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $pos->make3DPayPayment($request, $order, $txType);
+        $result = $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $pos->isSuccess());
     }
 
     public function testMake3DPayPaymentHashMismatchException(): void
     {
-        $request = Request::create(
-            '',
-            'POST',
-            ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']
-        );
+        $gatewayResponseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
-            ->with($this->account, $request->request->all())
+            ->with($this->account, $gatewayResponseData)
             ->willReturn(false);
 
         $this->expectException(HashMismatchException::class);
 
-        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, [], PosInterface::TX_TYPE_PAY_AUTH, null, $gatewayResponseData);
     }
 
-    public function testMake3DHostPaymentHashMismatchException(): void
-    {
-        $request = Request::create(
-            '',
-            'POST',
-            ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']
-        );
-        $this->cryptMock->expects(self::once())
-            ->method('check3DHash')
-            ->with($this->account, $request->request->all())
-            ->willReturn(false);
-
-        $this->expectException(HashMismatchException::class);
-
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
-    }
-
-    /**
-     * @return void
-     */
     public function testMake3DHostPayment(): void
     {
-        $responseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
-        $request = Request::create(
-            '',
-            'POST',
-            $responseData
-        );
-        $this->cryptMock->expects(self::once())
-            ->method('check3DHash')
-            ->with($this->account, $request->request->all())
-            ->willReturn(true);
-
-        $order        = ['id' => '123'];
-        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
-            ->willReturn(['status' => 'approved']);
-
-        $pos = $this->pos;
-
-        $pos->make3DHostPayment($request, $order, $txType);
-
-        $result = $pos->getResponse();
-        $this->assertSame(['status' => 'approved'], $result);
-        $this->assertTrue($pos->isSuccess());
-    }
-
-    /**
-     * @return void
-     */
-    public function testMake3DHostPaymentWithoutHashCheck(): void
-    {
-        $config = $this->config;
-        $config += [
-            'gateway_configs' => [
-                'disable_3d_hash_check' => true,
-            ],
-        ];
-
-        $pos = $this->createGateway($config);
-
-        $this->cryptMock->expects(self::never())
-            ->method('check3DHash');
-
-        $responseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
-        $request = Request::create(
-            '',
-            'POST',
-            $responseData
-        );
-
-        $order        = ['id' => '123'];
-        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
-            ->willReturn(['status' => 'approved']);
-
-        $pos->make3DHostPayment($request, $order, $txType);
-
-        $result = $pos->getResponse();
-        $this->assertSame(['status' => 'approved'], $result);
-        $this->assertTrue($pos->isSuccess());
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, [], PosInterface::TX_TYPE_PAY_AUTH, null, ['abc']);
     }
 
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -690,13 +566,12 @@ class ParamPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -704,13 +579,13 @@ class ParamPosTest extends TestCase
             ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType, $card);
     }
 
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -724,13 +599,12 @@ class ParamPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -738,14 +612,14 @@ class ParamPosTest extends TestCase
             ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPostPayment($order);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType);
     }
 
 
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -759,13 +633,12 @@ class ParamPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -779,7 +652,7 @@ class ParamPosTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -793,13 +666,12 @@ class ParamPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -813,7 +685,7 @@ class ParamPosTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
@@ -827,13 +699,12 @@ class ParamPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -847,7 +718,7 @@ class ParamPosTest extends TestCase
     /**
      * @dataProvider historyRequestDataProvider
      */
-    public function testHistoryRequest(array $order, string $apiUrl): void
+    public function testHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_HISTORY;
@@ -861,13 +732,12 @@ class ParamPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -887,7 +757,7 @@ class ParamPosTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
@@ -902,13 +772,12 @@ class ParamPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $this->account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -918,18 +787,16 @@ class ParamPosTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx/abc',
-                'expected_api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx/abc',
+                'api_url'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx/abc',
             ],
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => null,
-                'expected_api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
+                'api_url'     => null,
             ],
         ];
     }
@@ -938,43 +805,31 @@ class ParamPosTest extends TestCase
     {
         return [
             'auth_fail'                    => [
-                'order'           => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
-                'txType'          => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
-                'expected'        => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
-                'is3DSuccess'     => false,
-                'isSuccess'       => false,
+                'order'               => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
+                'txType'              => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
+                'gatewayResponseData' => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData'],
+                'paymentResponse'     => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
+                'expected'            => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
+                'is3DSuccess'         => false,
+                'isSuccess'           => false,
             ],
             '3d_auth_success_payment_fail' => [
-                'order'           => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
-                'txType'          => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
-                'expected'        => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
-                'is3DSuccess'     => false,
-                'isSuccess'       => false,
+                'order'               => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
+                'txType'              => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
+                'gatewayResponseData' => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData'],
+                'paymentResponse'     => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
+                'expected'            => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
+                'is3DSuccess'         => false,
+                'isSuccess'           => false,
             ],
             'success'                      => [
-                'order'           => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-                ),
-                'paymentResponse' => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                'order'               => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'              => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse'     => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -983,15 +838,11 @@ class ParamPosTest extends TestCase
     {
         return [
             'success_foreign_currency' => [
-                'order'     => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['order'],
-                'txType'    => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['txType'],
-                'request'   => Request::create(
-                    '',
-                    'POST',
-                    ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['paymentData']
-                ),
-                'expected'  => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['expectedData'],
-                'isSuccess' => true,
+                'order'               => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['order'],
+                'txType'              => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['txType'],
+                'gatewayResponseData' => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['paymentData'],
+                'expected'            => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success_foreign_currency']['expectedData'],
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -1000,18 +851,16 @@ class ParamPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
+                'txType' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             ],
         ];
     }
@@ -1020,10 +869,9 @@ class ParamPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             ],
         ];
     }
@@ -1032,10 +880,9 @@ class ParamPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             ],
         ];
     }
@@ -1044,10 +891,9 @@ class ParamPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             ],
         ];
     }
@@ -1056,10 +902,9 @@ class ParamPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             ],
         ];
     }
@@ -1070,11 +915,10 @@ class ParamPosTest extends TestCase
 
         return [
             [
-                'order'   => [
+                'order' => [
                     'start_date' => $txTime->modify('-23 hour'),
                     'end_date'   => $txTime,
                 ],
-                'api_url' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             ],
         ];
     }
@@ -1098,7 +942,7 @@ class ParamPosTest extends TestCase
                 'isWithCard'             => false,
                 'create_without_card'    => false,
                 'expectedExceptionClass' => \LogicException::class,
-                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\ParamPos ödeme altyapıda [pay] işlem tipi [3d, 3d_pay, 3d_host, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay_hosting].',
+                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\ParamPos ödeme altyapıda [pay] işlem tipi [3d, 3d_pay, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay_hosting].',
             ],
             '3d_pay_without_card'       => [
                 'order'                  => ['id' => '2020110828BC'],
@@ -1197,7 +1041,6 @@ class ParamPosTest extends TestCase
             'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
             'isWithCard'          => true,
             'requestData'         => ParamPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
-            'api_url'             => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             'gateway_url'         => null,
             'encodedRequestData'  => 'encoded-request-data',
             'responseData'        => $responseTestData['3d_form_success']['input'],
@@ -1206,28 +1049,12 @@ class ParamPosTest extends TestCase
 
         ];
 
-        yield '3d_host' => [
-            'order'               => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_host_form_data']['order'],
-            'paymentModel'        => PosInterface::MODEL_3D_HOST,
-            'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
-            'isWithCard'          => false,
-            'requestData'         => ['request-data'],
-            'api_url'             => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
-            'gateway_url'         => 'https://test-pos.param.com.tr/default.aspx',
-            'encodedRequestData'  => '<encoded-request-data>',
-            'responseData'        => '<response-data>',
-            'decodedResponseData' => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_host_form_data']['extra_data'],
-            'formData'            => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_host_form_data']['expected'],
-        ];
-
-
         yield '3d_pay' => [
             'order'               => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay']['order'],
             'paymentModel'        => PosInterface::MODEL_3D_PAY,
             'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
             'isWithCard'          => true,
             'requestData'         => ['request-data'],
-            'api_url'             => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             'gateway_url'         => null,
             'encodedRequestData'  => '<encoded-request-data>',
             'responseData'        => '<response-data>',
@@ -1240,55 +1067,56 @@ class ParamPosTest extends TestCase
     {
         return [
             'auth_fail' => [
-                'order'     => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
-                'txType'    => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
-                'request'   => Request::create('', 'POST', ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']),
-                'expected'  => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
-                'isSuccess' => false,
+                'order'               => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
+                'txType'              => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
+                'gatewayResponseData' => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData'],
+                'expected'            => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
+                'isSuccess'           => false,
             ],
             'success'   => [
-                'order'     => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
-                'txType'    => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
-                'request'   => Request::create('', 'POST', ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']),
-                'expected'  => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
-                'isSuccess' => true,
+                'order'               => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
+                'txType'              => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
+                'isSuccess'           => true,
             ],
         ];
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
+        $mockMethod = $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            );
+        if (isset($decodedResponse['soap:Fault'])) {
+            $mockMethod->willThrowException(new \RuntimeException($decodedResponse['soap:Fault']['faultstring']));
+        } else {
+            $mockMethod->willReturn($decodedResponse);
+        }
 
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'text/xml',
-                ],
-                'body'    => $encodedRequestData,
-            ],
-        );
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')

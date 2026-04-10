@@ -12,8 +12,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'ISBANKAPI',
     'ISBANK07',
     PosInterface::MODEL_3D_HOST,
-    'TRPS0200',
-    PosInterface::LANG_TR
+    'TRPS0200'
 );
 
 $pos = getGateway($account, $eventDispatcher);
