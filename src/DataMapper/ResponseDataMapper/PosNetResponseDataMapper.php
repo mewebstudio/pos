@@ -60,7 +60,6 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
         if (
             self::PROCEDURE_SUCCESS_CODE === $procReturnCode
-            && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED
             && !$errorCode
         ) {
             $status = self::TX_APPROVED;
@@ -98,7 +97,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $status                = self::TX_DECLINED;
         $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED) {
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
 
@@ -442,7 +441,6 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
         if (
             self::PROCEDURE_SUCCESS_CODE === $procReturnCode
-            && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED
             && !$errorCode
         ) {
             $status = self::TX_APPROVED;
