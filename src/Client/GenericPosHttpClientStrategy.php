@@ -14,11 +14,19 @@ class GenericPosHttpClientStrategy implements HttpClientStrategyInterface
     private array $clients;
 
     /**
-     * @param array<HttpClientInterface> $clients
+     * @param array<HttpClientInterface::API_NAME_*, HttpClientInterface> $clients
      */
     public function __construct(array $clients)
     {
         $this->clients = $clients;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getAllClients(): array
+    {
+        return $this->clients;
     }
 
     /**

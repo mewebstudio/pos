@@ -23,6 +23,7 @@ use Mews\Pos\Client\PayFlexCPV4Pos3DFormHttpClient;
 use Mews\Pos\Client\PayFlexCPV4PosHttpClient;
 use Mews\Pos\Client\PayFlexV4Pos3DFormHttpClient;
 use Mews\Pos\Client\PayFlexV4PosHttpClient;
+use Mews\Pos\Client\PayFlexV4PosSearchApiHttpClient;
 use Mews\Pos\Client\PayForPosHttpClient;
 use Mews\Pos\Client\PosNetPosHttpClient;
 use Mews\Pos\Client\PosNetV1PosHttpClient;
@@ -55,6 +56,7 @@ class PosHttpClientStrategyFactory
         PayFlexCPV4PosHttpClient::class,
         PayFlexV4Pos3DFormHttpClient::class,
         PayFlexV4PosHttpClient::class,
+        PayFlexV4PosSearchApiHttpClient::class,
         PayForPosHttpClient::class,
         PosNetPosHttpClient::class,
         PosNetV1PosHttpClient::class,

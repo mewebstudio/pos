@@ -7,6 +7,7 @@
 namespace Mews\Pos\Tests\Unit\Factory;
 
 use Mews\Pos\Client\GenericPosHttpClientStrategy;
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Factory\PosHttpClientStrategyFactory;
@@ -33,9 +34,9 @@ class PosHttpClientStrategyFactoryTest extends TestCase
     /**
      * @dataProvider createForGatewayDataProvider
      */
-    public function testCreateForGateway(string $gatewayClass): void
+    public function testCreateForGateway(string $gatewayClass, array $expectedClients): void
     {
-        $crypt = $this->createMock(CryptInterface::class);
+        $crypt              = $this->createMock(CryptInterface::class);
         $requestValueMapper = $this->createMock(RequestValueMapperInterface::class);
         $logger             = $this->createMock(LoggerInterface::class);
 
@@ -43,8 +44,10 @@ class PosHttpClientStrategyFactoryTest extends TestCase
         $clientStrategy = PosHttpClientStrategyFactory::createForGateway(
             $gatewayClass,
             [
-                'payment_api' => 'https://example.com/api',
-                'query_api'   => 'https://example.com/api',
+                HttpClientInterface::API_NAME_PAYMENT_API    => 'https://example.com/payment_api',
+                HttpClientInterface::API_NAME_QUERY_API      => 'https://example.com/query_api',
+                HttpClientInterface::API_NAME_GATEWAY_3D_API => 'https://example.com/gateway_3d',
+                'gateway_3d_host'                            => 'https://example.com/gateway_3d_host',
             ],
             $crypt,
             $requestValueMapper,
@@ -52,11 +55,24 @@ class PosHttpClientStrategyFactoryTest extends TestCase
         );
 
         $this->assertInstanceOf(GenericPosHttpClientStrategy::class, $clientStrategy);
+        $clients = $clientStrategy->getAllClients();
+        $this->assertCount(
+            count($expectedClients),
+            $clients,
+            sprintf('Available clients for %s: %s',
+                $gatewayClass,
+                implode(', ', array_keys($clients)
+                )
+            )
+        );
+        foreach ($expectedClients as $apiName) {
+            $this->assertArrayHasKey($apiName, $clients);
+        }
     }
 
     public function testCreateForGatewayWithUnsupportedGateway(): void
     {
-        $crypt = $this->createMock(CryptInterface::class);
+        $crypt              = $this->createMock(CryptInterface::class);
         $requestValueMapper = $this->createMock(RequestValueMapperInterface::class);
         $logger             = $this->createMock(LoggerInterface::class);
 
@@ -77,21 +93,101 @@ class PosHttpClientStrategyFactoryTest extends TestCase
     public static function createForGatewayDataProvider(): array
     {
         return [
-            [AkbankPos::class],
-            [EstV3Pos::class],
-            [GarantiPos::class],
-            [InterPos::class],
-            [KuveytPos::class],
-            [KuveytSoapApiPos::class],
-            [Param3DHostPos::class],
-            [ParamPos::class],
-            [PayFlexCPV4Pos::class],
-            [PayFlexV4Pos::class],
-            [PayForPos::class],
-            [PosNet::class],
-            [PosNetV1Pos::class],
-            [ToslaPos::class],
-            [VakifKatilimPos::class],
+            [
+                AkbankPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                EstV3Pos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                GarantiPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                InterPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                KuveytPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                    HttpClientInterface::API_NAME_GATEWAY_3D_API,
+                ],
+            ],
+            [
+                KuveytSoapApiPos::class,
+                [
+                    HttpClientInterface::API_NAME_QUERY_API,
+                ],
+            ],
+            [
+                Param3DHostPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                ParamPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                PayFlexCPV4Pos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                    HttpClientInterface::API_NAME_GATEWAY_3D_API,
+                ],
+            ],
+            [
+                PayFlexV4Pos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                    HttpClientInterface::API_NAME_QUERY_API,
+                    HttpClientInterface::API_NAME_GATEWAY_3D_API,
+                ],
+            ],
+            [
+                PayForPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                PosNet::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                PosNetV1Pos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                ToslaPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                ],
+            ],
+            [
+                VakifKatilimPos::class,
+                [
+                    HttpClientInterface::API_NAME_PAYMENT_API,
+                    HttpClientInterface::API_NAME_GATEWAY_3D_API,
+                ],
+            ],
         ];
     }
 }
