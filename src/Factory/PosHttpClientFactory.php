@@ -8,7 +8,7 @@ namespace Mews\Pos\Factory;
 
 use Mews\Pos\Client\AkbankPosHttpClient;
 use Mews\Pos\Client\HttpClientInterface;
-use Mews\Pos\Client\KuveytSoapApiPosHttpClient;
+use Mews\Pos\Client\KuveytPosSoapApiHttpClient;
 use Mews\Pos\Client\PosNetV1PosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -55,7 +55,7 @@ class PosHttpClientFactory
                 $crypt
             );
         }
-        if (PosNetV1PosHttpClient::class === $clientClass || KuveytSoapApiPosHttpClient::class === $clientClass) {
+        if (PosNetV1PosHttpClient::class === $clientClass || KuveytPosSoapApiHttpClient::class === $clientClass) {
             return new $clientClass(
                 $baseApiUrl,
                 $psr18client,

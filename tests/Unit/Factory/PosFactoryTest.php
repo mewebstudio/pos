@@ -178,7 +178,6 @@ class PosFactoryTest extends TestCase
             \Mews\Pos\Gateways\GarantiPos::class       => false,
             \Mews\Pos\Gateways\InterPos::class         => true,
             \Mews\Pos\Gateways\KuveytPos::class        => true,
-            \Mews\Pos\Gateways\KuveytSoapApiPos::class => true,
             \Mews\Pos\Gateways\Param3DHostPos::class   => false,
             \Mews\Pos\Gateways\ParamPos::class         => false,
             \Mews\Pos\Gateways\PayFlexCPV4Pos::class   => true,
@@ -201,11 +200,8 @@ class PosFactoryTest extends TestCase
                 'payment_api'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
                 'gateway_3d'      => 'https://virtualpospaymentgatewaypre.akbank.com/securepay',
                 'gateway_3d_host' => 'https://virtualpospaymentgatewaypre.akbank.com/payhosting',
+                'query_api'       => 'https://apipre.akbank.com/api/v1/query_api',
             ];
-
-            if (\Mews\Pos\Gateways\KuveytSoapApiPos::class === $gatewayClass) {
-                $gatewayEndpoints['query_api'] = 'https://apipre.akbank.com/api/v1/payment/virtualpos';
-            }
 
             $config    = [
                 'banks' => [

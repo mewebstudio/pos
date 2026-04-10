@@ -196,14 +196,7 @@ return [
             'gateway_endpoints' => [
                 'payment_api' => 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home',
                 'gateway_3d'  => 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/ThreeDModelPayGate',
-            ],
-        ],
-        'kuveytsoappos'        => [
-            'name'              => 'KuveytSoapApiPos',
-            'class'             => \Mews\Pos\Gateways\KuveytSoapApiPos::class,
-            'lang'              => \Mews\Pos\PosInterface::LANG_TR,
-            'gateway_endpoints' => [
-                'query_api' => 'https://boa.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
+                'query_api'   => 'https://boa.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
             ],
         ],
         'vakif-katilim'        => [

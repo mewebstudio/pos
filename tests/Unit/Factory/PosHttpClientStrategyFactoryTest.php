@@ -16,7 +16,6 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
@@ -59,9 +58,12 @@ class PosHttpClientStrategyFactoryTest extends TestCase
         $this->assertCount(
             count($expectedClients),
             $clients,
-            sprintf('Available clients for %s: %s',
+            sprintf(
+                'Available clients for %s: %s',
                 $gatewayClass,
-                implode(', ', array_keys($clients)
+                implode(
+                    ', ',
+                    array_keys($clients)
                 )
             )
         );
@@ -121,13 +123,8 @@ class PosHttpClientStrategyFactoryTest extends TestCase
                 KuveytPos::class,
                 [
                     HttpClientInterface::API_NAME_PAYMENT_API,
-                    HttpClientInterface::API_NAME_GATEWAY_3D_API,
-                ],
-            ],
-            [
-                KuveytSoapApiPos::class,
-                [
                     HttpClientInterface::API_NAME_QUERY_API,
+                    HttpClientInterface::API_NAME_GATEWAY_3D_API,
                 ],
             ],
             [

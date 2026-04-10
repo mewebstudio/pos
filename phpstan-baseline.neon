@@ -103,12 +103,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
 
 		-
-			message: '#^Method Mews\\Pos\\DataMapper\\ResponseDataMapper\\KuveytPosResponseDataMapper\:\:mapStatusResponse\(\) has parameter \$rawResponseData with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/KuveytPosResponseDataMapper.php
-
-		-
 			message: '#^Method Mews\\Pos\\DataMapper\\ResponseDataMapper\\PayFlexV4PosResponseDataMapper\:\:getCommonPaymentResponse\(\) should return array\<string, string\> but returns array\<string, array\<string, string\>\|string\|null\>\.$#'
 			identifier: return.type
 			count: 1

@@ -14,7 +14,6 @@ use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
-use Mews\Pos\DataMapper\RequestDataMapper\KuveytSoapApiPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\Param3DHostPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
@@ -45,7 +44,6 @@ class RequestDataMapperFactory
         GarantiPosRequestDataMapper::class,
         InterPosRequestDataMapper::class,
         KuveytPosRequestDataMapper::class,
-        KuveytSoapApiPosRequestDataMapper::class,
         ParamPosRequestDataMapper::class,
         Param3DHostPosRequestDataMapper::class,
         PayFlexCPV4PosRequestDataMapper::class,

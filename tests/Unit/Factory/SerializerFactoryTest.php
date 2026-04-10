@@ -39,7 +39,7 @@ class SerializerFactoryTest extends TestCase
             [\Mews\Pos\Gateways\GarantiPos::class, null, \Mews\Pos\Serializer\GarantiPosSerializer::class],
             [\Mews\Pos\Gateways\InterPos::class, null, \Mews\Pos\Serializer\InterPosSerializer::class],
             [\Mews\Pos\Gateways\KuveytPos::class, HttpClientInterface::API_NAME_PAYMENT_API, \Mews\Pos\Serializer\KuveytPosSerializer::class],
-            [\Mews\Pos\Gateways\KuveytSoapApiPos::class, HttpClientInterface::API_NAME_QUERY_API, \Mews\Pos\Serializer\KuveytSoapApiPosSerializer::class],
+            [\Mews\Pos\Gateways\KuveytPos::class, HttpClientInterface::API_NAME_QUERY_API, \Mews\Pos\Serializer\KuveytPosSoapApiSerializer::class],
             [\Mews\Pos\Gateways\ParamPos::class, null, \Mews\Pos\Serializer\ParamPosSerializer::class],
             [\Mews\Pos\Gateways\Param3DHostPos::class, null, \Mews\Pos\Serializer\ParamPosSerializer::class],
             [\Mews\Pos\Gateways\PayFlexCPV4Pos::class, null, \Mews\Pos\Serializer\PayFlexCPV4PosSerializer::class],

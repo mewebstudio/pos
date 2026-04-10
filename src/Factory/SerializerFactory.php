@@ -14,7 +14,7 @@ use Mews\Pos\Serializer\EstPosSerializer;
 use Mews\Pos\Serializer\GarantiPosSerializer;
 use Mews\Pos\Serializer\InterPosSerializer;
 use Mews\Pos\Serializer\KuveytPosSerializer;
-use Mews\Pos\Serializer\KuveytSoapApiPosSerializer;
+use Mews\Pos\Serializer\KuveytPosSoapApiSerializer;
 use Mews\Pos\Serializer\ParamPosSerializer;
 use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
 use Mews\Pos\Serializer\PayFlexV4PosSearchApiSerializer;
@@ -47,7 +47,7 @@ class SerializerFactory
             GarantiPosSerializer::class,
             InterPosSerializer::class,
             KuveytPosSerializer::class,
-            KuveytSoapApiPosSerializer::class,
+            KuveytPosSoapApiSerializer::class,
             ParamPosSerializer::class,
             PayFlexCPV4PosSerializer::class,
             PayFlexV4PosSearchApiSerializer::class,

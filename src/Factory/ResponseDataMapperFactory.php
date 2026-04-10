@@ -12,7 +12,6 @@ use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseDataMapper\KuveytSoapApiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
@@ -41,7 +40,6 @@ class ResponseDataMapperFactory
         GarantiPosResponseDataMapper::class,
         InterPosResponseDataMapper::class,
         KuveytPosResponseDataMapper::class,
-        KuveytSoapApiPosResponseDataMapper::class,
         ParamPosResponseDataMapper::class,
         PayFlexCPV4PosResponseDataMapper::class,
         PayFlexV4PosResponseDataMapper::class,

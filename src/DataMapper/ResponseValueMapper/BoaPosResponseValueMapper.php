@@ -7,7 +7,6 @@
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
 use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
@@ -34,7 +33,6 @@ class BoaPosResponseValueMapper extends AbstractResponseValueMapper
     public static function supports(string $gatewayClass): bool
     {
         return KuveytPos::class === $gatewayClass
-            || KuveytSoapApiPos::class === $gatewayClass
             || VakifKatilimPos::class === $gatewayClass;
     }
 

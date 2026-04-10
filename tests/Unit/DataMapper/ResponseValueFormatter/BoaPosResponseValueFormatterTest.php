@@ -9,7 +9,6 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseValueFormatter;
 use Mews\Pos\DataMapper\ResponseValueFormatter\BoaPosResponseValueFormatter;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -30,8 +29,6 @@ class BoaPosResponseValueFormatterTest extends TestCase
     public function testSupports(): void
     {
         $result = $this->formatter::supports(KuveytPos::class);
-        $this->assertTrue($result);
-        $result = $this->formatter::supports(KuveytSoapApiPos::class);
         $this->assertTrue($result);
         $result = $this->formatter::supports(VakifKatilimPos::class);
         $this->assertTrue($result);

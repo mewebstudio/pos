@@ -17,7 +17,7 @@ use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Client\InterPosHttpClient;
 use Mews\Pos\Client\KuveytPos3DFormHttpClient;
 use Mews\Pos\Client\KuveytPosHttpClient;
-use Mews\Pos\Client\KuveytSoapApiPosHttpClient;
+use Mews\Pos\Client\KuveytPosSoapApiHttpClient;
 use Mews\Pos\Client\ParamPosHttpClient;
 use Mews\Pos\Client\PayFlexCPV4Pos3DFormHttpClient;
 use Mews\Pos\Client\PayFlexCPV4PosHttpClient;
@@ -50,7 +50,7 @@ class PosHttpClientStrategyFactory
         InterPosHttpClient::class,
         KuveytPos3DFormHttpClient::class,
         KuveytPosHttpClient::class,
-        KuveytSoapApiPosHttpClient::class,
+        KuveytPosSoapApiHttpClient::class,
         ParamPosHttpClient::class,
         PayFlexCPV4Pos3DFormHttpClient::class,
         PayFlexCPV4PosHttpClient::class,

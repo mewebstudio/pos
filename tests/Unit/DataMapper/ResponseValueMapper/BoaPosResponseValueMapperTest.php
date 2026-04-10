@@ -11,7 +11,6 @@ use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -37,8 +36,7 @@ class BoaPosResponseValueMapperTest extends TestCase
     {
         $result = $this->mapper::supports(KuveytPos::class);
         $this->assertTrue($result);
-        $result = $this->mapper::supports(KuveytSoapApiPos::class);
-        $this->assertTrue($result);
+
         $result = $this->mapper::supports(VakifKatilimPos::class);
         $this->assertTrue($result);
 

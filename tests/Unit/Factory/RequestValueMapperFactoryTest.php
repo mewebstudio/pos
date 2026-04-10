@@ -26,7 +26,6 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
@@ -69,7 +68,6 @@ class RequestValueMapperFactoryTest extends TestCase
             [GarantiPos::class, GarantiPosRequestValueMapper::class],
             [InterPos::class, InterPosRequestValueMapper::class],
             [KuveytPos::class, KuveytPosRequestValueMapper::class],
-            [KuveytSoapApiPos::class, KuveytPosRequestValueMapper::class],
             [ParamPos::class, ParamPosRequestValueMapper::class],
             [Param3DHostPos::class, ParamPosRequestValueMapper::class],
             [PayFlexCPV4Pos::class, PayFlexCPV4PosRequestValueMapper::class],

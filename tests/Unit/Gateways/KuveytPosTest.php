@@ -359,22 +359,111 @@ class KuveytPosTest extends TestCase
         $this->pos->payment(PosInterface::MODEL_NON_SECURE, [], PosInterface::TX_TYPE_PAY_POST_AUTH);
     }
 
-    public function testStatusRequest(): void
+    /**
+     * @dataProvider statusDataProvider
+     */
+    public function testStatus(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->pos->status([]);
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_STATUS;
+        $requestData = ['createStatusRequestData'];
+        $order       = $this->order;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createStatusRequestData')
+            ->with($account, $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $bankResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapStatusResponse')
+            ->with($bankResponse)
+            ->willReturn($expectedData);
+
+        $result = $this->pos->status($order);
+
+        $this->assertSame($expectedData, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+    /**
+     * @dataProvider cancelDataProvider
+     */
+    public function testCancel(array $bankResponse, array $expectedData, bool $isSuccess): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = ['createCancelRequestData'];
+        $order       = $this->order;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCancelRequestData')
+            ->with($account, $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $bankResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapCancelResponse')
+            ->with($bankResponse)
+            ->willReturn($expectedData);
+
+        $result = $this->pos->cancel($order);
+
+        $this->assertSame($expectedData, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
-    public function testRefundRequest(): void
+    /**
+     * @dataProvider refundDataProvider
+     */
+    public function testRefund(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->pos->refund([]);
-    }
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_REFUND;
+        $requestData = ['createRefundRequestData'];
+        $order       = $this->order;
 
-    public function testCancelRequest(): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->pos->cancel([]);
+        $this->requestMapperMock->expects(self::once())
+            ->method('createRefundRequestData')
+            ->with($account, $order, $txType)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $bankResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapRefundResponse')
+            ->with($bankResponse)
+            ->willReturn($expectedData);
+
+        $result = $this->pos->refund($order);
+
+        $this->assertSame($expectedData, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
     public function testHistoryRequest(): void
@@ -405,6 +494,11 @@ class KuveytPosTest extends TestCase
         $this->pos->payment(PosInterface::MODEL_3D_PAY, [], $txType, null, ['abc']);
     }
 
+    public function testCustomQueryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->customQuery([]);
+    }
 
     public static function make3DPaymentDataProvider(): array
     {
@@ -501,6 +595,57 @@ class KuveytPosTest extends TestCase
                 'create_with_card'       => false,
                 'expectedExceptionClass' => \LogicException::class,
                 'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay]',
+            ],
+        ];
+    }
+
+    public static function statusDataProvider(): iterable
+    {
+        $testData = iterator_to_array(KuveytPosResponseDataMapperTest::statusTestDataProvider());
+        yield [
+            'bank_response' => $testData['fail1']['responseData'],
+            'expected_data' => $testData['fail1']['expectedData'],
+            'isSuccess'     => false,
+        ];
+        yield [
+            'bank_response' => $testData['success1']['responseData'],
+            'expected_data' => $testData['success1']['expectedData'],
+            'isSuccess'     => true,
+        ];
+    }
+
+    public static function cancelDataProvider(): array
+    {
+        $testData = iterator_to_array(KuveytPosResponseDataMapperTest::cancelTestDataProvider());
+
+        return [
+            'fail_1'    => [
+                'bank_response' => $testData['fail1']['responseData'],
+                'expected_data' => $testData['fail1']['expectedData'],
+                'isSuccess'     => false,
+            ],
+            'success_1' => [
+                'bank_response' => $testData['success1']['responseData'],
+                'expected_data' => $testData['success1']['expectedData'],
+                'isSuccess'     => true,
+            ],
+        ];
+    }
+
+    public static function refundDataProvider(): array
+    {
+        $testData = iterator_to_array(KuveytPosResponseDataMapperTest::refundTestDataProvider());
+
+        return [
+            'fail_1'    => [
+                'bank_response' => $testData['fail1']['responseData'],
+                'expected_data' => $testData['fail1']['expectedData'],
+                'isSuccess'     => false,
+            ],
+            'success_1' => [
+                'bank_response' => $testData['success1']['responseData'],
+                'expected_data' => $testData['success1']['expectedData'],
+                'isSuccess'     => true,
             ],
         ];
     }

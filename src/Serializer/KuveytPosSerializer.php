@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Serializer;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Gateways\KuveytPos;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -32,7 +33,7 @@ class KuveytPosSerializer implements SerializerInterface
      */
     public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
-        return KuveytPos::class === $gatewayClass;
+        return KuveytPos::class === $gatewayClass && HttpClientInterface::API_NAME_QUERY_API !== $apiName;
     }
 
     /**

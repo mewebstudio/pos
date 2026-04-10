@@ -11,7 +11,6 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -32,9 +31,6 @@ class KuveytPosRequestValueMapperTest extends TestCase
     public function testSupports(): void
     {
         $result = $this->valueMapper::supports(KuveytPos::class);
-        $this->assertTrue($result);
-
-        $result = $this->valueMapper::supports(KuveytSoapApiPos::class);
         $this->assertTrue($result);
 
         $result = $this->valueMapper::supports(EstV3Pos::class);

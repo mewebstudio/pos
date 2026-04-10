@@ -9,7 +9,6 @@ namespace Mews\Pos\Crypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\VakifKatilimPos;
 
 class KuveytPosCrypt extends AbstractCrypt
@@ -20,7 +19,6 @@ class KuveytPosCrypt extends AbstractCrypt
     public static function supports(string $gatewayClass): bool
     {
         return KuveytPos::class === $gatewayClass
-            || KuveytSoapApiPos::class === $gatewayClass
             || VakifKatilimPos::class === $gatewayClass
         ;
     }

@@ -46,10 +46,10 @@ class KuveytPos extends AbstractGateway
         ],
         PosInterface::TX_TYPE_PAY_PRE_AUTH   => false,
         PosInterface::TX_TYPE_PAY_POST_AUTH  => false,
-        PosInterface::TX_TYPE_STATUS         => false,
-        PosInterface::TX_TYPE_CANCEL         => false,
-        PosInterface::TX_TYPE_REFUND         => false,
-        PosInterface::TX_TYPE_REFUND_PARTIAL => false,
+        PosInterface::TX_TYPE_STATUS         => true,
+        PosInterface::TX_TYPE_CANCEL         => true,
+        PosInterface::TX_TYPE_REFUND         => true,
+        PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
         PosInterface::TX_TYPE_CUSTOM_QUERY   => false,
@@ -75,30 +75,6 @@ class KuveytPos extends AbstractGateway
     public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function status(array $order): array
-    {
-        throw new UnsupportedTransactionTypeException('Bu işlem için KuveytSoapApiPos gateway kullanılmalıdır!');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function cancel(array $order): array
-    {
-        throw new UnsupportedTransactionTypeException('Bu işlem için KuveytSoapApiPos gateway kullanılmalıdır!');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function refund(array $order): array
-    {
-        throw new UnsupportedTransactionTypeException('Bu işlem için KuveytSoapApiPos gateway kullanılmalıdır!');
     }
 
     /**
@@ -266,5 +242,13 @@ class KuveytPos extends AbstractGateway
         );
 
         return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, ?string $apiUrl = null): array
+    {
+        throw new UnsupportedTransactionTypeException();
     }
 }
