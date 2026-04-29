@@ -17,8 +17,8 @@ $order       = createPaymentOrder(
     $request->get('is_recurring', 0) == 1,
     $request->get('lang', PosInterface::LANG_TR)
 );
-$session->set('order', $order);
-$session->set('tx', $transaction);
+$_SESSION['order'] = $order;
+$_SESSION['tx'] = $transaction;
 
 try {
     $formData = $pos->get3DFormData(

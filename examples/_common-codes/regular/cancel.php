@@ -83,16 +83,14 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
 }
 
 
-$order = createCancelOrder(get_class($pos), $session->get('last_response'), $ip);
+$order = createCancelOrder(get_class($pos), $_SESSION['last_response'] ?? null, $ip);
 dump($order);
 
 try {
-    $pos->cancel($order);
+    $response = $pos->cancel($order);
 } catch (Exception $e) {
     dd($e);
 }
-
-$response = $pos->getResponse();
 
 require '../../_templates/_simple_response_dump.php';
 require '../../_templates/_footer.php';

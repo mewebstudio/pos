@@ -74,12 +74,10 @@ $order = createHistoryOrder(get_class($pos), [], $ip);
 dump($order);
 
 try {
-    $pos->history($order);
+    $response = $pos->history($order);
 } catch (Exception $e) {
     dd($e);
 }
-
-$response = $pos->getResponse();
 
 require '../../_templates/_simple_response_dump.php';
 require '../../_templates/_footer.php';

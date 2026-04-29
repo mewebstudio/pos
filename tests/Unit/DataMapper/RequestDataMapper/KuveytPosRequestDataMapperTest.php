@@ -9,11 +9,14 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 use Generator;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\KuveytPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\TestUtil\TestUtilTrait;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -40,6 +43,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private KuveytPosRequestValueFormatter $valueFormatter;
+
+    private KuveytPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -52,8 +59,6 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'Api123'
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-
         $this->card = CreditCardFactory::create(
             '4155650100416111',
             25,
@@ -63,71 +68,27 @@ class KuveytPosRequestDataMapperTest extends TestCase
             CreditCardInterface::CARD_TYPE_VISA
         );
 
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new KuveytPosRequestValueFormatter();
+        $this->valueMapper    = new KuveytPosRequestValueMapper();
+
+        $this->requestDataMapper = new KuveytPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+            PosInterface::LANG_EN
+        );
     }
 
-    /**
-     * @testWith ["pay", "Sale"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
+    public function testSupports(): void
     {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
+        $result = $this->requestDataMapper::supports(KuveytPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @testWith ["Sale"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0]));
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0.0]));
-        $this->assertSame(1025, $method->invokeArgs($this->requestDataMapper, [10.25]));
-        $this->assertSame(1000, $method->invokeArgs($this->requestDataMapper, [10.00]));
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('0949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('0978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "0"]
-     *           ["1", "0"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**
@@ -207,6 +168,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
@@ -253,28 +215,18 @@ class KuveytPosRequestDataMapperTest extends TestCase
 
     public function testGet3DFormData(): void
     {
-        $expected = [
-            'gateway' => 'https://bank-gateway.com',
-            'method'  => 'POST',
-            'inputs'  => [
-                'abc' => '123',
-            ],
-        ];
-
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
-        $this->dispatcher->expects(self::never())
-            ->method('dispatch');
 
-        $actual = $this->requestDataMapper->create3DFormData(
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+
+        $this->requestDataMapper->create3DFormData(
             $this->account,
-            ['abc' => '123'],
+            ['id' => '123'],
             $paymentModel,
             $txType,
             'https://bank-gateway.com',
         );
-
-        $this->assertSame($expected, $actual);
     }
 
     public function testCreateNonSecurePostAuthPaymentRequestData(): void
@@ -301,7 +253,188 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createCustomQueryRequestData($this->account, []);
     }
 
-    public static function createCancelRequestDataProvider(): iterable
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data' => [
+            'request_data' => [
+                'abc' => 'abc',
+            ],
+            'expected'     => [
+                'abc'        => 'abc',
+                'MerchantId' => '80',
+                'CustomerId' => '400235',
+                'UserName'   => 'apiuser',
+                'APIVersion' => 'TDV2.0.0',
+                'HashData'   => 'hasshhh',
+            ],
+        ];
+
+        yield 'with_account_data' => [
+            'request_data' => [
+                'abc'         => 'abc',
+                'MerchantId' => '802',
+                'CustomerId' => '4002352',
+                'UserName'   => 'apiuser2',
+                'APIVersion' => 'TDV1.0.0',
+                'HashData'   => 'hasshhh22',
+            ],
+            'expected'     => [
+                'abc'        => 'abc',
+                'MerchantId' => '802',
+                'CustomerId' => '4002352',
+                'UserName'   => 'apiuser2',
+                'APIVersion' => 'TDV1.0.0',
+                'HashData'   => 'hasshhh22',
+            ],
+        ];
+    }
+
+    public static function create3DPaymentRequestDataDataProvider(): array
+    {
+        $order = [
+            'id'          => '2020110828BC',
+            'amount'      => 1,
+            'installment' => '0',
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'ip'          => '127.0.0.1',
+            'lang'        => PosInterface::LANG_TR,
+        ];
+
+        return [
+            [
+                'order'        => $order,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'responseData' => [
+                    'MD'              => '67YtBfBRTZ0XBKnAHi8c/A==',
+                    'VPosMessage'     => [
+                        'InstallmentCount'    => '0',
+                        'Amount'              => '100',
+                        'CurrencyCode'        => '0949',
+                        'OkUrl'               => 'http://localhost/response',
+                        'FailUrl'             => 'http://localhost/response',
+                        'OrderId'             => '86297530',
+                        'MerchantOrderId'     => '2020110828BC',
+                        'TransactionSecurity' => '3',
+                        'MerchantId'          => '****',
+                        'SubMerchantId'       => '0',
+                        'CustomerId'          => '*****',
+                        'UserName'            => 'fapapi',
+                        'HashPassword'        => 'Hiorgg24rNeRdHUvMCg//mOJn4U=',
+                        'CardNumber'          => '***********1609',
+                    ],
+                    'IsEnrolled'      => 'true',
+                    'IsVirtual'       => 'false',
+                    'ResponseCode'    => '00',
+                    'ResponseMessage' => 'Kart doğrulandı.',
+                    'OrderId'         => '86297530',
+                    'MerchantOrderId' => '2020110828BC',
+                    'HashData'        => 'ucejRvHjCbuPXagyoweFLnJfSJg=',
+                    'BusinessKey'     => '20220845654324600000140459',
+                ],
+                'expected'     => [
+                    'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
+                    'HashData'                     => 'request-hash',
+                    'MerchantId'                   => '80',
+                    'CustomerId'                   => '400235',
+                    'UserName'                     => 'apiuser',
+                    'CustomerIPAddress'            => '127.0.0.1',
+                    'KuveytTurkVPosAdditionalData' => [
+                        'AdditionalData' => [
+                            'Key'  => 'MD',
+                            'Data' => '67YtBfBRTZ0XBKnAHi8c/A==',
+                        ],
+                    ],
+                    'TransactionType'              => 'Sale',
+                    'InstallmentCount'             => '0',
+                    'Amount'                       => '100',
+                    'DisplayAmount'                => '100',
+                    'CurrencyCode'                 => '0949',
+                    'MerchantOrderId'              => '2020110828BC',
+                    'TransactionSecurity'          => '3',
+                ],
+            ],
+        ];
+    }
+
+    public static function create3DEnrollmentCheckRequestDataDataProvider(): array
+    {
+        return [
+            [
+                'order'        => [
+                    'id'          => '2020110828BC',
+                    'amount'      => 10.01,
+                    'installment' => '0',
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                    'success_url' => 'http://localhost/finansbank-payfor/3d/success.php',
+                    'fail_url'    => 'http://localhost/finansbank-payfor/3d/fail.php',
+                    'ip'          => '127.0.0.1',
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'expectedData' => [
+                    'APIVersion'          => KuveytPosRequestDataMapper::API_VERSION,
+                    'MerchantId'          => '80',
+                    'UserName'            => 'apiuser',
+                    'CustomerId'          => '400235',
+                    'HashData'            => 'request-3d-hash',
+                    'TransactionType'     => 'Sale',
+                    'TransactionSecurity' => '3',
+                    'InstallmentCount'    => '0',
+                    'Amount'              => 1001,
+                    'DisplayAmount'       => 1001,
+                    'CurrencyCode'        => '0949',
+                    'MerchantOrderId'     => '2020110828BC',
+                    'OkUrl'               => 'http://localhost/finansbank-payfor/3d/success.php',
+                    'FailUrl'             => 'http://localhost/finansbank-payfor/3d/fail.php',
+                    'CardHolderName'      => 'John Doe',
+                    'CardNumber'          => '4155650100416111',
+                    'CardType'            => 'Visa',
+                    'CardExpireDateYear'  => '25',
+                    'CardExpireDateMonth' => '01',
+                    'CardCVV2'            => '123',
+                    'DeviceData'          => [
+                        'ClientIP' => '127.0.0.1',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public static function nonSecurePaymentRequestDataProvider(): array
+    {
+        return [
+            'pay_no_installment' => [
+                'order'    => [
+                    'id'          => '2020110828BC',
+                    'amount'      => 1.10,
+                    'ip'          => '127.0.0.1',
+                    'installment' => 0,
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                ],
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'APIVersion'          => 'TDV2.0.0',
+                    'Amount'              => 110,
+                    'CardCVV2'            => '123',
+                    'CardExpireDateMonth' => '01',
+                    'CardExpireDateYear'  => '25',
+                    'CardHolderName'      => 'John Doe',
+                    'CardNumber'          => '4155650100416111',
+                    'CurrencyCode'        => '0949',
+                    'CustomerId'          => '400235',
+                    'DisplayAmount'       => 110,
+                    'HashData'            => 'request-hash',
+                    'InstallmentCount'    => '0',
+                    'MerchantId'          => '80',
+                    'MerchantOrderId'     => '2020110828BC',
+                    'TransactionSecurity' => '1',
+                    'TransactionType'     => 'Sale',
+                    'UserName'            => 'apiuser',
+                ],
+            ],
+        ];
+    }
+
+    public static function createCancelRequestDataProvider(): \Generator
     {
         yield [
             'order'    => [
@@ -475,7 +608,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function createStatusRequestDataProvider(): iterable
+    public static function createStatusRequestDataProvider(): Generator
     {
         $startDate = new \DateTime('2022-07-08T22:44:31');
         $endDate   = new \DateTime('2023-07-08T22:44:31');
@@ -528,151 +661,6 @@ class KuveytPosRequestDataMapperTest extends TestCase
                         'StartDate'             => '2022-07-08T22:44:31',
                         'EndDate'               => '2023-07-08T22:44:31',
                     ],
-                ],
-            ],
-        ];
-    }
-
-    public static function create3DPaymentRequestDataDataProvider(): array
-    {
-        $order = [
-            'id'          => '2020110828BC',
-            'amount'      => 1,
-            'installment' => '0',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'ip'          => '127.0.0.1',
-            'lang'        => PosInterface::LANG_TR,
-        ];
-
-        return [
-            [
-                'order'        => $order,
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'responseData' => [
-                    'MD'              => '67YtBfBRTZ0XBKnAHi8c/A==',
-                    'VPosMessage'     => [
-                        'InstallmentCount'    => '0',
-                        'Amount'              => '100',
-                        'CurrencyCode'        => '0949',
-                        'OkUrl'               => 'http://localhost/response',
-                        'FailUrl'             => 'http://localhost/response',
-                        'OrderId'             => '86297530',
-                        'MerchantOrderId'     => '2020110828BC',
-                        'TransactionSecurity' => '3',
-                        'MerchantId'          => '****',
-                        'SubMerchantId'       => '0',
-                        'CustomerId'          => '*****',
-                        'UserName'            => 'fapapi',
-                        'HashPassword'        => 'Hiorgg24rNeRdHUvMCg//mOJn4U=',
-                        'CardNumber'          => '***********1609',
-                    ],
-                    'IsEnrolled'      => 'true',
-                    'IsVirtual'       => 'false',
-                    'ResponseCode'    => '00',
-                    'ResponseMessage' => 'Kart doğrulandı.',
-                    'OrderId'         => '86297530',
-                    'MerchantOrderId' => '2020110828BC',
-                    'HashData'        => 'ucejRvHjCbuPXagyoweFLnJfSJg=',
-                    'BusinessKey'     => '20220845654324600000140459',
-                ],
-                'expected'     => [
-                    'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
-                    'HashData'                     => 'request-hash',
-                    'MerchantId'                   => '80',
-                    'CustomerId'                   => '400235',
-                    'UserName'                     => 'apiuser',
-                    'CustomerIPAddress'            => '127.0.0.1',
-                    'KuveytTurkVPosAdditionalData' => [
-                        'AdditionalData' => [
-                            'Key'  => 'MD',
-                            'Data' => '67YtBfBRTZ0XBKnAHi8c/A==',
-                        ],
-                    ],
-                    'TransactionType'              => 'Sale',
-                    'InstallmentCount'             => '0',
-                    'Amount'                       => '100',
-                    'DisplayAmount'                => '100',
-                    'CurrencyCode'                 => '0949',
-                    'MerchantOrderId'              => '2020110828BC',
-                    'TransactionSecurity'          => '3',
-                ],
-            ],
-        ];
-    }
-
-    public static function create3DEnrollmentCheckRequestDataDataProvider(): array
-    {
-        return [
-            [
-                'order'        => [
-                    'id'          => '2020110828BC',
-                    'amount'      => 10.01,
-                    'installment' => '0',
-                    'currency'    => PosInterface::CURRENCY_TRY,
-                    'success_url' => 'http://localhost/finansbank-payfor/3d/success.php',
-                    'fail_url'    => 'http://localhost/finansbank-payfor/3d/fail.php',
-                    'ip'          => '127.0.0.1',
-                ],
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'expectedData' => [
-                    'APIVersion'          => KuveytPosRequestDataMapper::API_VERSION,
-                    'MerchantId'          => '80',
-                    'UserName'            => 'apiuser',
-                    'CustomerId'          => '400235',
-                    'HashData'            => 'request-3d-hash',
-                    'TransactionType'     => 'Sale',
-                    'TransactionSecurity' => '3',
-                    'InstallmentCount'    => '0',
-                    'Amount'              => 1001,
-                    'DisplayAmount'       => 1001,
-                    'CurrencyCode'        => '0949',
-                    'MerchantOrderId'     => '2020110828BC',
-                    'OkUrl'               => 'http://localhost/finansbank-payfor/3d/success.php',
-                    'FailUrl'             => 'http://localhost/finansbank-payfor/3d/fail.php',
-                    'CardHolderName'      => 'John Doe',
-                    'CardNumber'          => '4155650100416111',
-                    'CardType'            => 'Visa',
-                    'CardExpireDateYear'  => '25',
-                    'CardExpireDateMonth' => '01',
-                    'CardCVV2'            => '123',
-                    'DeviceData'          => [
-                        'ClientIP' => '127.0.0.1',
-                    ],
-                ],
-            ],
-        ];
-    }
-
-    public static function nonSecurePaymentRequestDataProvider(): array
-    {
-        return [
-            'pay_no_installment' => [
-                'order'    => [
-                    'id'          => '2020110828BC',
-                    'amount'      => 1.10,
-                    'ip'          => '127.0.0.1',
-                    'installment' => 0,
-                    'currency'    => PosInterface::CURRENCY_TRY,
-                ],
-                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
-                'expected' => [
-                    'APIVersion'          => 'TDV2.0.0',
-                    'Amount'              => 110,
-                    'CardCVV2'            => '123',
-                    'CardExpireDateMonth' => '01',
-                    'CardExpireDateYear'  => '25',
-                    'CardHolderName'      => 'John Doe',
-                    'CardNumber'          => '4155650100416111',
-                    'CurrencyCode'        => '0949',
-                    'CustomerId'          => '400235',
-                    'DisplayAmount'       => 110,
-                    'HashData'            => 'request-hash',
-                    'InstallmentCount'    => '0',
-                    'MerchantId'          => '80',
-                    'MerchantOrderId'     => '2020110828BC',
-                    'TransactionSecurity' => '1',
-                    'TransactionType'     => 'Sale',
-                    'UserName'            => 'apiuser',
                 ],
             ],
         ];

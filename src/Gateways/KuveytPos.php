@@ -20,7 +20,6 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Kuveyt banki desteleyen Gateway
@@ -64,36 +63,8 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     *
-     * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type is not provided
      */
-    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (\in_array(
-            $txType,
-            [
-                PosInterface::TX_TYPE_REFUND,
-                PosInterface::TX_TYPE_REFUND_PARTIAL,
-                PosInterface::TX_TYPE_STATUS,
-                PosInterface::TX_TYPE_CANCEL,
-            ],
-            true
-        )) {
-            return $this->getQueryAPIUrl();
-        }
-
-        if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
-        }
-
-        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -101,7 +72,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -110,7 +81,7 @@ class KuveytPos extends AbstractGateway
      * Kuveyt bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
      * @inheritDoc
      */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -119,7 +90,7 @@ class KuveytPos extends AbstractGateway
      * Kuveyt bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
      * @inheritDoc
      */
-    public function orderHistory(array $order): PosInterface
+    public function orderHistory(array $order): array
     {
         throw new UnsupportedTransactionTypeException();
     }
@@ -127,9 +98,9 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
+     * @return string
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): string
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -140,7 +111,6 @@ class KuveytPos extends AbstractGateway
             $order,
             $paymentModel,
             $txType,
-            $this->get3DGatewayURL($paymentModel),
             $creditCard
         );
     }
@@ -148,7 +118,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function makeRegularPostPayment(array $order): PosInterface
+    public function makeRegularPostPayment(array $order): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -156,9 +126,10 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
-        $gatewayResponse = $request->request->get('AuthenticationResponse');
+        $paymentModel    = PosInterface::MODEL_3D_SECURE;
+        $gatewayResponse = $gatewayResponseData['AuthenticationResponse'] ?? null;
         if (!\is_string($gatewayResponse)) {
             throw new LogicException('AuthenticationResponse is missing');
         }
@@ -169,7 +140,7 @@ class KuveytPos extends AbstractGateway
         if (!$this->is3DAuthSuccess($gatewayResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
 
-            return $this;
+            return $this->response;
         }
 
         $this->logger->debug('finishing payment');
@@ -182,7 +153,7 @@ class KuveytPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -196,106 +167,21 @@ class KuveytPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        /** @var array<string, mixed> $bankResponse */
+        $bankResponse = $this->clientStrategy->getClient(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_3D_SECURE)
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
-    }
-
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        if (!\is_string($contents)) {
-            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
-        }
-
-        if (\in_array($txType, [
-            PosInterface::TX_TYPE_REFUND,
-            PosInterface::TX_TYPE_REFUND_PARTIAL,
-            PosInterface::TX_TYPE_STATUS,
-            PosInterface::TX_TYPE_CANCEL,
-        ], true)) {
-            return $this->data = $this->sendSoapRequest($contents, $txType, $url);
-        }
-
-        $this->logger->debug('sending request', ['url' => $url]);
-        $body     = [
-            'body'    => $contents,
-            'headers' => [
-                'Content-Type' => 'text/xml; charset=UTF-8',
-            ],
-        ];
-        $response = $this->client->post($url, $body);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_REFUND_PARTIAL|PosInterface::TX_TYPE_CANCEL|PosInterface::TX_TYPE_CUSTOM_QUERY $txType
-     *
-     * @param string $contents
-     * @param string $txType
-     * @param string $url
-     *
-     * @return array<string, mixed>
-     *
-     * @throws ClientExceptionInterface
-     * @throws UnsupportedTransactionTypeException
-     */
-    private function sendSoapRequest(string $contents, string $txType, string $url): array
-    {
-        $soapActionHeader = 'http://boa.net/BOA.Integration.VirtualPos/Service/IVirtualPosService/'.$this->requestDataMapper->mapTxType($txType);
-        $this->logger->debug('sending soap request', [
-            'txType' => $txType,
-            'url'    => $url,
-            'action' => $soapActionHeader,
-        ]);
-
-        $body = [
-            'body'    => $contents,
-            'headers' => [
-                'Content-Type' => 'text/xml; charset=UTF-8',
-                'SOAPAction'   => $soapActionHeader,
-            ],
-        ];
-
-        $response = $this->client->post($url, $body);
-        $responseContent = $response->getBody()->getContents();
-        if ('' === $responseContent) {
-            $this->logger->error('soap error response', [
-                'status_code' => $response->getStatusCode(),
-            ]);
-
-            throw new \RuntimeException('Bankaya istek başarısız!', 9303);
-        }
-
-        $this->logger->debug('soap request completed', ['status_code' => $response->getStatusCode()]);
-        $decodedData = $this->serializer->decode($responseContent, $txType);
-
-        if (isset($decodedData['s:Fault'])) {
-            $this->logger->error('soap error response', [
-                'status_code' => $response->getStatusCode(),
-                'response'    => $decodedData,
-            ]);
-
-            throw new \RuntimeException($decodedData['s:Fault']['faultstring']['#'] ?? 'Bankaya istek başarısız!');
-        }
-
-        return $this->data = $decodedData;
+        return $this->response;
     }
 
     /**
@@ -306,16 +192,15 @@ class KuveytPos extends AbstractGateway
      * @param array<string, int|string|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
-     * @param non-empty-string                     $gatewayURL
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
+     * @return string HTML form
      *
      * @throws RuntimeException
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
+    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): string
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $kuveytPosAccount,
@@ -345,41 +230,25 @@ class KuveytPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $data = $this->serializer->encode($requestData, $txType);
+        /** @var string $result */
+        $result = $this->clientStrategy->getClient(
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD,
+            $paymentModel,
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+        );
 
-        /**
-         * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
-         */
-        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
-
-        return $this->requestDataMapper->create3DFormData($this->account, $decodedResponse['form_inputs'], $paymentModel, $txType, $decodedResponse['gateway'], $creditCard);
+        return $result;
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
-     *
-     * @return string
-     *
-     * @throws UnsupportedTransactionTypeException
+     * @inheritDoc
      */
-    private function getRequestURIByTransactionType(string $txType, string $paymentModel): string
+    public function customQuery(array $requestData, ?string $apiUrl = null): array
     {
-        $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH => [
-                PosInterface::MODEL_NON_SECURE => 'Non3DPayGate',
-                PosInterface::MODEL_3D_SECURE  => 'ThreeDModelProvisionGate',
-            ],
-        ];
-
-        if (!isset($arr[$txType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (!isset($arr[$txType][$paymentModel])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        return $arr[$txType][$paymentModel];
+        throw new UnsupportedTransactionTypeException();
     }
 }

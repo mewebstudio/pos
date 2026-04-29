@@ -32,7 +32,7 @@ function createPostPayOrder(string $gatewayClass, array $lastResponse, string $i
     return $postAuth;
 }
 
-$lastResponse = $session->get('last_response');
+$lastResponse = $_SESSION['last_response'] ?? null;
 
 $preAuthAmount = $lastResponse['amount'];
 // otorizasyon kapama amount'u ön otorizasyon amount'tan daha fazla olabilir.

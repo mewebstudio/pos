@@ -20,8 +20,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourKullaniciAdi',
     'yourSifre',
     \Mews\Pos\PosInterface::MODEL_NON_SECURE,
-    '', // bankaya göre zorunlu
-    \Mews\Pos\PosInterface::LANG_TR
+    '' // bankaya göre zorunlu
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -109,17 +108,16 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
     return $cancelOrder;
 }
 
-// odemeden aldiginiz cevap: $pos->getResponse();
-$lastResponse = $session->get('last_response');
+// ödeme işlemi sonrası dönen veriler:
+$_SESSION['last_response'] ?? null
 $ip = '127.0.0.1';
 $order = createCancelOrder(get_class($pos), $lastResponse, $ip);
 
 try {
-    $pos->cancel($order);
+    $response = $pos->cancel($order);
 } catch (\Error $e) {
     var_dump($e);
     exit;
 }
-$response = $pos->getResponse();
 var_dump($response);
 ```

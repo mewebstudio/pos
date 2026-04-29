@@ -1,7 +1,6 @@
 <?php
 
 use Mews\Pos\Event\RequestDataPreparedEvent;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 // dinamik olarak ilgili bunkanin regular klasor altindaki _config.php yuklenir
 // ornegin: payten/regular/_config.php
@@ -14,8 +13,8 @@ require '../../_templates/_header.php';
  * kredi karti alindiktan sonra odemeyi tamamlar.
  */
 // non secure odemede POST ile kredi kart bilgileri gelmesi bekleniyor.
-if (($request->getMethod() !== 'POST')) {
-    echo new RedirectResponse($baseUrl);
+if ((($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST')) {
+    header('Location: '.$baseUrl);
     exit();
 }
 // ============================================================================================
@@ -55,14 +54,13 @@ $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (Request
 // OZEL DURUMLAR ICIN KODLAR END
 // ============================================================================================
 try {
-    doPayment($pos, $paymentModel, $transaction, $order, $card);
+    $response = doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (Exception $e) {
     dd($e);
 }
-$response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
-    $session->set('last_response', $response);
+    $_SESSION['last_response'] = $response;
 }
 
 require __DIR__.'/_render_payment_response.php';

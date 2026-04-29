@@ -12,13 +12,12 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'ISBANKAPI',
     'ISBANK07',
     PosInterface::MODEL_3D_PAY,
-    'TRPS0200',
-    PosInterface::LANG_TR
+    'TRPS0200'
 );
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
+$transaction = $_SESSION['tx'] ?? PosInterface::TX_TYPE_PAY_AUTH;
 
 $templateTitle = '3D Pay Model Payment';
 $paymentModel = PosInterface::MODEL_3D_PAY;

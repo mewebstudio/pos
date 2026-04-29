@@ -13,13 +13,12 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayForAccount(
     'UcBN0',
     PosInterface::MODEL_3D_PAY,
     '12345678',
-    PosInterface::LANG_TR,
     \Mews\Pos\Entity\Account\PayForAccount::MBR_ID_FINANSBANK // ya da PayForAccount::MBR_ID_ZIRAAT_KATILIM
 );
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
+$transaction = $_SESSION['tx'] ?? PosInterface::TX_TYPE_PAY_AUTH;
 
 $templateTitle = '3D Pay Model Payment';
 $paymentModel = PosInterface::MODEL_3D_PAY;

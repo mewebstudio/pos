@@ -3,7 +3,6 @@
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\PosInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Bu kod MODEL_3D_SECURE, MODEL_3D_PAY, MODEL_3D_HOST odemeler icin gereken HTML form verisini olusturur.
@@ -14,29 +13,29 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 // ornegin /examples/finansbank-payfor/3d/_config.php
 require '_config.php';
 
-if ($request->getMethod() !== 'POST') {
-    echo new RedirectResponse($baseUrl.'index.php');
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: '.$baseUrl.'index.php');
     exit();
 }
-$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
+$transaction = $_POST['tx'] ?? PosInterface::TX_TYPE_PAY_AUTH;
 $order       = createPaymentOrder(
     $pos,
     $paymentModel,
     $baseUrl,
     $ip,
-    $request->get('currency', PosInterface::CURRENCY_TRY),
-    $request->get('installment'),
-    $request->get('is_recurring', 0) == 1,
-    $request->get('lang', PosInterface::LANG_TR)
+    $_POST['currency'] ?? PosInterface::CURRENCY_TRY,
+    $_POST['installment'] ?? null,
+    ($_POST['is_recurring'] ?? 0) == 1,
+    $_POST['lang'] ?? PosInterface::LANG_TR
 );
-$session->set('order', $order);
-$session->set('tx', $transaction);
+$_SESSION['order'] = $order;
+$_SESSION['tx'] = $transaction;
 
-$card = createCard($pos, $request->request->all());
+$card = createCard($pos, $_POST);
 
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-    $session->set('card', $request->request->all());
+    $_SESSION['card'] = $_POST;
 }
 
 // ============================================================================================
@@ -224,7 +223,7 @@ if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
 // OZEL DURUMLAR ICIN KODLAR END
 // ============================================================================================
 
-$flowType = $request->get('payment_flow_type');
+$flowType = $_POST['payment_flow_type'] ?? null;
 ?>
 
 

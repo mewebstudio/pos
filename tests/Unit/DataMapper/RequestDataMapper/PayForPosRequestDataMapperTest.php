@@ -8,12 +8,14 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\PayForPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\PayForPosRequestValueMapper;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -40,6 +42,10 @@ class PayForPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private PayForPosRequestValueFormatter $valueFormatter;
+
+    private PayForPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -51,7 +57,6 @@ class PayForPosRequestDataMapperTest extends TestCase
             'UcBN0',
             PosInterface::MODEL_3D_SECURE,
             '12345678',
-            PosInterface::LANG_TR,
             PayForAccount::MBR_ID_FINANSBANK
         );
 
@@ -62,65 +67,32 @@ class PayForPosRequestDataMapperTest extends TestCase
             'UcBN0',
             PosInterface::MODEL_3D_SECURE,
             '12345678',
-            PosInterface::LANG_TR,
             PayForAccount::MBR_ID_ZIRAAT_KATILIM
         );
 
-        $this->crypt      = $this->createMock(CryptInterface::class);
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->valueFormatter = new PayForPosRequestValueFormatter();
+        $this->valueMapper    = new PayForPosRequestValueMapper();
 
-        $this->requestDataMapper = new PayForPosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
+        $this->requestDataMapper = new PayForPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+            PosInterface::LANG_EN
+        );
+
+        $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
     }
 
-    /**
-     * @testWith ["pay", "Auth"]
-     * ["pre", "PreAuth"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
+    public function testSupports(): void
     {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
+        $result = $this->requestDataMapper::supports(PayForPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @testWith ["PreAuth"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "0"]
-     *           ["1", "0"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**
@@ -383,7 +355,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'SecureType' => 'NonSecure',
                     'TxnType'    => 'Void',
                     'Currency'   => '949',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                 ],
             ],
             [
@@ -401,7 +373,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'SecureType' => 'NonSecure',
                     'TxnType'    => 'Void',
                     'Currency'   => '949',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                 ],
             ],
         ];
@@ -415,6 +387,33 @@ class PayForPosRequestDataMapperTest extends TestCase
                 'order'    => [
                     'id'     => '2020110828BC',
                     'amount' => 100.01,
+                ],
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'MerchantId'       => '085300000009704',
+                    'UserCode'         => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'         => 'UcBN0',
+                    'MbrId'            => '5',
+                    'MOTO'             => '0',
+                    'OrderId'          => '2020110828BC',
+                    'SecureType'       => 'NonSecure',
+                    'TxnType'          => 'Auth',
+                    'PurchAmount'      => '100.01',
+                    'Currency'         => '949',
+                    'InstallmentCount' => '0',
+                    'Lang'             => 'en',
+                    'CardHolderName'   => 'ahmet',
+                    'Pan'              => '5555444433332222',
+                    'Expiry'           => '0122',
+                    'Cvv2'             => '123',
+                ],
+            ],
+            'lang_tr' => [
+                'account'   => 'finansbank',
+                'order'    => [
+                    'id'     => '2020110828BC',
+                    'amount' => 100.01,
+                    'lang'   => PosInterface::LANG_TR,
                 ],
                 'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
                 'expected' => [
@@ -455,7 +454,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'PurchAmount'      => '100.01',
                     'Currency'         => '949',
                     'InstallmentCount' => '0',
-                    'Lang'             => 'tr',
+                    'Lang'             => 'en',
                     'CardHolderName'   => 'ahmet',
                     'Pan'              => '5555444433332222',
                     'Expiry'           => '0122',
@@ -472,7 +471,6 @@ class PayForPosRequestDataMapperTest extends TestCase
             'amount'      => 100.01,
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
-            'lang'        => PosInterface::LANG_TR,
         ];
 
         return [
@@ -489,7 +487,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'TxnType'     => 'PostAuth',
                     'PurchAmount' => '100.01',
                     'Currency'    => '949',
-                    'Lang'        => 'tr',
+                    'Lang'        => 'en',
                 ],
             ],
             [
@@ -505,7 +503,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'TxnType'     => 'PostAuth',
                     'PurchAmount' => '100.01',
                     'Currency'    => '949',
-                    'Lang'        => 'tr',
+                    'Lang'        => 'en',
                 ],
             ],
         ];
@@ -527,7 +525,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'MbrId'      => '5',
                     'OrgOrderId' => '2020110828BC',
                     'SecureType' => 'Inquiry',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                     'TxnType'    => 'OrderInquiry',
                 ],
             ],
@@ -543,7 +541,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'MbrId'      => '12',
                     'OrgOrderId' => '2020110828BC',
                     'SecureType' => 'Inquiry',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                     'TxnType'    => 'OrderInquiry',
                 ],
             ],
@@ -565,7 +563,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'MbrId'      => '5',
                     'SecureType' => 'Report',
                     'TxnType'    => 'TxnHistory',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                     'OrderId'    => '2020110828BC',
                 ],
             ],
@@ -581,7 +579,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'MbrId'      => '12',
                     'SecureType' => 'Report',
                     'TxnType'    => 'TxnHistory',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                     'OrderId'    => '2020110828BC',
                 ],
             ],
@@ -603,7 +601,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'MbrId'      => '5',
                     'SecureType' => 'Report',
                     'TxnType'    => 'TxnHistory',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                     'ReqDate'    => '20220518',
                 ],
             ],
@@ -619,7 +617,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'MbrId'      => '12',
                     'SecureType' => 'Report',
                     'TxnType'    => 'TxnHistory',
-                    'Lang'       => 'tr',
+                    'Lang'       => 'en',
                     'ReqDate'    => '20220518',
                 ],
             ],
@@ -775,7 +773,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                 'txType'   => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
                     'Currency'    => '949',
-                    'Lang'        => 'tr',
+                    'Lang'        => 'en',
                     'MbrId'       => '5',
                     'MerchantId'  => '085300000009704',
                     'OrgOrderId'  => '7022b92e-3aa1-44fb-86d4-33658c700c80',
@@ -796,7 +794,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                 'txType'   => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
                     'Currency'    => '949',
-                    'Lang'        => 'tr',
+                    'Lang'        => 'en',
                     'MbrId'       => '12',
                     'MerchantId'  => '085300000009704',
                     'OrgOrderId'  => '7022b92e-3aa1-44fb-86d4-33658c700c80',
@@ -817,7 +815,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                 'txType'   => PosInterface::TX_TYPE_REFUND_PARTIAL,
                 'expected' => [
                     'Currency'    => '949',
-                    'Lang'        => 'tr',
+                    'Lang'        => 'en',
                     'MbrId'       => '5',
                     'MerchantId'  => '085300000009704',
                     'OrgOrderId'  => '7022b92e-3aa1-44fb-86d4-33658c700c80',

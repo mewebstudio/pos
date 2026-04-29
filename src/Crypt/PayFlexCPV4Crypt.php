@@ -8,9 +8,18 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 
 class PayFlexCPV4Crypt extends AbstractCrypt
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexCPV4Pos::class === $gatewayClass;
+    }
+
     /**
      * {@inheritDoc}
      */

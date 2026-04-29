@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 
 class InterPosResponseDataMapper extends AbstractResponseDataMapper
@@ -22,6 +23,14 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         'E31'                        => 'invalid_transaction',
         'E39'                        => 'invalid_transaction',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return InterPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}
@@ -55,7 +64,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['all']              = $rawPaymentResponseData;
 
         if (self::TX_APPROVED === $status) {
-            $result['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['TRXDATE'] ?? null);
+            $result['transaction_time'] = $this->valueFormatter->formatDateTime($rawPaymentResponseData['TRXDATE'] ?? 'now', $txType);
         }
 
         $this->logger->debug('mapped payment response', $result);
@@ -142,6 +151,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
         $status          = self::TX_DECLINED;
@@ -158,7 +168,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['transaction_id']   = $rawResponseData['TransId'];
         $defaultResponse['error_code']       = self::TX_APPROVED !== $status ? $procReturnCode : null;
         $defaultResponse['error_message']    = self::TX_APPROVED !== $status ? $rawResponseData['ErrorMessage'] : null;
-        $defaultResponse['refund_amount']    = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
+        $defaultResponse['refund_amount']    = $rawResponseData['RefundedAmount'] > 0 ? $this->valueFormatter->formatAmount($rawResponseData['RefundedAmount'], $txType) : null;
 
         // todo success cevap ornegi bulundugunda guncellenecek:
         $defaultResponse['order_status']   = null;
@@ -166,7 +176,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['capture']        = null;
 
         if ('' !== $rawResponseData['VoidDate'] && '1.1.0001 00:00:00' !== $rawResponseData['VoidDate']) {
-            $defaultResponse['cancel_time'] = new \DateTimeImmutable($rawResponseData['VoidDate']);
+            $defaultResponse['cancel_time'] = $this->valueFormatter->formatDateTime($rawResponseData['VoidDate'], $txType);
         }
 
         return $defaultResponse;
@@ -235,18 +245,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * 0 => 0.0
-     * 1.056,2 => 1056.2
-     * @param string $amount
-     *
-     * @return float
-     */
-    protected function formatAmount(string $amount): float
-    {
-        return (float) \str_replace(',', '.', \str_replace('.', '', $amount));
-    }
-
-    /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
@@ -283,7 +281,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['all']              = $rawPaymentResponseData;
 
         if (self::TX_APPROVED === $result['status']) {
-            $result['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['TRXDATE']);
+            $result['transaction_time'] = $this->valueFormatter->formatDateTime($rawPaymentResponseData['TRXDATE'], $txType);
         }
 
         $this->logger->debug('mapped payment response', $result);
@@ -327,9 +325,9 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => $raw3DAuthResponseData['Pan'],
             'month'                => null,
             'year'                 => null,
-            'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
-            'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
-            'transaction_time'     => !isset($paymentResponseData['transaction_time']) && isset($raw3DAuthResponseData['TRXDATE']) ? new \DateTimeImmutable($raw3DAuthResponseData['TRXDATE']) : null,
+            'amount'               => $this->valueFormatter->formatAmount($raw3DAuthResponseData['PurchAmount'], $txType),
+            'currency'             => $this->valueMapper->mapCurrency($raw3DAuthResponseData['Currency'], $txType),
+            'transaction_time'     => !isset($paymentResponseData['transaction_time']) && isset($raw3DAuthResponseData['TRXDATE']) ? $this->valueFormatter->formatDateTime($raw3DAuthResponseData['TRXDATE'], $txType) : null,
             'eci'                  => $raw3DAuthResponseData['Eci'],
              /**
              * TxnStat 3D doğrulama sonucunu belirtir :

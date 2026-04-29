@@ -19,7 +19,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @since 1.0.0
@@ -73,21 +72,6 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      *
-     * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type or payment model are not provided
-     */
-    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
-        }
-
-        throw new \InvalidArgumentException('Transaction type and payment model are required to generate API URL');
-    }
-
-    /**
-     * @inheritDoc
-     *
      * @param string $threeDSessionId
      */
     public function get3DGatewayURL(string $paymentModel = PosInterface::MODEL_3D_SECURE, ?string $threeDSessionId = null): string
@@ -102,7 +86,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(array $gatewayResponseData, array $order, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -110,45 +94,41 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
-        $request = $request->request;
-
         if (
-            $this->is3DAuthSuccess($request->all())
+            $this->is3DAuthSuccess($gatewayResponseData)
             && !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    public function make3DHostPayment(array $gatewayResponseData, array $order, string $txType): array
     {
-        $request = $request->request;
-
         if (
-            $this->is3DAuthSuccess($request->all())
+            $this->is3DAuthSuccess($gatewayResponseData)
             && !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponseData)
         ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DHostResponseData($gatewayResponseData, $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-        return $this;
+        return $this->response;
     }
 
     /**
@@ -185,49 +165,9 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
-    {
-        if (null === $apiUrl) {
-            throw new \InvalidArgumentException('API URL is required for custom query');
-        }
-
-        return parent::customQuery($requestData, $apiUrl);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function history(array $data): PosInterface
+    public function history(array $data): array
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
-            'body'    => $contents,
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        if ($response->getStatusCode() === 204) {
-            $this->logger->warning('response from api is empty');
-
-            return $this->data = [];
-        }
-
-        $responseContent = $response->getBody()->getContents();
-
-        return $this->data = $this->serializer->decode($responseContent, $txType);
     }
 
     /**
@@ -276,56 +216,17 @@ class ToslaPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $requestData,
+        /** @var array<string, mixed> $result */
+        $result = $this->clientStrategy->getClient(
             $txType,
             $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
+        )->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
         );
-    }
 
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
-     *
-     * @return string
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    private function getRequestURIByTransactionType(string $txType, string $paymentModel): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH       => [
-                PosInterface::MODEL_NON_SECURE => 'Payment',
-                PosInterface::MODEL_3D_PAY     => 'threeDPayment',
-                PosInterface::MODEL_3D_HOST    => 'threeDPayment',
-            ],
-            PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
-                PosInterface::MODEL_3D_PAY  => 'threeDPreAuth',
-                PosInterface::MODEL_3D_HOST => 'threeDPreAuth',
-            ],
-            PosInterface::TX_TYPE_PAY_POST_AUTH  => 'postAuth',
-            PosInterface::TX_TYPE_CANCEL         => 'void',
-            PosInterface::TX_TYPE_REFUND         => 'refund',
-            PosInterface::TX_TYPE_REFUND_PARTIAL => 'refund',
-            PosInterface::TX_TYPE_STATUS         => 'inquiry',
-            PosInterface::TX_TYPE_ORDER_HISTORY  => 'history',
-        ];
-
-        if (!isset($arr[$txType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (\is_string($arr[$txType])) {
-            return $arr[$txType];
-        }
-
-        if (!isset($arr[$txType][$paymentModel])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        return $arr[$txType][$paymentModel];
+        return $result;
     }
 }

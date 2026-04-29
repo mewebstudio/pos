@@ -6,9 +6,11 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\EstPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
@@ -22,12 +24,10 @@ use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\EstPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\EstPos
@@ -35,8 +35,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class EstPosTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private EstPosAccount $account;
 
     /** @var EstPos */
@@ -54,7 +52,10 @@ class EstPosTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
-    /** @var HttpClient & MockObject */
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
+    /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
@@ -70,6 +71,8 @@ class EstPosTest extends TestCase
 
     private array $order;
 
+    private EstPosRequestValueMapper $requestValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -78,8 +81,7 @@ class EstPosTest extends TestCase
             'name'              => 'AKBANK T.A.S.',
             'class'             => EstPos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-                'gateway_3d'  => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'gateway_3d' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
             ],
         ];
 
@@ -102,13 +104,15 @@ class EstPosTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClient::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->requestValueMapper     = new EstPosRequestValueMapper();
+        $this->requestMapperMock      = $this->createMock(RequestDataMapperInterface::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $this->serializerMock         = $this->createMock(SerializerInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -132,11 +136,12 @@ class EstPosTest extends TestCase
         return new EstPos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
     }
@@ -146,10 +151,7 @@ class EstPosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertFalse($this->pos->isTestMode());
@@ -174,7 +176,7 @@ class EstPosTest extends TestCase
                 $order,
                 $paymentModel,
                 $txType,
-                'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                $this->config['gateway_endpoints']['gateway_3d'],
                 $card
             )
             ->willReturn(['formData']);
@@ -213,21 +215,20 @@ class EstPosTest extends TestCase
             ->method('check3DHash')
             ->willReturn(true);
 
-        $testData = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1'];
-        $request  = Request::create('', 'POST', $testData['paymentData']);
-        $order    = $testData['order'];
-        $txType   = $testData['txType'];
+        $testData            = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1'];
+        $gatewayResponseData = $testData['paymentData'];
+        $order               = $testData['order'];
+        $txType              = $testData['txType'];
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn($testData['expectedData']);
 
         $pos = $this->pos;
 
-        $pos->make3DHostPayment($request, $order, $txType);
+        $result = $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
@@ -249,27 +250,26 @@ class EstPosTest extends TestCase
         $this->cryptMock->expects(self::never())
             ->method('check3DHash');
 
-        $testData = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1'];
-        $request  = Request::create('', 'POST', $testData['paymentData']);
-        $order    = $testData['order'];
-        $txType   = $testData['txType'];
+        $testData            = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1'];
+        $gatewayResponseData = $testData['paymentData'];
+        $order               = $testData['order'];
+        $txType              = $testData['txType'];
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn($testData['expectedData']);
 
-        $pos->make3DHostPayment($request, $order, $txType);
+        $result = $pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
 
     public function testMake3DHostPaymentHashMismatchException(): void
     {
-        $data = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData'];
-        $request = Request::create('', 'POST', $data);
+        $txType = PosInterface::TX_TYPE_PAY_PRE_AUTH;
+        $data   = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData'];
 
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
@@ -280,7 +280,7 @@ class EstPosTest extends TestCase
             ->method('map3DHostResponseData');
 
         $this->expectException(HashMismatchException::class);
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, [], $txType, null, $data);
     }
 
     /**
@@ -292,21 +292,20 @@ class EstPosTest extends TestCase
             ->method('check3DHash')
             ->willReturn(true);
 
-        $testData = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1'];
-        $request  = Request::create('', 'POST', $testData['paymentData']);
-        $order    = $testData['order'];
-        $txType   = $testData['txType'];
+        $testData            = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1'];
+        $gatewayResponseData = $testData['paymentData'];
+        $order               = $testData['order'];
+        $txType              = $testData['txType'];
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn($testData['expectedData']);
 
         $pos = $this->pos;
 
-        $pos->make3DPayPayment($request, $order, $txType);
+        $result = $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
@@ -328,27 +327,26 @@ class EstPosTest extends TestCase
         $this->cryptMock->expects(self::never())
             ->method('check3DHash');
 
-        $testData = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1'];
-        $request  = Request::create('', 'POST', $testData['paymentData']);
-        $order    = $testData['order'];
-        $txType   = $testData['txType'];
+        $testData            = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1'];
+        $gatewayResponseData = $testData['paymentData'];
+        $order               = $testData['order'];
+        $txType              = $testData['txType'];
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
-            ->with($request->request->all(), $txType, $order)
+            ->with($gatewayResponseData, $txType, $order)
             ->willReturn($testData['expectedData']);
 
-        $pos->make3DPayPayment($request, $order, $txType);
+        $result = $pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
     }
 
     public function testMake3DPayPaymentHashMismatchException(): void
     {
-        $data = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
-        $request = Request::create('', 'POST', $data);
+        $data   = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $txType = PosInterface::TX_TYPE_PAY_PRE_AUTH;
 
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
@@ -359,7 +357,7 @@ class EstPosTest extends TestCase
             ->method('map3DPayResponseData');
 
         $this->expectException(HashMismatchException::class);
-        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, [], $txType, null, $data);
     }
 
     /**
@@ -379,13 +377,12 @@ class EstPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://entegrasyon.asseco-see.com.tr/fim/api',
             $requestData,
-            'request-body',
-            'response-body',
             $bankResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -393,9 +390,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->status($order);
+        $result = $this->pos->status($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -423,13 +419,12 @@ class EstPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://entegrasyon.asseco-see.com.tr/fim/api',
             $requestData,
-            'request-body',
-            'response-body',
             $bankResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -437,9 +432,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->orderHistory($order);
+        $result = $this->pos->orderHistory($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -461,13 +455,12 @@ class EstPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://entegrasyon.asseco-see.com.tr/fim/api',
             $requestData,
-            'request-body',
-            'response-body',
             $bankResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -475,9 +468,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->cancel($order);
+        $result = $this->pos->cancel($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -499,13 +491,12 @@ class EstPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://entegrasyon.asseco-see.com.tr/fim/api',
             $requestData,
-            'request-body',
-            'response-body',
             $bankResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -513,9 +504,8 @@ class EstPosTest extends TestCase
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->refund($order);
+        $result = $this->pos->refund($order);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -524,24 +514,24 @@ class EstPosTest extends TestCase
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPayment(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
-                ->with($this->account, $request->request->all())
+                ->with($this->account, $gatewayResponseData)
                 ->willReturn(true);
         }
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -555,42 +545,34 @@ class EstPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
                 $txType,
-                'https://entegrasyon.asseco-see.com.tr/fim/api',
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
-                PosInterface::MODEL_3D_SECURE
+                PosInterface::MODEL_3D_SECURE,
             );
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
 
-        $this->pos->make3DPayment($request, $order, $txType);
+        $result = $this->pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
@@ -599,13 +581,13 @@ class EstPosTest extends TestCase
      * @dataProvider make3DPaymentWithoutHashCheckDataProvider
      */
     public function testMake3DPaymentWithoutHashCheck(
-        array   $order,
-        string  $txType,
-        Request $request,
-        array   $paymentResponse,
-        array   $expectedResponse,
-        bool    $is3DSuccess,
-        bool    $isSuccess
+        array  $order,
+        string $txType,
+        array  $gatewayResponseData,
+        array  $paymentResponse,
+        array  $expectedResponse,
+        bool   $is3DSuccess,
+        bool   $isSuccess
     ): void {
         $config = $this->config;
         $config += [
@@ -621,7 +603,7 @@ class EstPosTest extends TestCase
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
-            ->with($request->request->all())
+            ->with($gatewayResponseData)
             ->willReturn('3d-status');
 
         $this->responseMapperMock->expects(self::once())
@@ -635,28 +617,25 @@ class EstPosTest extends TestCase
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
-                ->with($this->account, $order, $txType, $request->request->all())
+                ->with($this->account, $order, $txType, $gatewayResponseData)
                 ->willReturn($create3DPaymentRequestData);
 
             $this->configureClientResponse(
                 $txType,
-                'https://entegrasyon.asseco-see.com.tr/fim/api',
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
-                PosInterface::MODEL_3D_SECURE
+                PosInterface::MODEL_3D_SECURE,
             );
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->with($gatewayResponseData, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
-                ->with($request->request->all(), null, $txType, $order)
+                ->with($gatewayResponseData, null, $txType, $order)
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
@@ -668,9 +647,8 @@ class EstPosTest extends TestCase
                 ->method('dispatch');
         }
 
-        $pos->make3DPayment($request, $order, $txType);
+        $result = $pos->payment(PosInterface::MODEL_3D_SECURE, $order, $txType, null, $gatewayResponseData);
 
-        $result = $pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $pos->isSuccess());
     }
@@ -678,7 +656,6 @@ class EstPosTest extends TestCase
     public function testMake3DPaymentHashMismatchException(): void
     {
         $data = EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData'];
-        $request = Request::create('', 'POST', $data);
 
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
@@ -693,22 +670,18 @@ class EstPosTest extends TestCase
             ->method('map3DPaymentData');
         $this->requestMapperMock->expects(self::never())
             ->method('create3DPaymentRequestData');
-        $this->serializerMock->expects(self::never())
-            ->method('encode');
-        $this->serializerMock->expects(self::never())
-            ->method('decode');
         $this->eventDispatcherMock->expects(self::never())
             ->method('dispatch');
 
         $this->expectException(HashMismatchException::class);
-        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->payment(PosInterface::MODEL_3D_SECURE, [], PosInterface::TX_TYPE_PAY_AUTH, null, $data);
     }
 
 
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -721,13 +694,12 @@ class EstPosTest extends TestCase
         $decodedResponse = ['paymentResponse'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -735,13 +707,13 @@ class EstPosTest extends TestCase
             ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType, $card);
     }
 
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -755,13 +727,12 @@ class EstPosTest extends TestCase
         $decodedResponse = ['paymentResponse'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -769,16 +740,16 @@ class EstPosTest extends TestCase
             ->with(['paymentResponse'], $txType, $order)
             ->willReturn(['result']);
 
-        $this->pos->makeRegularPostPayment($order);
+        $this->pos->payment(PosInterface::MODEL_NON_SECURE, $order, $txType);
     }
 
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -790,13 +761,12 @@ class EstPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $this->account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -806,18 +776,16 @@ class EstPosTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://entegrasyon.asseco-see.com.tr/fim/api/xxxx',
-                'expected_api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api/xxxx',
+                'api_url'     => 'https://entegrasyon.asseco-see.com.tr/fim/api/xxxx',
             ],
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => null,
-                'expected_api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'api_url'     => null,
             ],
         ];
     }
@@ -826,43 +794,31 @@ class EstPosTest extends TestCase
     {
         return [
             'auth_fail'                    => [
-                'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
-                'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
-                'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
-                'is3DSuccess'     => false,
-                'isSuccess'       => false,
+                'order'               => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
+                'txType'              => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
+                'gatewayResponseData' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData'],
+                'paymentResponse'     => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
+                'expected'            => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
+                'is3DSuccess'         => false,
+                'isSuccess'           => false,
             ],
             '3d_auth_success_payment_fail' => [
-                'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
-                'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
-                'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => false,
+                'order'               => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
+                'txType'              => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
+                'gatewayResponseData' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData'],
+                'paymentResponse'     => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
+                'expected'            => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => false,
             ],
             'success'                      => [
-                'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-                ),
-                'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                'order'               => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'              => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse'     => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -871,30 +827,22 @@ class EstPosTest extends TestCase
     {
         return [
             '3d_auth_success_payment_fail' => [
-                'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
-                'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
-                ),
-                'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
-                'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => false,
+                'order'               => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
+                'txType'              => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
+                'gatewayResponseData' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData'],
+                'paymentResponse'     => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
+                'expected'            => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => false,
             ],
             'success'                      => [
-                'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
-                    '',
-                    'POST',
-                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
-                ),
-                'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                'order'               => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'              => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'gatewayResponseData' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse'     => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'            => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'         => true,
+                'isSuccess'           => true,
             ],
         ];
     }
@@ -958,18 +906,16 @@ class EstPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'txType' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             ],
         ];
     }
@@ -978,34 +924,9 @@ class EstPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-            ],
-        ];
-    }
-
-    public static function statusRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            ],
-        ];
-    }
-
-    public static function cancelRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
             ],
         ];
     }
@@ -1053,35 +974,34 @@ class EstPosTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
 
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'body' => $encodedRequestData,
-            ],
-        );
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
@@ -1100,7 +1020,7 @@ class EstPosTest extends TestCase
                 )
             ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 

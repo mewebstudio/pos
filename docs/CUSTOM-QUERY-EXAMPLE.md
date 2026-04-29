@@ -62,7 +62,11 @@ $eventDispatcher->addListener(\Mews\Pos\Event\RequestDataPreparedEvent::class, f
 });
 
 try {
-    $pos->customQuery(
+    /**
+     * $response: Bankadan dönen cevap array'e dönüştürülür,
+     * ancak diğer transaction'larda olduğu gibi mapping/normalization yapılmaz.
+     */
+    $response = $pos->customQuery(
         $requestData,
 
         // URL optional, bazı gateway'lerde zorunlu.
@@ -72,11 +76,5 @@ try {
 } catch (Exception $e) {
     dd($e);
 }
-
-/**
- * Bankadan dönen cevap array'e dönüştürülür,
- * ancak diğer transaction'larda olduğu gibi mapping/normalization yapılmaz.
- */
-$response = $pos->getResponse();
 var_dump($response);
 ```

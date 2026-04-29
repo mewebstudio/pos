@@ -23,8 +23,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourKullaniciAdi',
     'yourSifre',
     $paymentModel,
-    '', // bankaya göre zorunlu
-    \Mews\Pos\PosInterface::LANG_TR
+    '' // bankaya göre zorunlu
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -53,8 +52,8 @@ $order = [
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
 
-    //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
-    'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
+    // lang degeri verilmezse config'de tanimlanan dil veya default olarak LANG_TR kullanılacak.
+    'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların  dili.
 ];
 
 // Kredi kartı bilgileri
@@ -79,7 +78,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
 
 // Ödeme tamamlanıyor
 try {
-    $pos->payment(
+    $response = $pos->payment(
         $paymentModel,
         $order,
         $transactionType,
@@ -89,9 +88,6 @@ try {
     var_dump($e);
     exit;
 }
-
-// Sonuç çıktısı
-$response = $pos->getResponse();
 
 var_dump($response);
 // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.

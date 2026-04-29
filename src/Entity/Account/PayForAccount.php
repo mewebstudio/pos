@@ -6,8 +6,6 @@
 
 namespace Mews\Pos\Entity\Account;
 
-use Mews\Pos\PosInterface;
-
 class PayForAccount extends AbstractPosAccount
 {
     public const MBR_ID_FINANSBANK     = '5';
@@ -23,7 +21,6 @@ class PayForAccount extends AbstractPosAccount
      * @param string               $merchantId   Üye işyeri numarası.
      * @param string               $userCode     Otorizasyon sistemi kullanıcı kodu.
      * @param string               $userPassword Otorizasyon sistemi kullanıcı şifresi.
-     * @param PosInterface::LANG_* $lang
      * @param string|null          $merchantPass 3D Secure şifresidir.
      * @param self::MBR_ID_*       $mbrId        Kurum kodudur.
      */
@@ -32,7 +29,6 @@ class PayForAccount extends AbstractPosAccount
         string  $merchantId,
         string  $userCode,
         string  $userPassword,
-        string  $lang,
         ?string $merchantPass = null,
         string  $mbrId = self::MBR_ID_FINANSBANK
     ) {
@@ -43,7 +39,6 @@ class PayForAccount extends AbstractPosAccount
             $merchantId,
             $userCode,
             $userPassword,
-            $lang,
             $merchantPass
         );
     }

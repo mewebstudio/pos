@@ -7,9 +7,17 @@
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\PosInterface;
 
 interface CryptInterface
 {
+    /**
+     * @param class-string<PosInterface> $gatewayClass
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass): bool;
+
     /**
      * @param string      $str
      * @param string|null $encryptionKey

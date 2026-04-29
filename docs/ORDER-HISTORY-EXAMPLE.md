@@ -20,8 +20,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourKullaniciAdi',
     'yourSifre',
     \Mews\Pos\PosInterface::MODEL_NON_SECURE,
-    '', // bankaya göre zorunlu
-    \Mews\Pos\PosInterface::LANG_TR
+    '' // bankaya göre zorunlu
 );
 
 $eventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
@@ -88,17 +87,16 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
     return $order;
 }
 
-// odemeden aldiginiz cevap: $pos->getResponse();
-$lastResponse = $session->get('last_response');
+// ödeme işlemi sonrası dönen veriler:
+$_SESSION['last_response'] ?? null
 
 $order = createOrderHistoryOrder(get_class($pos), $lastResponse);
 
 try {
-    $pos->orderHistory($order);
+    $response = $pos->orderHistory($order);
 } catch (\Error $e) {
     var_dump($e);
     exit;
 }
-$response = $pos->getResponse();
 var_dump($response);
 ```

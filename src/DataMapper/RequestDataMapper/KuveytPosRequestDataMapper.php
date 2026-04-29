@@ -13,6 +13,7 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -23,53 +24,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /** @var string */
     public const API_VERSION = 'TDV2.0.0';
 
-    /** @var string */
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $secureTypeMappings = [
-        PosInterface::MODEL_3D_SECURE  => '3',
-        PosInterface::MODEL_NON_SECURE => '0',
-    ];
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
-        PosInterface::TX_TYPE_CANCEL         => 'SaleReversal',
-        PosInterface::TX_TYPE_STATUS         => 'GetMerchantOrderDetail',
-        PosInterface::TX_TYPE_REFUND         => 'DrawBack',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'PartialDrawback',
-    ];
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $cardTypeMapping = [
-        CreditCardInterface::CARD_TYPE_VISA       => 'Visa',
-        CreditCardInterface::CARD_TYPE_MASTERCARD => 'MasterCard',
-        CreditCardInterface::CARD_TYPE_TROY       => 'Troy',
-    ];
-
-    /**
-     * Currency mapping
-     *
-     * {@inheritdoc}
-     */
-    protected array $currencyMappings = [
-        PosInterface::CURRENCY_TRY => '0949',
-        PosInterface::CURRENCY_USD => '0840',
-        PosInterface::CURRENCY_EUR => '0978',
-    ];
-
     /** @var KuveytPosCrypt */
     protected CryptInterface $crypt;
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass;
+    }
 
     /**
      * @param KuveytPosAccount $posAccount
@@ -91,7 +55,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                         'Data' => $responseData['MD'],
                     ],
                 ],
-                'TransactionType'              => $this->mapTxType($txType),
+                'TransactionType'              => $this->valueMapper->mapTxType($txType),
                 'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
                 'Amount'                       => $responseData['VPosMessage']['Amount'],
                 'DisplayAmount'                => $responseData['VPosMessage']['Amount'],
@@ -115,7 +79,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * @param string                               $txType
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array<string, array<string, string>|int|string>
+     * @return array<string, array<string, string>|int|string|float>
      *
      * @throws UnsupportedTransactionTypeException
      */
@@ -125,13 +89,13 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($kuveytPosAccount) + [
                 'APIVersion'          => self::API_VERSION,
-                'TransactionType'     => $this->mapTxType($txType),
-                'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
-                'InstallmentCount'    => $this->mapInstallment($order['installment']),
-                'Amount'              => $this->formatAmount($order['amount']),
+                'TransactionType'     => $this->valueMapper->mapTxType($txType),
+                'TransactionSecurity' => $this->valueMapper->mapSecureType($paymentModel),
+                'InstallmentCount'    => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'              => (int) $this->valueFormatter->formatAmount($order['amount']),
                 //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
-                'DisplayAmount'       => $this->formatAmount($order['amount']),
-                'CurrencyCode'        => $this->mapCurrency($order['currency']),
+                'DisplayAmount'       => (int) $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'        => $this->valueMapper->mapCurrency($order['currency']),
                 'MerchantOrderId'     => (string) $order['id'],
                 'OkUrl'               => (string) $order['success_url'],
                 'FailUrl'             => (string) $order['fail_url'],
@@ -142,10 +106,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($creditCard instanceof CreditCardInterface) {
             $requestData['CardHolderName']      = (string) $creditCard->getHolderName();
-            $requestData['CardType']            = $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : '';
+            $requestData['CardType']            = $creditCard->getType() !== null ? $this->valueMapper->mapCardType($creditCard->getType()) : '';
             $requestData['CardNumber']          = $creditCard->getNumber();
-            $requestData['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $requestData['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $requestData['CardExpireDateYear']  = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateYear');
+            $requestData['CardExpireDateMonth'] = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateMonth');
             $requestData['CardCVV2']            = $creditCard->getCvv();
         }
 
@@ -174,17 +138,17 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = $this->getRequestAccountData($posAccount) + [
                 'APIVersion'          => self::API_VERSION,
                 'HashData'            => '',
-                'TransactionType'     => $this->mapTxType($txType),
+                'TransactionType'     => $this->valueMapper->mapTxType($txType),
                 'TransactionSecurity' => '1',
                 'MerchantOrderId'     => (string) $order['id'],
-                'Amount'              => $this->formatAmount($order['amount']),
-                'DisplayAmount'       => $this->formatAmount($order['amount']),
-                'CurrencyCode'        => $this->mapCurrency($order['currency']),
-                'InstallmentCount'    => $this->mapInstallment($order['installment']),
+                'Amount'              => $this->valueFormatter->formatAmount($order['amount']),
+                'DisplayAmount'       => $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'        => $this->valueMapper->mapCurrency($order['currency']),
+                'InstallmentCount'    => $this->valueFormatter->formatInstallment($order['installment']),
                 'CardHolderName'      => $creditCard->getHolderName(),
                 'CardNumber'          => $creditCard->getNumber(),
-                'CardExpireDateYear'  => $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT),
-                'CardExpireDateMonth' => $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT),
+                'CardExpireDateYear'  => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateYear'),
+                'CardExpireDateMonth' => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateMonth'),
                 'CardCVV2'            => $creditCard->getCvv(),
             ];
 
@@ -223,23 +187,23 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
              * siparisi buluyor.
              * Ancak bu degerler gonderilmediginde veya gecersiz (orn. null) gonderildiginde SOAP server hata donuyor.
              */
-            'StartDate'             => $order['start_date']->format('Y-m-d\TH:i:s'),
-            'EndDate'               => $order['end_date']->format('Y-m-d\TH:i:s'),
+            'StartDate'             => $this->valueFormatter->formatDateTime($order['start_date'], 'StartDate'),
+            'EndDate'               => $this->valueFormatter->formatDateTime($order['end_date'], 'EndDate'),
             'TransactionType'       => 0,
             'VPosMessage'           => $this->getRequestAccountData($posAccount) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
                     'SubMerchantId'                    => 0,
-                    'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], // Default gönderilebilir.
+                    'CardType'                         => $this->valueMapper->mapCardType(CreditCardInterface::CARD_TYPE_VISA), //Default gönderilebilir.
                     'BatchID'                          => 0,
-                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_TYPE_STATUS),
+                    'TransactionType'                  => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS),
                     'InstallmentCount'                 => 0,
                     'Amount'                           => 0,
                     'DisplayAmount'                    => 0,
                     'CancelAmount'                     => 0,
                     'MerchantOrderId'                  => $order['id'],
-                    'CurrencyCode'                     => $this->mapCurrency($order['currency']),
+                    'CurrencyCode'                     => $this->valueMapper->mapCurrency($order['currency']),
                     'FECAmount'                        => 0,
                     'QeryId'                           => 0,
                     'DebtId'                           => 0,
@@ -251,7 +215,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return [$this->mapTxType(PosInterface::TX_TYPE_STATUS) => ['request' => $result]];
+        return [$result['VPosMessage']['TransactionType'] => ['request' => $result]];
     }
 
     /**
@@ -270,7 +234,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'LanguageId'            => 0,
             'CustomerId'            => $posAccount->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
-            'Amount'                => $this->formatAmount($order['amount']),
+            'Amount'                => $this->valueFormatter->formatAmount($order['amount']),
             'MerchantId'            => $posAccount->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
@@ -281,16 +245,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
                     'SubMerchantId'                    => 0,
-                    'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], //Default gönderilebilir.
+                    'CardType'                         => $this->valueMapper->mapCardType(CreditCardInterface::CARD_TYPE_VISA), //Default gönderilebilir.
                     'BatchID'                          => 0,
-                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
+                    'TransactionType'                  => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
                     'InstallmentCount'                 => 0,
-                    'Amount'                           => $this->formatAmount($order['amount']),
-                    'DisplayAmount'                    => $this->formatAmount($order['amount']),
-                    'CancelAmount'                     => $this->formatAmount($order['amount']),
+                    'Amount'                           => $this->valueFormatter->formatAmount($order['amount']),
+                    'DisplayAmount'                    => $this->valueFormatter->formatAmount($order['amount']),
+                    'CancelAmount'                     => $this->valueFormatter->formatAmount($order['amount']),
                     'MerchantOrderId'                  => $order['id'],
                     'FECAmount'                        => 0,
-                    'CurrencyCode'                     => $this->mapCurrency($order['currency']),
+                    'CurrencyCode'                     => $this->valueMapper->mapCurrency($order['currency']),
                     'QeryId'                           => 0,
                     'DebtId'                           => 0,
                     'SurchargeAmount'                  => 0,
@@ -301,7 +265,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return [$this->mapTxType(PosInterface::TX_TYPE_CANCEL) => ['request' => $result]];
+        return [$result['VPosMessage']['TransactionType'] => ['request' => $result]];
     }
 
     /**
@@ -320,7 +284,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'LanguageId'            => 0,
             'CustomerId'            => $posAccount->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
-            'Amount'                => $this->formatAmount($order['amount']),
+            'Amount'                => $this->valueFormatter->formatAmount($order['amount']),
             'MerchantId'            => $posAccount->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
@@ -331,16 +295,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
                     'SubMerchantId'                    => 0,
-                    'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], //Default gönderilebilir.
+                    'CardType'                         => $this->valueMapper->mapCardType(CreditCardInterface::CARD_TYPE_VISA), //Default gönderilebilir.
                     'BatchID'                          => 0,
-                    'TransactionType'                  => $this->mapTxType($refundTxType),
+                    'TransactionType'                  => $this->valueMapper->mapTxType($refundTxType),
                     'InstallmentCount'                 => 0,
-                    'Amount'                           => $this->formatAmount($order['amount']),
+                    'Amount'                           => $this->valueFormatter->formatAmount($order['amount']),
                     'DisplayAmount'                    => 0,
-                    'CancelAmount'                     => $this->formatAmount($order['amount']),
+                    'CancelAmount'                     => $this->valueFormatter->formatAmount($order['amount']),
                     'MerchantOrderId'                  => $order['id'],
                     'FECAmount'                        => 0,
-                    'CurrencyCode'                     => $this->mapCurrency($order['currency']),
+                    'CurrencyCode'                     => $this->valueMapper->mapCurrency($order['currency']),
                     'QeryId'                           => 0,
                     'DebtId'                           => 0,
                     'SurchargeAmount'                  => 0,
@@ -351,7 +315,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return [$this->mapTxType($refundTxType) => ['request' => $result]];
+        return [$result['VPosMessage']['TransactionType'] => ['request' => $result]];
     }
 
     /**
@@ -363,19 +327,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * Küveyt Türk kendisi hazır HTML form gönderiyor.
      * {@inheritDoc}
-     *
-     * @param array<string, string> $order Kuveyt bank'tan donen HTML cevaptan parse edilen form inputlar
-     *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
-    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null)
     {
-        return [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $order,
-        ];
+        throw new NotImplementedException();
     }
 
     /**
@@ -392,30 +349,6 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         throw new NotImplementedException();
-    }
-
-    /**
-     * Amount Formatter
-     * converts 100 to 10000, or 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    protected function formatAmount(float $amount): int
-    {
-        return (int) (\round($amount, 2) * 100);
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '0';
     }
 
     /**

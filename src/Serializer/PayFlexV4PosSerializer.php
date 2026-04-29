@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Serializer;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
@@ -35,31 +36,34 @@ class PayFlexV4PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
-        return PayFlexV4Pos::class === $gatewayClass;
+        return PayFlexV4Pos::class === $gatewayClass
+            && HttpClientInterface::API_NAME_QUERY_API !== $apiName;
     }
 
     /**
      * @inheritDoc
      */
-    public function encode(array $data, string $txType): string
+    public function encode(array $data, string $txType): EncodedData
     {
-        if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_ORDER_HISTORY === $txType) {
-            throw new UnsupportedTransactionTypeException(
-                \sprintf('Serialization of the transaction %s is not supported', $txType)
-            );
+        if (in_array($txType, [
+            PosInterface::TX_TYPE_STATUS,
+            PosInterface::TX_TYPE_HISTORY,
+            PosInterface::TX_TYPE_ORDER_HISTORY,
+        ], true)) {
+            throw new UnsupportedTransactionTypeException(sprintf(
+                'Unsupported transaction type for %s',
+                self::class
+            ));
         }
 
-        if (PosInterface::TX_TYPE_STATUS === $txType) {
-            return $this->serializer->encode($data, XmlEncoder::FORMAT, [
-                XmlEncoder::ROOT_NODE_NAME             => 'SearchRequest',
-                XmlEncoder::ENCODING                   => 'UTF-8',
-                XmlEncoder::ENCODER_IGNORED_NODE_TYPES => [],
-            ]);
-        }
+        $format = self::FORMAT_XML;
 
-        return $this->serializer->encode($data, XmlEncoder::FORMAT);
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**

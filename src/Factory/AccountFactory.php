@@ -25,7 +25,6 @@ use Mews\Pos\PosInterface;
 class AccountFactory
 {
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
      * @phpstan-param PosInterface::MODEL_* $model
      *
      * @param non-empty-string      $bank
@@ -34,34 +33,30 @@ class AccountFactory
      * @param non-empty-string      $password
      * @param non-empty-string      $model
      * @param non-empty-string|null $storeKey
-     * @param non-empty-string      $lang
      *
      * @return EstPosAccount
      *
      * @throws MissingAccountInfoException
      */
-    public static function createEstPosAccount(string $bank, string $clientId, string $kullaniciAdi, string $password, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = PosInterface::LANG_TR): EstPosAccount
+    public static function createEstPosAccount(string $bank, string $clientId, string $kullaniciAdi, string $password, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null): EstPosAccount
     {
         self::checkParameters($model, $storeKey);
 
-        return new EstPosAccount($bank, $clientId, $kullaniciAdi, $password, $lang, $storeKey);
+        return new EstPosAccount($bank, $clientId, $kullaniciAdi, $password, $storeKey);
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
-     *
      * @param non-empty-string      $bank
      * @param non-empty-string      $merchantSafeId 32 karakter üye İş Yeri numarası
      * @param non-empty-string      $terminalSafeId 32 karakter
      * @param non-empty-string      $secretKey
-     * @param non-empty-string      $lang
      * @param non-empty-string|null $subMerchantId  Max 15 karakter
      *
      * @return AkbankPosAccount
      */
-    public static function createAkbankPosAccount(string $bank, string $merchantSafeId, string $terminalSafeId, string $secretKey, string $lang = PosInterface::LANG_TR, ?string $subMerchantId = null): AkbankPosAccount
+    public static function createAkbankPosAccount(string $bank, string $merchantSafeId, string $terminalSafeId, string $secretKey, ?string $subMerchantId = null): AkbankPosAccount
     {
-        return new AkbankPosAccount($bank, $merchantSafeId, $terminalSafeId, $secretKey, $lang, $subMerchantId);
+        return new AkbankPosAccount($bank, $merchantSafeId, $terminalSafeId, $secretKey, $subMerchantId);
     }
 
     /**
@@ -74,11 +69,10 @@ class AccountFactory
      */
     public static function createToslaPosAccount(string $bank, string $clientId, string $apiUser, string $apiPass): ToslaPosAccount
     {
-        return new ToslaPosAccount($bank, $clientId, $apiUser, '', PosInterface::LANG_TR, $apiPass);
+        return new ToslaPosAccount($bank, $clientId, $apiUser, '', $apiPass);
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_*    $lang
      * @phpstan-param PosInterface::MODEL_*   $model
      * @phpstan-param PayForAccount::MBR_ID_* $mbrId
      *
@@ -88,7 +82,6 @@ class AccountFactory
      * @param non-empty-string      $userPassword Otorizasyon sistemi kullanıcı şifresi.
      * @param non-empty-string      $model
      * @param non-empty-string|null $merchantPass 3D Secure şifresidir.
-     * @param non-empty-string      $lang
      * @param non-empty-string      $mbrId        Kurum kodudur.
      *
      * @return PayForAccount
@@ -102,7 +95,6 @@ class AccountFactory
         string  $userPassword,
         string  $model = PosInterface::MODEL_NON_SECURE,
         ?string $merchantPass = null,
-        string  $lang = PosInterface::LANG_TR,
         string  $mbrId = PayForAccount::MBR_ID_FINANSBANK
     ): PayForAccount {
         self::checkParameters($model, $merchantPass);
@@ -112,14 +104,12 @@ class AccountFactory
             $merchantId,
             $userCode,
             $userPassword,
-            $lang,
             $merchantPass,
             $mbrId
         );
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
      * @phpstan-param PosInterface::MODEL_* $model
      *
      * @param non-empty-string      $bank
@@ -131,22 +121,20 @@ class AccountFactory
      * @param non-empty-string|null $storeKey
      * @param non-empty-string|null $refundUsername
      * @param non-empty-string|null $refundPassword
-     * @param non-empty-string      $lang
      *
      * @return GarantiPosAccount
      *
      * @throws MissingAccountInfoException
      */
-    public static function createGarantiPosAccount(string $bank, string $merchantId, string $userId, string $password, string $terminalId, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = PosInterface::LANG_TR): GarantiPosAccount
+    public static function createGarantiPosAccount(string $bank, string $merchantId, string $userId, string $password, string $terminalId, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null): GarantiPosAccount
     {
         self::checkParameters($model, $storeKey);
 
-        return new GarantiPosAccount($bank, $merchantId, $userId, $password, $lang, $terminalId, $storeKey, $refundUsername, $refundPassword);
+        return new GarantiPosAccount($bank, $merchantId, $userId, $password, $terminalId, $storeKey, $refundUsername, $refundPassword);
     }
 
 
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
      * @phpstan-param PosInterface::MODEL_* $model
      *
      * @param non-empty-string      $bank
@@ -155,22 +143,20 @@ class AccountFactory
      * @param non-empty-string      $customerId CustomerNumber, Müşteri No
      * @param non-empty-string      $storeKey   Oluşturulan APİ kullanıcısının şifre bilgisidir.
      * @param non-empty-string      $model
-     * @param non-empty-string      $lang
      * @param non-empty-string|null $subMerchantId
      *
      * @return KuveytPosAccount
      *
      * @throws MissingAccountInfoException
      */
-    public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = PosInterface::MODEL_3D_SECURE, string $lang = PosInterface::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
+    public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = PosInterface::MODEL_3D_SECURE, ?string $subMerchantId = null): KuveytPosAccount
     {
         self::checkParameters($model, $storeKey);
 
-        return new KuveytPosAccount($bank, $merchantId, $username, $customerId, $storeKey, $lang, $subMerchantId);
+        return new KuveytPosAccount($bank, $merchantId, $username, $customerId, $storeKey, $subMerchantId);
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_*  $lang
      * @phpstan-param PosInterface::MODEL_* $model
      *
      * @param non-empty-string      $bank
@@ -179,17 +165,16 @@ class AccountFactory
      * @param non-empty-string      $posNetId
      * @param non-empty-string      $model
      * @param non-empty-string|null $storeKey
-     * @param non-empty-string      $lang
      *
      * @return PosNetAccount
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPosNetAccount(string $bank, string $merchantId, string $terminalId, string $posNetId, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = PosInterface::LANG_TR): PosNetAccount
+    public static function createPosNetAccount(string $bank, string $merchantId, string $terminalId, string $posNetId, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null): PosNetAccount
     {
         self::checkParameters($model, $storeKey);
 
-        return new PosNetAccount($bank, $merchantId, $posNetId, $terminalId, $lang, $storeKey);
+        return new PosNetAccount($bank, $merchantId, $posNetId, $terminalId, $storeKey);
     }
 
     /**
@@ -216,7 +201,6 @@ class AccountFactory
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_*  $lang
      * @phpstan-param PosInterface::MODEL_* $model
      *
      * @param non-empty-string      $bank
@@ -225,17 +209,16 @@ class AccountFactory
      * @param non-empty-string      $userPass
      * @param non-empty-string      $model
      * @param non-empty-string|null $merchantPass
-     * @param non-empty-string      $lang
      *
      * @return InterPosAccount
      *
      * @throws MissingAccountInfoException
      */
-    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = PosInterface::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = PosInterface::LANG_TR): InterPosAccount
+    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = PosInterface::MODEL_NON_SECURE, ?string $merchantPass = null): InterPosAccount
     {
         self::checkParameters($model, $merchantPass);
 
-        return new InterPosAccount($bank, $shopCode, $userCode, $userPass, $lang, $merchantPass);
+        return new InterPosAccount($bank, $shopCode, $userCode, $userPass, $merchantPass);
     }
 
     /**
