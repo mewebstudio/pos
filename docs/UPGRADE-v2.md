@@ -189,6 +189,27 @@ $account = AccountFactory::createForGateway(
 
 ---
 
+## 5b. CreditCardInterface Metot Değişiklikleri
+
+`getExpireYear()` ve `getExpireMonth()` metotları `CreditCardInterface`'den **kaldırıldı**.
+Son kullanma tarihi için `getExpirationDate()` kullanın; bu metot `\DateTimeImmutable` döndürür.
+
+```php
+// v1
+$year  = $card->getExpireYear();   // örn. "24"
+$month = $card->getExpireMonth();  // örn. "06"
+
+// v2
+$expDate = $card->getExpirationDate(); // \DateTimeImmutable
+$year    = $expDate->format('y');      // örn. "24"
+$month   = $expDate->format('m');      // örn. "06"
+```
+
+`CreditCardInterface`'i kendiniz implemente ediyorsanız bu iki metodu sınıfınızdan kaldırın
+ve `getExpirationDate(): \DateTimeImmutable` metodunu eklediğinizden emin olun.
+
+---
+
 ## 6. PosInterface — Kırıcı Değişiklikler
 
 ### 6a. Tüm işlem metotları artık `array` döndürüyor
@@ -826,6 +847,7 @@ $response = $pos->status($order);
 - [ ] `PosFactory::create()` çağrısında 4. parametre `null` (veya `HttpClientStrategyInterface`), 5. parametre `null` (veya PSR-18 `ClientInterface`) olarak güncellendi mi?
 - [ ] `getBank()` → `getBankName()`, `getClientId()` → `getMerchantId()`, `getStoreKey()` → `getSecretKey()` güncellendi mi?
 - [ ] `getLang()` çağrıları kaldırıldı mı?
+- [ ] `CreditCardInterface::getExpireYear()` ve `getExpireMonth()` çağrıları `getExpirationDate()` kullanacak şekilde güncellendi mi?
 - [ ] `$pos->history(...)` → `PosQueryFactory::create(...)->history(...)` olarak güncellendi mi?
 - [ ] `$pos->customQuery(...)` → `PosQueryFactory::create(...)->customQuery(...)` olarak güncellendi mi?
 - [ ] `PosInterface::TX_TYPE_HISTORY` → `PosQueryInterface::QUERY_TYPE_HISTORY` olarak güncellendi mi?

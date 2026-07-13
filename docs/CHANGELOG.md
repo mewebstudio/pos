@@ -33,6 +33,7 @@ Geçiş adımları için [UPGRADE-v2.md](./UPGRADE-v2.md) dosyasına bakınız.
     - `PayFlexCPV4Pos` için `payment_api` URL'i de kısaltıldı.
 - **Gateway ve namespace yeniden adlandırmaları:** `Gateways` → `Gateway`, `Exceptions` → `Exception`, `Entity` → `Model`; `EstPos`/`EstV3Pos` → `AssecoPos`, `PosNet` → `PosNetPos` ve ilgili account/factory isimleri güncellendi.
 - **`AbstractPosAccount` metot yeniden adlandırmaları:** `getBank()` → `getBankName()`, `getClientId()` → `getMerchantId()`, `getStoreKey()` → `getSecretKey()`, `getLang()` kaldırıldı.
+- **`CreditCardInterface` — `getExpireYear()` ve `getExpireMonth()` kaldırıldı.** Son kullanma tarihi için `getExpirationDate()` kullanın; bu metot `\DateTimeImmutable` döndürür.
 - **Exception yeniden adlandırması:** `BankClassNullException` → `GatewayClassNotConfiguredException`.
 - `BankNotFoundException` kaldırıldı — `PosFactory::create()` artık bu hatayı fırlatmıyor.
 - **`PosFactory::createPosGateway()` → `PosFactory::create()` olarak yeniden adlandırıldı.**
