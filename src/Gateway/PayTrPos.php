@@ -38,6 +38,8 @@ class PayTrPos extends AbstractGateway
     /** @var PayTrPosResponseDataMapper */
     protected ResponseDataMapperInterface $responseDataMapper;
 
+    protected static bool $testModeAffectsRequests = true;
+
     /** @inheritdoc */
     protected static array $supportedTransactions = [
         PosInterface::TX_TYPE_PAY_AUTH       => [

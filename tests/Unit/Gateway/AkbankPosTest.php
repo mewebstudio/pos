@@ -113,6 +113,28 @@ class AkbankPosTest extends TestCase
         $this->assertSame($this->cryptMock, $this->pos->getCrypt());
     }
 
+    public function testInitOnTestModeLogsWarning(): void
+    {
+        $config = $this->config;
+        $config['gateway_configs']['test_mode'] = true;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('setTestMode')
+            ->with(true);
+
+        $this->loggerMock->expects(self::once())
+            ->method('warning')
+            ->with(
+                'test_mode gateway ayarı bu gateway için istek verisini etkilemez; '
+                . 'test ve production ortamı ayrımı config\'deki endpoint URL\'leri ile yapılır',
+                ['gateway' => AkbankPos::class]
+            );
+
+        $pos = $this->createGateway($config);
+
+        $this->assertTrue($pos->isTestMode());
+    }
+
     public function testGet3DGatewayURL(): void
     {
         $actual = $this->pos->get3DGatewayURL();

@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * gateway_configs.test_mode ayarı:
+ * - PayTrPos ve GarantiPos: bu ayar istek verisini aktif olarak değiştirir (bankaya test/prod göstergesi gönderir).
+ * - Diğer tüm gateway'ler: test ve production ortamı ayrımı yalnızca aşağıdaki endpoint URL'leri ile yapılır;
+ *   bu gateway'ler için test_mode ayarlamak bir etkisi olmaz ve logger'da uyarı mesajı oluşturur.
+ */
+
 return [
     'banks' => [
         'akbank-pos'            => [
@@ -146,9 +153,7 @@ return [
             // kuveyt-pos
             'class'             => \Mews\Pos\Gateway\KuveytPos::class,
             'gateway_configs'   => [
-                'lang'      => \Mews\Pos\PosInterface::LANG_TR,
-                // testinizi SSL olmayan ortamda yapıyorsanız bu değeri true yapmanız gerekir.
-                'test_mode' => true,
+                'lang' => \Mews\Pos\PosInterface::LANG_TR,
             ],
             'gateway_endpoints' => [
                 'payment_api' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',

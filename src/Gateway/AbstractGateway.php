@@ -53,6 +53,12 @@ abstract class AbstractGateway implements PosInterface
         PosInterface::MODEL_3D_PAY,
     ];
 
+    /**
+     * Whether the test_mode gateway_config key actually changes the request payload for this gateway.
+     * When false, test vs production is controlled solely by the endpoint URLs in config.
+     */
+    protected static bool $testModeAffectsRequests = false;
+
     private bool $testMode = false;
 
     /**
@@ -586,6 +592,13 @@ abstract class AbstractGateway implements PosInterface
         $this->testMode = $testMode;
         $this->requestDataMapper->setTestMode($testMode);
         $this->logger->debug('switching mode', ['is_test_mode' => $this->isTestMode()]);
+        if (!static::$testModeAffectsRequests) {
+            $this->logger->warning(
+                'test_mode gateway ayarı bu gateway için istek verisini etkilemez; '
+                . 'test ve production ortamı ayrımı config\'deki endpoint URL\'leri ile yapılır',
+                ['gateway' => static::class]
+            );
+        }
     }
 
     /**

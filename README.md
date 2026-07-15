@@ -149,6 +149,12 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 
 Kopyaladıktan sonra ayarlardaki kullanmayacağınız banka ayarları silebilirsiniz.
 
+> **`gateway_configs.test_mode` hakkında:**
+> Bu ayar yalnızca **PayTrPos** ve **GarantiPos** için istek verisini etkiler
+> (banka API'sine test/prod göstergesi gönderir).
+> Diğer tüm gateway'lerde test ve production ortamı ayrımı, yukarıdaki endpoint URL'leri ile yapılır;
+> bu gateway'ler için `test_mode: true` ayarlamak bir etkisi olmaz ve logger'da uyarı mesajı oluşturur.
+
 Bundan sonra `Pos` nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız
 gerekir.
 Örnek:

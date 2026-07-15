@@ -145,7 +145,12 @@ class GarantiPosTest extends TestCase
             ->method('setTestMode')
             ->with(true);
 
+        $this->loggerMock->expects(self::never())
+            ->method('warning');
+
         $this->pos = $this->createGateway($config);
+
+        $this->assertTrue($this->pos->isTestMode());
     }
 
     #[TestWith([true])]
