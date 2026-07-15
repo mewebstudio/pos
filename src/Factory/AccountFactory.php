@@ -242,22 +242,22 @@ class AccountFactory
      * Intended for configuration-driven callers (framework wrappers, config files).
      *
      * Credential keys per gateway ([] = optional, parentheses = bank's own field name):
-     * - AssecoPos:       merchant_id (ClientId), user_name (KullaniciAdi), user_password (Sifre), [secret_key (StoreKey)]
+     * - AssecoPos:       merchant_id (ClientId), user_name (KullaniciAdi), user_password (KullaniciSifresi), [secret_key (StoreKey)]
      * - AkbankPos:       merchant_id (MerchantSafeId), terminal_id (TerminalSafeId), secret_key (SecretKey), [sub_merchant_id]
      * - GarantiPos:      merchant_id, user_name (ProvUserID), user_password (ProvisionPassword), terminal_id, [secret_key (StoreKey)], [refund_user_name (ProvUserID)], [refund_user_password (ProvisionPassword)]
      * - InterPos:        merchant_id (ShopCode), user_name (UserCode), user_password (UserPass), [secret_key (MerchantPass)]
      * - IyzicoPos:       merchant_id (ApiKey), secret_key (SecretKey), [sub_merchant_id (SubMerchantKey)]
-     * - KuveytPos:       merchant_id, user_name, terminal_id (CustomerId/MüşteriNo), secret_key (StoreKey), [sub_merchant_id]
-     * - Param3DHostPos:  merchant_id (ClientCode), user_name, user_password, secret_key (Guid), [terminal_id (Terminal_ID)]
-     * - ParamPos:        merchant_id (ClientCode), user_name, user_password, secret_key (Guid), [terminal_id (Terminal_ID)]
+     * - KuveytPos:       merchant_id (MerchantId), user_name (UserName), terminal_id (CustomerId/MüşteriNo), secret_key (Password), [sub_merchant_id]
+     * - Param3DHostPos:  merchant_id (CLIENT_CODE), user_name (CLIENT_USERNAME), user_password (CLIENT_PASSWORD), secret_key (GUID), [terminal_id (Terminal_ID)]
+     * - ParamPos:        merchant_id (CLIENT_CODE), user_name (CLIENT_USERNAME), user_password (CLIENT_PASSWORD), secret_key (GUID), [terminal_id (Terminal_ID)]
      * - PayFlexCPV4Pos:  merchant_id, user_password (Password), terminal_id (TerminalNo), [merchant_type], [sub_merchant_id]
      * - PayFlexV4Pos:    merchant_id, user_password (Password), terminal_id (TerminalNo), [merchant_type], [sub_merchant_id]
-     * - PayForPos:       merchant_id, user_name (UserCode), user_password (UserPassword), [secret_key (MerchantPass)], [mbr_id]
+     * - PayForPos:       merchant_id, user_name (UserCode), user_password (UserPass), [secret_key (MerchantPass)], [mbr_id]
      * - PayTrPos:        merchant_id, user_password (MerchantSalt), secret_key (MerchantKey)
      * - PosNetPos:       merchant_id, terminal_id, user_name (PosNetId), [secret_key (EncKey)]
      * - PosNetV1Pos:     merchant_id, terminal_id, user_name (PosNetId), [secret_key (EncKey)]
      * - ToslaPos:        merchant_id (ClientId), user_name (ApiUser), secret_key (ApiPass)
-     * - VakifKatilimPos: merchant_id, user_name, terminal_id (CustomerId/MüşteriNo), secret_key (StoreKey), [sub_merchant_id]
+     * - VakifKatilimPos: merchant_id (MerchantId), user_name (UserName), terminal_id (CustomerId/MüşteriNo), secret_key (Password), [sub_merchant_id]
      *
      * @param class-string<PosInterface>                $gatewayClass
      * @param non-empty-string                          $bank
