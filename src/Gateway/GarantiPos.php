@@ -134,6 +134,13 @@ class GarantiPos extends AbstractGateway
      */
     public function make3DPayPayment(array $gatewayResponseData, array $order, string $txType): array
     {
+        if (
+            !$this->is3DHashCheckDisabled()
+            && !$this->crypt->check3DHash($this->account, $gatewayResponseData)
+        ) {
+            throw new HashMismatchException();
+        }
+
         $this->response = $this->responseDataMapper->map3DPayResponseData($gatewayResponseData, $txType, $order);
 
         return $this->response;
