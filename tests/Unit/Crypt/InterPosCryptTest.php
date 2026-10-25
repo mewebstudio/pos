@@ -120,6 +120,28 @@ class InterPosCryptTest extends TestCase
                     'HASHPARAMSVAL'           => '1,01949http:\/\/localhost\/interpos\/3d\/response.phphttp:\/\/localhost\/interpos\/3d\/response.php20221225E1DF810',
                 ],
             ],
+            // 3dpay
+            [
+                'responseData' => [
+                    'Version'                 => '',
+                    'MerchantID'              => '',
+                    'ShopCode'                => '3123',
+                    'MD'                      => '',
+                    'OrderId'                 => '20221225B83B',
+                    'PurchAmount'             => '1,01',
+                    'Exponent'                => '',
+                    'Currency'                => '949',
+                    'OkUrl'                   => 'http:\/\/localhost\/interpos\/3d-pay\/response.php',
+                    'FailUrl'                 => 'http:\/\/localhost\/interpos\/3d-pay\/response.php',
+                    '3DStatus'                => '0',
+                    'mdStatus'                => '0',
+                    'ProcReturnCode'          => '81',
+                    'Response'                => '',
+                    'HASH'                    => 'PvDXe6Puf9W2oZnBZuHVp8oWpyY=',
+                    'HASHPARAMS'              => 'Version:PurchAmount:Exponent:Currency:OkUrl:FailUrl:MD:OrderId:ProcReturnCode:Response:mdStatus:',
+                    'HASHPARAMSVAL'           => '1,01949http:\/\/localhost\/interpos\/3d-pay\/response.phphttp:\/\/localhost\/interpos\/3d-pay\/response.php20221225B83B810',
+                ],
+            ],
         ];
     }
 
