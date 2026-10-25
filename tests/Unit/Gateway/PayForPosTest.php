@@ -444,12 +444,14 @@ class PayForPosTest extends TestCase
      */
     public function testMake3DPayPayment(): void
     {
-        $this->cryptMock->expects(self::never())
-            ->method('check3DHash');
-
         $gatewayResponseData = ['$responseData'];
         $order               = ['id' => '123'];
         $txType              = PosInterface::TX_TYPE_PAY_AUTH;
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $gatewayResponseData)
+            ->willReturn(true);
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
@@ -464,17 +466,37 @@ class PayForPosTest extends TestCase
         $this->assertTrue($pos->isSuccess());
     }
 
+    public function testMake3DPayPaymentHashMismatchException(): void
+    {
+        $gatewayResponseData = ['$responseData'];
+        $order               = ['id' => '123'];
+        $txType              = PosInterface::TX_TYPE_PAY_AUTH;
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $gatewayResponseData)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPayResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $gatewayResponseData);
+    }
+
     /**
      * @return void
      */
     public function testMake3DHostPayment(): void
     {
-        $this->cryptMock->expects(self::never())
-            ->method('check3DHash');
-
         $gatewayResponseData = ['$responseData'];
         $order               = ['id' => '123'];
         $txType              = PosInterface::TX_TYPE_PAY_AUTH;
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $gatewayResponseData)
+            ->willReturn(true);
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
@@ -487,6 +509,24 @@ class PayForPosTest extends TestCase
 
         $this->assertSame(['status' => 'approved'], $result);
         $this->assertTrue($pos->isSuccess());
+    }
+
+    public function testMake3DHostPaymentHashMismatchException(): void
+    {
+        $gatewayResponseData = ['$responseData'];
+        $order               = ['id' => '123'];
+        $txType              = PosInterface::TX_TYPE_PAY_AUTH;
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $gatewayResponseData)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DHostResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->payment(PosInterface::MODEL_3D_HOST, $order, $txType, null, $gatewayResponseData);
     }
 
     #[DataProvider('makeRegularPaymentDataProvider')]

@@ -107,6 +107,30 @@ class PayForPosCryptTest extends TestCase
                     'ResponseHash'   => 'rVcKoOOl3jKukGLHcQaVM6ZuznU=',
                 ],
             ],
+            // 3dpay
+            [
+                'expectedResult' => true,
+                'responseData'   => [
+                    'OrderId'        => '2022103114B3',
+                    'AuthCode'       => 'S86797',
+                    'ProcReturnCode' => '00',
+                    '3DStatus'       => '1',
+                    'ResponseRnd'    => 'PF638028538035077529',
+                    'ResponseHash'   => 'il/SWNG2llQkLgnCbUG6lPYtlgM=',
+                ],
+            ],
+            // 3dhost
+            [
+                'expectedResult' => true,
+                'responseData'   => [
+                    'OrderId'        => '2022103121CA',
+                    'AuthCode'       => 'S28031',
+                    'ProcReturnCode' => '00',
+                    '3DStatus'       => '1',
+                    'ResponseRnd'    => 'PF638028543970517651',
+                    'ResponseHash'   => 'R3sOuVFWDP8nvu9mtVtvLxwlqow=',
+                ],
+            ],
         ];
     }
 }

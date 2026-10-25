@@ -380,10 +380,13 @@ class GarantiPosTest extends TestCase
      */
     public function testMake3DPayPayment(): void
     {
-        $this->cryptMock->expects(self::never())
-            ->method('check3DHash');
-
         $responseData = ['$responseData'];
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $responseData)
+            ->willReturn(true);
+
         $order        = ['id' => '123'];
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
@@ -398,6 +401,24 @@ class GarantiPosTest extends TestCase
 
         $this->assertSame(['status' => 'approved'], $result);
         $this->assertTrue($pos->isSuccess());
+    }
+
+    public function testMake3DPayPaymentHashMismatchException(): void
+    {
+        $responseData = ['$responseData'];
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $responseData)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPayResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->payment(PosInterface::MODEL_3D_PAY, $order, $txType, null, $responseData);
     }
 
     #[DataProvider('makeRegularPaymentDataProvider')]
